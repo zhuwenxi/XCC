@@ -1,0 +1,16 @@
+default: all
+
+all: all-subdir
+clean: clean-subdir
+
+all-subdir clean-subdir: 
+	@+(for dir in $(SUBDIR); \
+	do \
+		if [ -f $$dir/Makefile ]; \
+		then \
+			cd $$dir && $(MAKE) -s $(subst -subdir, , $@)|| exit 1; \
+		fi \
+	done)
+
+%.o: %.c
+	@cc -c $^ -o $@
