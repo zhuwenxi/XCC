@@ -1,5 +1,7 @@
 SUBDIR := src 
 
-xcc: all
-	@cp ./src/xcc.o ./bin/xcc	
 include ./Makefile.common
+all:
+	@cp ./src/xcc.o ./bin/xcc
+clean: 
+	@rm ./bin/xcc

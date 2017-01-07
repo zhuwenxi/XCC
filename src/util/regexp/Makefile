@@ -1,3 +1,12 @@
-OBJ := regexp_main.o
+BIN := regexp.o 
+SRC := regexp_main.c 
+OBJ := $(patsubst %.c, %.o, $(SRC))
 
-all: $(OBJ)
+include ../../../Makefile.common
+
+all: $(BIN)
+	@echo "make all in ./src/util/regexp"
+clean: 
+	@rm -rf *.o
+$(BIN): $(OBJ)
+	@ld -r -o $@ $^

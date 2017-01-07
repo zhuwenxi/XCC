@@ -1,9 +1,9 @@
-OBJ := main.o ./util/util.o 
+OBJ := main.o util/util.o 
 SUBDIR := util
 
 include ../Makefile.common
 
-all: $(OBJ)
+all: 
 	@cc -o xcc.o $(OBJ)
 clean: 
 	@echo "make clean in ./src"
