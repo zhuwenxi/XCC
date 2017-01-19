@@ -1,1 +1,3 @@
 bin/
+src/**/*.o
+src/**/*.gch

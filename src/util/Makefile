@@ -1,11 +1,12 @@
 OBJ := ./regexp/regexp.o
 SUBDIR := regexp
 
+UTIL_BIN:= util.o
+
 include ../../Makefile.common
+
 all: 
-	@echo "make all in ./src/util/"
-	@ld -r -o util.o $(OBJ)
+	@ld -r -o $(UTIL_BIN) $(OBJ)
 clean:
-	@echo "make clean in src/util"
 	@rm -rf *.o
 

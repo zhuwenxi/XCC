@@ -1,10 +1,15 @@
-OBJ := main.o util/util.o 
+OBJ := main.o 
+HEADER := util/util.h
+
+SUBOBJ := util/util.o
 SUBDIR := util
+
+XCC_OBJ := xcc.o
 
 include ../Makefile.common
 
-all: 
-	@cc -o xcc.o $(OBJ)
-clean: 
-	@echo "make clean in ./src"
+all: $(OBJ) 
+	@cc -I$(XCC_INCLUDE) $(CFLAGS) -o $(XCC_OBJ) $(OBJ) $(SUBOBJ)
+$(OBJ): $(HEADER)
+clean:
 	@rm -rf *.o

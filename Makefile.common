@@ -1,5 +1,8 @@
 default: all
 
+CFLAGS := -Wall
+XCC_INCLUDE :=
+
 all: all-subdir
 clean: clean-subdir
 
@@ -13,4 +16,4 @@ all-subdir clean-subdir:
 	done)
 
 %.o: %.c
-	@cc -c $^ -o $@
+	@cc -I$(XCC_INCLUDE) $(CFLAGS) -c $^ 
