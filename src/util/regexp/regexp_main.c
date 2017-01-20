@@ -4,4 +4,5 @@
 void regexp_main()
 {
 	printf("regexp_main()\n");
+	return;
 }

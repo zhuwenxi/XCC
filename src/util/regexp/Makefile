@@ -1,7 +1,7 @@
 BIN := regexp.o 
 
-SRC := regexp_main.c
-HEADER := regexp.h
+SRC := regexp_main.c production.c
+HEADER := regexp.h production.h grammar.h 
 
 OBJ := $(patsubst %.c, %.o, $(SRC))
 

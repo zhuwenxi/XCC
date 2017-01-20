@@ -16,4 +16,4 @@ all-subdir clean-subdir:
 	done)
 
 %.o: %.c
-	@cc -I$(XCC_INCLUDE) $(CFLAGS) -c $^ 
+	@cc -I$(XCC_INCLUDE) $(CFLAGS) -c $< 
