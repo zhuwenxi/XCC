@@ -2,6 +2,8 @@ default: all
 
 CFLAGS := -Wall
 XCC_INCLUDE :=
+
+# "1" for debug mode ("DEBUG" macro enable), and others for release mode.
 DEBUG := 1
 
 ifeq ($(DEBUG), 1)
