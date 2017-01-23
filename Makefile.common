@@ -2,6 +2,13 @@ default: all
 
 CFLAGS := -Wall
 XCC_INCLUDE :=
+DEBUG := 1
+
+ifeq ($(DEBUG), 1)
+DEFINE_DEBUG := -DDEBUG
+else
+DEFINE_DEBUG :=
+endif
 
 all: all-subdir
 clean: clean-subdir
@@ -16,4 +23,6 @@ all-subdir clean-subdir:
 	done)
 
 %.o: %.c
-	@cc -I$(XCC_INCLUDE) $(CFLAGS) -c $< 
+	@cc $(DEFINE_DEBUG) -I$(XCC_INCLUDE) $(CFLAGS) -c $< 
+
+	
