@@ -20,7 +20,7 @@ visit_dir() {
 	for file in $sub_files; do
 		line_nmbr=$(wc -l $file | cut -d " " -f1)
 		total_line_nmbr=$((total_line_nmbr+line_nmbr))
-		printf "   %-4d lines : %s\n" $line_nmbr $current_parent/$file
+		printf "   %-4d lines : %s\n" $line_nmbr $(echo $current_parent/$file | cut -c 3-) 
 	done
 
 	for dir in $sub_dirs
