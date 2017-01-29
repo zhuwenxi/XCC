@@ -1,0 +1,1 @@
+TEST_SUITE(unit_test_linked_list_create_destroy, "Create a linked list")

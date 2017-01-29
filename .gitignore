@@ -2,5 +2,8 @@ bin/
 src/**/*.o
 src/**/*.u
 src/**/*.gch
+*.u
+*.o
+*.gch
 tags
 *.swp
