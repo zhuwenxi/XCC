@@ -1,15 +1,15 @@
 BIN := regexp.o 
 
-SRC := regexp_main.c production.c
+SRC := regexp.c production.c
 HEADER := regexp.h production.h grammar.h production_token.def
 
-OBJ := $(patsubst %.c, %.o, $(SRC))
+U_FILES := $(patsubst %.c, %.u, $(SRC))
 
 include ../../../Makefile.common
 
 all: $(BIN)
 clean: 
-	@rm -rf *.o
-$(BIN): $(OBJ)
+	@rm -rf *.o *.u
+$(BIN): $(U_FILES)
 	@ld -r -o $@ $^
-$(OBJ): $(SRC) $(HEADER) 
+$(U_FILES): $(HEADER) 

@@ -30,6 +30,7 @@ do{\
 //
 // Boolean type: true & false.
 //
+typedef int bool;
 #define true 1
 #define false 0
 
@@ -66,6 +67,19 @@ linked_list_next(linked_list_node_t *node);
 
 linked_list_node_t *
 linked_list_prev(linked_list_node_t *node);
+
+linked_list_t *
+linked_list_create();
+
+void
+linked_list_destroy(linked_list_t *list, void (*node_destructor)());
+
+bool 
+linked_list_append(linked_list_t *list, linked_list_node_t *node);
+
+bool
+linked_list_delete(linked_list_t *list, linked_list_node_t *node);
+
 
 #define LL_NODE_DATA(node, type) ((type *)(node->data)) 
 

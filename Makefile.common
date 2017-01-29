@@ -26,5 +26,5 @@ all-subdir clean-subdir:
 
 %.o: %.c
 	@cc $(DEFINE_DEBUG) -I$(XCC_INCLUDE) $(CFLAGS) -c $< 
-
-	
+%.u: %.c
+	@cc $(DEFINE_DEBUG) -I$(XCC_INCLUDE) $(CFLAGS) -c $< -o $@
