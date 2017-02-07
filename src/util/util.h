@@ -34,7 +34,10 @@ typedef int bool;
 #define true 1
 #define false 0
 
-
+//
+// NULL
+//
+#define NULL ((void *)0)
 
 
 //
@@ -75,13 +78,13 @@ void
 linked_list_destroy(linked_list_t *list, void (*node_destructor)());
 
 bool 
-linked_list_append(linked_list_t *list, linked_list_node_t *node);
+linked_list_append(linked_list_t *list, void *node);
 
 bool
 linked_list_delete(linked_list_t *list, linked_list_node_t *node);
 
 
-#define LL_NODE_DATA(node, type) ((type *)(node->data)) 
+#define LL_NODE_DATA(node, type) ((type)(node->data)) 
 
 
 #endif
