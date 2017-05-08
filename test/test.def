@@ -1,3 +1,0 @@
-TEST_SUITE(linked_list_create_destroy_test, "Create/destroy a linked list.")
-TEST_SUITE(linked_list_append_test, "Append a element to a linked list.")
-TEST_SUITE(linked_list_iteration_test, "Iterate a linked list.")
