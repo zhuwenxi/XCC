@@ -1,18 +1,22 @@
 SRC_DIR = src
 TEST_DIR = test
 BUILD_DIR = build
+INCLUDE_DIR = include
 
-SOURCE_FILE = main.c
+SOURCE_FILE = main.c util.c
 OBJ_FILE = $(patsubst	%.c, %.o, $(SOURCE_FILE))
 OBJ_FILE_FULL_PATH = $(addprefix	$(BUILD_DIR)/, $(OBJ_FILE)) 
+XCC = $(BUILD_DIR)/xcc
 
-global: xcc
 
+global: $(XCC)
 
-xcc: $(OBJ_FILE_FULL_PATH)
-	$(CC) -o $(BUILD_DIR)/xcc $^
+$(XCC): $(OBJ_FILE_FULL_PATH)
+	$(CC) -I$(INCLUDE_DIR) -o $@ $^
 clean:
 	@echo "clean-up done."
 	@rm -rf build/*
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-	@$(CC) -c $< -o $@
+$(BUILD_DIR)/main.o: $(SRC_DIR)/main.c
+	$(CC) -c $< -o $@
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(INCLUDE_DIR)/%.h
+	$(CC) -c $< -o $@
