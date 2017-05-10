@@ -24,7 +24,14 @@ typedef struct linked_list
 	linked_list_node_type *head;
 } linked_list_type;
 
+/*
+ * Create
+ */
 linked_list_type *linked_list_create();
+
+/*
+ * Destroy
+ */
 bool linked_list_destroy(linked_list_type *list);
 
 #endif
