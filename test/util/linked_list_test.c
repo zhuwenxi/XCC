@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "linked_list.h"
-#include "linked_list_test.h"
+#include "util/linked_list.h"
+#include "util/linked_list_test.h"
 #include "stddefs.h"
 
 

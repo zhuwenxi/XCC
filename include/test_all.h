@@ -2,8 +2,8 @@
 #define __TEST_ALL_H__
 
 #include "stddefs.h"
-#include "linked_list_test.h"
-#include "logger_test.h"
+#include "util/linked_list_test.h"
+#include "util/logger_test.h"
 
 typedef struct 
 {
