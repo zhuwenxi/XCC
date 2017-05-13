@@ -7,7 +7,7 @@
 
 
 
-void LOG(bool condition, char *format, ...)
+void LOG_impl(bool condition, char *format, ...)
 {
 	if (condition)
 	{
@@ -24,7 +24,6 @@ void LOG(bool condition, char *format, ...)
 		
 		va_list ap;
 		va_start(ap, format);
-		printf("[%s:%d] ", __FILE__, __LINE__);
 		vprintf(new_text, ap);
 		va_end(ap);
 	}

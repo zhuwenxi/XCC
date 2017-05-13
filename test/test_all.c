@@ -20,16 +20,16 @@ int main(int argc, char *args[])
 	int i;
 	for (i = 0; i < test_case_num; i ++)
 	{
-		char *desc_text = testcases[i].text;
-		printf("[%s]", desc_text);
 		bool result = testcases[i].func();
 		result ? pass_case_num ++ : fail_case_num ++;
-		char *result_text = result ? " PASS.\n" : " FAIL!\n";
+		char *result_text = result ? "PASS. " : " FAIL! ";
 		printf("%s", result_text);
+		char *desc_text = testcases[i].text;
+		printf("[%s]\n", desc_text);
 	}
 
-
+	printf("\n==============================================\n\n");
 	printf("All cases:  %d\n", pass_case_num);
 	printf("Pass cases: %d\n", pass_case_num);
-	printf("Fail cases: %d\n", fail_case_num);
+	printf("Fail cases: %d\n\n", fail_case_num);
 }

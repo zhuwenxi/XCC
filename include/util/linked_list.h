@@ -24,17 +24,34 @@ typedef struct linked_list
 	linked_list_node_type *head;
 } linked_list_type;
 
+
+
+
 /*
- * Create
+ * Create list.
  */
 linked_list_type *linked_list_create();
 
 /*
- * Destroy
+ * Destroy list.
  */
 bool linked_list_destroy(linked_list_type *list);
 
-bool linked_list_insert(linked_list_type *list, int index);
+/*
+ * Creeat node.
+ */
+linked_list_node_type *linked_list_node_create();
+
+/*
+ * Destroy node.
+ */
+bool linked_list_node_destroy();
+
+/*
+ * Insert node to list.
+ */
+bool linked_list_insert(linked_list_type *list, int index, void *data);
+bool linked_list_insert_back(linked_list_type *list, void *data);
 
 
 
