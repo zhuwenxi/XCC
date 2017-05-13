@@ -4,29 +4,13 @@
 
 
 
+#include <stdio.h>
+#include <string.h>
 #include "stddefs.h"
 
-typedef struct 
-{
-	int desc;
-	bool (*func)();
-	char *text;
-} testcase;
+#define EXPECT_TO_BE_EQUAL(a, b) \
+	if (a != b) printf("[%s:%d] Oops! Expect %d and %d to be equal.\n", __FILE__, __LINE__, a, b);
 
-typedef enum
-{
-#define DEFINE_TESTCASE(desc, func, text) desc,
-#include "test.def"
-TESTCASE_LIMIT
-#undef DEFINE_TESTCASE
-} testcase_enum_type;
-
-
-extern testcase testcases[TESTCASE_LIMIT] =
-{
-#define DEFINE_TESTCASE(desc, func, text) {.desc=desc, .func=func, .text=text},
-#include "test.def"
-#undef DEFINE_TESTCASE
-};
-
+#define EXPECT_STRING_TO_BE_EQUAL(a, b) \
+	if (strcmp(a, b) != 0) printf("[%s:%d] Oops! Expect \"%s\" and \"%s\" to be equal.\n", __FILE__, __LINE__, a, b);
 #endif

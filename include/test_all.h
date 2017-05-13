@@ -20,6 +20,4 @@ TESTCASE_LIMIT
 #undef TESTCASE
 } testcase_enum_type;
 
-// extern testcase testcases[TESTCASE_LIMIT];
-
 #endif
