@@ -16,6 +16,7 @@ linked_list_create()
 {
 	linked_list_type *list = (linked_list_type *)malloc(sizeof(linked_list_type));
 	list->head = NULL;
+	list->tail = NULL;
 	return list;
 }
 
@@ -35,6 +36,7 @@ bool linked_list_insert_back(linked_list_type *list, void *data)
 	// create a new node, and set it's "data" field.
 	linked_list_node_type *new_node = linked_list_node_create();
 	new_node->data = data;
+	list->tail = new_node;
 
 	if (list->head == NULL)
 	{

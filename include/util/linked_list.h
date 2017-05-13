@@ -22,6 +22,7 @@ typedef struct linked_list_node
 typedef struct linked_list
 {
 	linked_list_node_type *head;
+	linked_list_node_type *tail;
 } linked_list_type;
 
 
@@ -38,7 +39,7 @@ linked_list_type *linked_list_create();
 bool linked_list_destroy(linked_list_type *list);
 
 /*
- * Creeat node.
+ * Create node.
  */
 linked_list_node_type *linked_list_node_create();
 
@@ -53,6 +54,8 @@ bool linked_list_node_destroy();
 bool linked_list_insert(linked_list_type *list, int index, void *data);
 bool linked_list_insert_back(linked_list_type *list, void *data);
 
-
+/*
+ * Search node in list.
+ */
 
 #endif

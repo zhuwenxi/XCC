@@ -48,8 +48,14 @@ bool linked_list_insert_back_test()
 			current_node = list->head;
 		}	
 
-		EXPECT_TO_BE_EQUAL(*((int *)(current_node->data)), element[i]);
+		if(!EXPECT_TO_BE_EQUAL(*((int *)(current_node->data)), element[i]))
+		{
+			return FALSE;
+		}
+
 		current_node = current_node->next;
 	}
+	
+	return TRUE;
 }
 

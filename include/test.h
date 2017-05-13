@@ -9,8 +9,8 @@
 #include "stddefs.h"
 
 #define EXPECT_TO_BE_EQUAL(a, b) \
-	if (a != b) printf("[%s:%d] Oops! Expect %d and %d to be equal.\n", __FILE__, __LINE__, a, b);
+	(a != b ? printf("[%s:%d] Oops! Expect %d and %d to be equal.\n", __FILE__, __LINE__, a, b), FALSE : TRUE)
 
 #define EXPECT_STRING_TO_BE_EQUAL(a, b) \
-	if (strcmp(a, b) != 0) printf("[%s:%d] Oops! Expect \"%s\" and \"%s\" to be equal.\n", __FILE__, __LINE__, a, b);
+	(strcmp(a, b) != 0 printf("[%s:%d] Oops! Expect \"%s\" and \"%s\" to be equal.\n", __FILE__, __LINE__, a, b), FALSE : TRUE)
 #endif
