@@ -1,0 +1,2 @@
+TESTCASE(LINKED_LIST_TEST, linked_list_test, "Test for linked_list.")
+TESTCASE(LOGGER_TEST, logger_test, "Test for logger.")

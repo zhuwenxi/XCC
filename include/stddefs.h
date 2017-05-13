@@ -1,5 +1,5 @@
-#ifndef __STDDEF_H__
-#define __STDDEF_H__
+#ifndef __STDDEFS_H__
+#define __STDDEFS_H__
 
 // simulate boolean type
 typedef int bool;

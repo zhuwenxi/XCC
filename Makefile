@@ -32,8 +32,6 @@ CC = gcc $(FLAGS)
 
 
 global: $(XCC_BIN)
-fuck:
-	@echo $(DEBUG)
 
 $(XCC_BIN): $(OBJ_FILE_FULL_PATH) $(BUILD_DIR)/main.o
 	$(CC) -I$(INCLUDE_DIR) -o $@ $^
@@ -53,3 +51,5 @@ $(BUILD_DIR)/main.o: $(SRC_DIR)/main.c
 # rules for obj files in "test"
 $(BUILD_DIR)/%.o: $(TEST_DIR)/%.c $(INCLUDE_DIR)/%.h
 	$(CC) -I$(INCLUDE_DIR) -c $< -o $@
+
+$(BUILD_DIR)/test_all.c: $(INCLUDE_DIR)/test.def

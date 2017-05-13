@@ -8,14 +8,7 @@
 
 bool linked_list_test()
 {
-	if (linked_list_create_test() == TRUE)	
-	{
-		printf("linked_list_create() works properly\n");
-	}
-	else 
-	{
-		printf("Oops, linked_list_create() fails.\n");
-	}
+	return linked_list_create_test() == TRUE;
 }
 
 bool linked_list_create_test()
