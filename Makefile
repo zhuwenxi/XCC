@@ -5,21 +5,35 @@ BUILD_DIR = build
 INCLUDE_DIR = include
 
 # source files
-SOURCE_FILE = util.c linked_list.c
+SOURCE_FILE = util.c linked_list.c logger.c
 OBJ_FILE = $(patsubst	%.c, %.o, $(SOURCE_FILE))
 OBJ_FILE_FULL_PATH = $(addprefix	$(BUILD_DIR)/, $(OBJ_FILE)) 
 XCC_BIN = $(BUILD_DIR)/xcc
 
 # test files
-TEST_SOURCE_FILE = test_all.c linked_list_test.c
+TEST_SOURCE_FILE = test_all.c linked_list_test.c logger_test.c
 TEST_OBJ_FILE = $(patsubst %.c, %.o, $(TEST_SOURCE_FILE))
 TEST_OBJ_FULL_PATH = $(addprefix	$(BUILD_DIR)/, $(TEST_OBJ_FILE))
 TEST_BIN = $(BUILD_DIR)/test_all
+
+include ./Makefile.config
+
+DEBUG ?= 0
+ifeq ($(DEBUG), 0)
+FLAGS = -DRELEASE
+else 
+FLAGS = -DDEBUG
+endif
+
+# compiler
+CC = gcc $(FLAGS)
 
 .PHONY: test
 
 
 global: $(XCC_BIN)
+fuck:
+	@echo $(DEBUG)
 
 $(XCC_BIN): $(OBJ_FILE_FULL_PATH) $(BUILD_DIR)/main.o
 	$(CC) -I$(INCLUDE_DIR) -o $@ $^

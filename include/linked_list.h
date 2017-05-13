@@ -34,4 +34,8 @@ linked_list_type *linked_list_create();
  */
 bool linked_list_destroy(linked_list_type *list);
 
+bool linked_list_insert(linked_list_type *list, int index);
+
+
+
 #endif

@@ -1,5 +1,5 @@
-#ifndef __LINKED_LIST_H__
-#define __LINKED_LIST_H__
+#ifndef __LINKED_LIST_TEST_H__
+#define __LINKED_LIST_TEST_H__
 
 #include "stddefs.h"
 
