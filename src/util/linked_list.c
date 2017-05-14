@@ -161,7 +161,53 @@ linked_list_search(linked_list_type *list, void *data, bool (*equal)(void *, voi
 	return NULL;
 }
 
+// delete node in list.
+bool
+linked_list_delete(linked_list_type *list, linked_list_node_type *node, void (*data_deconstructor)(void *))
+{
+	assert(list && node);
 
+	linked_list_node_type *next_node = node->next;
+	linked_list_node_type *prev_node = node->prev;
+	
+
+	/*
+	 * prev_node->next = next_node;
+	 */	
+	if (prev_node == NULL)
+	{
+		// node == list->head	
+		assert(list->head == node);
+		
+		list->head = next_node;
+	}
+	else
+	{
+		assert(list->head != node);
+
+		prev_node->next = node->next;
+	}
+
+	/*
+	 * next_node->prev = prev_node;
+	 */
+	if (next_node == NULL)
+	{
+		assert(list->tail == node);
+
+		list->tail = prev_node;
+	}
+	else
+	{
+		assert(list->tail != node);
+
+		next_node->prev = prev_node;
+	}
+
+	linked_list_node_destroy(node, data_deconstructor);	
+
+	return TRUE;
+}
 
 
 

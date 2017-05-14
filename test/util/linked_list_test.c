@@ -11,6 +11,9 @@
 
 
 
+/*
+ * helper functions:
+ */
 static bool
 int_equal(void *a, void *b)
 {
@@ -18,6 +21,13 @@ int_equal(void *a, void *b)
 	int b_data = *TYPE_CAST(b, int*);
 	
 	return a_data == b_data;
+}
+
+static void
+destroy_int(void *data)
+{
+	int *int_pointer = TYPE_CAST(data, int*);	
+	free(int_pointer);
 }
 
 /*
@@ -42,13 +52,6 @@ linked_list_create_test()
 /*
  * linked_list_destroy() tests.
  */
-static void
-destroy_int(void *data)
-{
-	int *int_pointer = TYPE_CAST(data, int*);	
-	free(int_pointer);
-}
-
 bool
 linked_list_destroy_test()
 {
@@ -200,7 +203,71 @@ linked_list_search_test()
 	return TRUE;
 }
 
+/*
+ * linked_list_delete() tests.
+ */
+bool
+linked_list_delete_test()
+{
+	// Initialize the list.
+	linked_list_type *list = linked_list_create();
+	
+	int element[] = {2, 3, 5, 7, 11};
+	int element_num = 5;
+	int i;
 
+	int *int_p[5];
+	for (i = 0; i < element_num; i++)
+	{
+		int_p[i] = (int *)malloc(sizeof(int));	
+		*(int_p[i]) = element[i];
+	}
+
+	// int *int_p = (int *)malloc(sizeof(int) * element_num);
+
+	for (i = 0; i < element_num; i ++)
+	{
+		linked_list_insert_back(list, int_p[i]);
+	}
+
+	// "target" node whose value is 5
+	linked_list_node_type *target = linked_list_search(list, &element[2], int_equal);
+
+	// delete the "target" node
+	linked_list_delete(list, target, destroy_int);
+
+	// "node" to iterate the list
+	linked_list_node_type *node = list->head;
+
+	int new_element[] = {2, 3, 7, 11};
+
+	for (i = 0; i < 4; i++)	
+	{
+		if (!EXPECT_EQUAL(*TYPE_CAST(node->data, int *), new_element[i]))
+		{
+			return FALSE;
+		}
+		node = node->next;	
+	}
+
+	// delete the head && tail
+	linked_list_delete(list, list->head, destroy_int);
+	linked_list_delete(list, list->tail, destroy_int);
+
+	int new_element_2[] = {3, 7};
+	node = list->head;
+
+	for (i = 0; i < 2; i++)	
+	{
+		if (!EXPECT_EQUAL(*TYPE_CAST(node->data, int *), new_element_2[i]))
+		{
+			return FALSE;
+		}
+		node = node->next;	
+	}
+
+	return TRUE;
+}
 
 
 

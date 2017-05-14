@@ -59,4 +59,9 @@ bool linked_list_insert_back(linked_list_type *list, void *data);
  */
 linked_list_node_type *linked_list_search(linked_list_type *list, void *data, bool (*equal)(void *, void *));
 
+/*
+ * Delete node in list.
+ */
+bool linked_list_delete(linked_list_type *list, linked_list_node_type *node, void (*data_deconstructor)(void *));
+
 #endif
