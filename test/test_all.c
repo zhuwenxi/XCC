@@ -7,8 +7,10 @@
 testcase testcases[TESTCASE_LIMIT] =
 {
 #define TESTCASE(description, function, desc_text) {.desc=description, .func=function, .text=desc_text},
+#define XTESTCASE(desc, func, text)
 #include "test.def"
-#undef _TESTCASE
+#undef TESTCASE
+#undef XTESTCASE
 };
 
 int main(int argc, char *args[])
