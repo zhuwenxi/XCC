@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include "util/linked_list.h"
 #include "stddefs.h"
@@ -210,6 +211,53 @@ linked_list_delete(linked_list_type *list, linked_list_node_type *node, void (*d
 }
 
 
+char *
+linked_list_debug_str(linked_list_type *list, char * (*data_to_str)(void *data))
+{
+	// Initialize "debug_str", 5 for "[  ]\0"
+	int size_of_debug_str = 5;
+	char *debug_str = (char *)malloc(sizeof(char) * size_of_debug_str);
+	debug_str[0] = '[';
+	debug_str[1] = ' ';
+	
+	linked_list_node_type *node = list->head;
+	
+	while (node != NULL)
+	{
+		char *node_text = data_to_str(node->data);		
+		
+		if (node_text == NULL)
+		{
+			node_text = (char *)malloc(sizeof(char) * (strlen("NULL") + 1));
+			strcpy(node_text, "NULL");
+		}
+		
+		// extra 2 size is for ", "
+		size_of_debug_str += (strlen(node_text) + 2);
+		if (node->next == NULL) size_of_debug_str -= 2;
+
+		// reallocate memory
+		debug_str = (char *)realloc(debug_str, size_of_debug_str);
+		 
+		// copy "node_text" to "debu_str"
+		strcat(debug_str, node_text);
+		
+		if (node->next != NULL)
+			strcat(debug_str, ", ");
+		
+		free(node_text);
+
+		node = node->next;
+	}
+	
+	DB_LOG(TRUE, "%d", size_of_debug_str);
+	debug_str[size_of_debug_str - 3] = ' ';
+	debug_str[size_of_debug_str - 2] = ']';
+	debug_str[size_of_debug_str - 1] = '\0';
+
+	return debug_str;
+		
+}
 
 
 

@@ -64,4 +64,8 @@ linked_list_node_type *linked_list_search(linked_list_type *list, void *data, bo
  */
 bool linked_list_delete(linked_list_type *list, linked_list_node_type *node, void (*data_deconstructor)(void *));
 
+/*
+ * String for debug.
+ */
+char *linked_list_debug_str(linked_list_type *list, char * (*data_to_str)(void *data));
 #endif
