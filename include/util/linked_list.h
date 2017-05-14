@@ -57,5 +57,6 @@ bool linked_list_insert_back(linked_list_type *list, void *data);
 /*
  * Search node in list.
  */
+linked_list_node_type *linked_list_search(linked_list_type *list, void *data, bool (*equal)(void *, void *));
 
 #endif

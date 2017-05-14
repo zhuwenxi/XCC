@@ -62,3 +62,36 @@ bool linked_list_insert_back(linked_list_type *list, void *data)
 
 	return TRUE;
 }
+
+linked_list_node_type *linked_list_search(linked_list_type *list, void *data, bool (*equal)(void *, void *))
+{
+	assert(list && data && equal);
+	
+	linked_list_node_type *node = list->head;
+	while (node)
+	{
+		// find the element
+		if (equal(node->data, data)) 	
+		{
+			return node;
+		}
+
+		node = node->next;
+	}
+
+	return NULL;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

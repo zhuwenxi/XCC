@@ -22,7 +22,7 @@ int main(int argc, char *args[])
 	{
 		bool result = testcases[i].func();
 		result ? pass_case_num ++ : fail_case_num ++;
-		char *result_text = result ? "PASS. " : " FAIL! ";
+		char *result_text = result ? "PASS. " : "FAIL! ";
 		printf("%s", result_text);
 		char *desc_text = testcases[i].text;
 		printf("[%s]\n", desc_text);
