@@ -6,8 +6,6 @@ INCLUDE_DIR = include
 
 # sub directories in "src"
 UTIL_DIR = util
-ALL_SUB_DIR = $(UTIL_DIR)
-BUILD_SUB_DIR = $(addprefix	$(BUILD_DIR)/, $(ALL_SUB_DIR))
 
 # source files
 SOURCE_FILE = $(UTIL_DIR)/util.c $(UTIL_DIR)/linked_list.c $(UTIL_DIR)/logger.c
@@ -39,11 +37,11 @@ CC = gcc $(FLAGS)
 
 global: $(XCC_BIN)
 
-$(XCC_BIN): $(BUILD_SUB_DIR) $(OBJ_FILE_FULL_PATH) $(BUILD_DIR)/main.o
-	$(CC) -I$(INCLUDE_DIR) -o $@ $(OBJ_FILE_FULL_PATH) $(BUILD_DIR)/main.o
+$(XCC_BIN): $(OBJ_FILE_FULL_PATH) $(BUILD_DIR)/main.o
+	$(CC) -I$(INCLUDE_DIR) -o $@ $^
 
-test: $(BUILD_SUB_DIR) $(TEST_OBJ_FULL_PATH) $(OBJ_FILE_FULL_PATH)
-	$(CC) -I$(INCLUDE_DIR) -o $(TEST_BIN) $(TEST_OBJ_FULL_PATH) $(OBJ_FILE_FULL_PATH)
+test: $(TEST_OBJ_FULL_PATH) $(OBJ_FILE_FULL_PATH)
+	$(CC) -I$(INCLUDE_DIR) -o $(TEST_BIN) $^
 
 clean: 
 	@echo "clean-up done."
@@ -51,15 +49,17 @@ clean:
 $(BUILD_SUB_DIR):
 	@mkdir -p $@
 
-
 # rules for obj files in "src"
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(INCLUDE_DIR)/%.h
+	@$(eval parent_dir=$(shell dirname $@))
+	@mkdir -p $(parent_dir)
 	$(CC) -I$(INCLUDE_DIR) -c $< -o $@
 $(BUILD_DIR)/main.o: $(SRC_DIR)/main.c
 	$(CC) -I$(INCLUDE_DIR) -c $< -o $@
 
 # rules for obj files in "test"
 $(BUILD_DIR)/%.o: $(TEST_DIR)/%.c $(INCLUDE_DIR)/%.h
+	@dirname $@ | xargs mkdir -p
 	$(CC) -I$(INCLUDE_DIR) -c $< -o $@
 
 $(BUILD_DIR)/test_all.c: $(INCLUDE_DIR)/test.def
