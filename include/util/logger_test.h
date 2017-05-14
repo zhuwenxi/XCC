@@ -3,7 +3,4 @@
 
 #include "stddefs.h"
 
-bool logger_test();
-
-
 #endif

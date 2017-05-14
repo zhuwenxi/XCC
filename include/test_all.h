@@ -2,8 +2,10 @@
 #define __TEST_ALL_H__
 
 #include "stddefs.h"
-#include "util/linked_list_test.h"
-#include "util/logger_test.h"
+#define TESTCASE(desc, func, text) bool func();\
+
+#include "test.def"
+#undef TESTCASE
 
 typedef struct 
 {

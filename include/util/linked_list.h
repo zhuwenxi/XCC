@@ -36,7 +36,7 @@ linked_list_type *linked_list_create();
 /*
  * Destroy list.
  */
-bool linked_list_destroy(linked_list_type *list);
+bool linked_list_destroy(linked_list_type *list, void (*data_deconstructor)(void *));
 
 /*
  * Create node.
@@ -46,7 +46,7 @@ linked_list_node_type *linked_list_node_create();
 /*
  * Destroy node.
  */
-bool linked_list_node_destroy();
+bool linked_list_node_destroy(linked_list_node_type *node, void (*data_deconstructor)(void *));
 
 /*
  * Insert node to list.

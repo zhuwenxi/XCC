@@ -11,6 +11,7 @@
 
 
 
+// create list
 linked_list_type *
 linked_list_create()
 {
@@ -20,7 +21,38 @@ linked_list_create()
 	return list;
 }
 
-linked_list_node_type *linked_list_node_create()
+// destroy list
+bool
+linked_list_destroy(linked_list_type *list, void (*data_deconstructor)(void *))
+{
+	assert(list);
+	
+	linked_list_node_type *node = list->head;
+
+	// destroy all nodes
+	while (node != NULL)
+	{
+		linked_list_node_type *next = node->next;
+
+		if (data_deconstructor != NULL)
+		{
+			data_deconstructor(node->data);
+		}
+		
+		free(node);
+
+		node = next;
+	}
+
+	// destroy list
+	free(list);
+
+	return TRUE;
+}
+
+// create node
+linked_list_node_type *
+linked_list_node_create()
 {
 	linked_list_node_type *node = (linked_list_node_type *)malloc(sizeof(linked_list_node_type));
 	node->data = NULL;
@@ -29,7 +61,23 @@ linked_list_node_type *linked_list_node_create()
 	return node;
 }
 
-bool linked_list_insert_back(linked_list_type *list, void *data)
+// destroy node
+bool 
+linked_list_node_destroy(linked_list_node_type *node, void (*data_deconstructor)(void *))
+{
+	assert(node);
+	
+	if (data_deconstructor)	
+	{
+		data_deconstructor(node->data);	
+	}
+	
+	return TRUE;
+}
+
+// insert back
+bool 
+linked_list_insert_back(linked_list_type *list, void *data)
 {
 	assert(list != NULL);
 	
@@ -63,7 +111,9 @@ bool linked_list_insert_back(linked_list_type *list, void *data)
 	return TRUE;
 }
 
-linked_list_node_type *linked_list_search(linked_list_type *list, void *data, bool (*equal)(void *, void *))
+// search node in list
+linked_list_node_type *
+linked_list_search(linked_list_type *list, void *data, bool (*equal)(void *, void *))
 {
 	assert(list && data && equal);
 	

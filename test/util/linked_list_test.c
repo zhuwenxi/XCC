@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "util/linked_list.h"
 #include "util/linked_list_test.h"
@@ -9,12 +10,12 @@
 
 
 
-bool linked_list_test()
-{
-	return linked_list_create_test() == TRUE;
-}
 
-bool linked_list_create_test()
+/*
+ * linked_list_create() tests.
+ */
+bool
+linked_list_create_test()
 {
 	linked_list_type *list = linked_list_create();
 	
@@ -28,7 +29,47 @@ bool linked_list_create_test()
 	}
 }
 
-bool linked_list_insert_back_test()
+
+/*
+ * linked_list_destroy() tests.
+ */
+static void
+destroy_int(void *data)
+{
+	int *int_pointer = TYPE_CAST(data, int*);	
+	free(int_pointer);
+}
+
+bool
+linked_list_destroy_test()
+{
+	// prepare data.
+	int *int_pointer[7];
+	int i;
+	for (i = 0; i < 7; i ++)
+	{
+		int_pointer[i] = (int *)malloc(sizeof(int));
+	}
+
+	// create linked_list and add data to it.
+	linked_list_type *list = linked_list_create();
+	for (i = 0; i < 7; i ++)
+	{
+		linked_list_insert_back(list, TYPE_CAST(int_pointer[i], void *));
+	}
+
+	// destroy the list
+	linked_list_destroy(list, destroy_int);
+
+	return TRUE;
+}
+
+
+/*
+ * linked_list_insert_back() tests.
+ */
+bool
+linked_list_insert_back_test()
 {
 	linked_list_type *list = linked_list_create();
 	
@@ -60,7 +101,12 @@ bool linked_list_insert_back_test()
 	return TRUE;
 }
 
-static bool int_equal(void *a, void *b)
+
+/*
+ * linked_list_search() tests.
+ */
+static bool
+int_equal(void *a, void *b)
 {
 	int a_data = *TYPE_CAST(a, int*);
 	int b_data = *TYPE_CAST(b, int*);
@@ -68,7 +114,8 @@ static bool int_equal(void *a, void *b)
 	return a_data == b_data;
 }
 
-bool linked_list_search_test()
+bool
+linked_list_search_test()
 {
 	linked_list_type *list = linked_list_create();
 	
