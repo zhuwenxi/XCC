@@ -11,6 +11,15 @@
 
 
 
+static bool
+int_equal(void *a, void *b)
+{
+	int a_data = *TYPE_CAST(a, int*);
+	int b_data = *TYPE_CAST(b, int*);
+	
+	return a_data == b_data;
+}
+
 /*
  * linked_list_create() tests.
  */
@@ -66,6 +75,65 @@ linked_list_destroy_test()
 
 
 /*
+ * linked_list_insert() tests.
+ */
+bool
+linked_list_insert_test()
+{
+	linked_list_type *list = linked_list_create();
+
+	int element[] = {2, 3, 5, 7, 11};
+	int element_num = 5;
+	int i;
+	for (i = 0; i < element_num; i ++)
+	{
+		linked_list_insert_back(list, &element[i]);
+	}
+
+	linked_list_node_type *node2 = linked_list_search(list, &element[2], int_equal);
+
+	int new_data = 6;
+	linked_list_node_type *new_node = linked_list_node_create();
+	new_node->data = &new_data;
+
+	linked_list_insert(list, node2, new_node);
+
+	int new_element[] = {2, 3, 5, 6, 7, 11};
+	linked_list_node_type *node = list->head;
+	for (i = 0; i < 6; i++)
+	{
+		if (!EXPECT_EQUAL(*TYPE_CAST(node->data, int *), new_element[i]))
+		{
+			return FALSE;
+		}
+		node = node->next;	
+	}
+
+	linked_list_node_type *last_node = linked_list_search(list, &new_element[5], int_equal);
+	
+	int new_data_2 = 12;
+	linked_list_node_type *old_node = new_node;
+	new_node = linked_list_node_create();
+	new_node->data = &new_data_2;
+	
+	linked_list_insert(list, last_node, new_node);
+
+	int new_element_2[] = {2, 3, 5, 6, 7, 11, 12};
+	node = list->head;
+	for (i = 0; i < 7; i++)
+	{
+		if (!EXPECT_EQUAL(*TYPE_CAST(node->data, int *), new_element_2[i]))
+		{
+			return FALSE;
+		}
+
+		node = node->next;	
+	}
+
+	return TRUE;
+}
+
+/*
  * linked_list_insert_back() tests.
  */
 bool
@@ -105,15 +173,6 @@ linked_list_insert_back_test()
 /*
  * linked_list_search() tests.
  */
-static bool
-int_equal(void *a, void *b)
-{
-	int a_data = *TYPE_CAST(a, int*);
-	int b_data = *TYPE_CAST(b, int*);
-	
-	return a_data == b_data;
-}
-
 bool
 linked_list_search_test()
 {

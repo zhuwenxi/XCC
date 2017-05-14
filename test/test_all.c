@@ -31,7 +31,7 @@ int main(int argc, char *args[])
 	}
 
 	printf("\n==============================================\n\n");
-	printf("All cases:  %d\n", pass_case_num);
+	printf("All cases:  %d\n", pass_case_num + fail_case_num);
 	printf("Pass cases: %d\n", pass_case_num);
 	printf("Fail cases: %d\n\n", fail_case_num);
 }

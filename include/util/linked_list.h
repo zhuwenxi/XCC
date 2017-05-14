@@ -51,7 +51,7 @@ bool linked_list_node_destroy(linked_list_node_type *node, void (*data_deconstru
 /*
  * Insert node to list.
  */
-bool linked_list_insert(linked_list_type *list, int index, void *data);
+bool linked_list_insert(linked_list_type *list, linked_list_node_type *index_node, linked_list_node_type *node);
 bool linked_list_insert_back(linked_list_type *list, void *data);
 
 /*

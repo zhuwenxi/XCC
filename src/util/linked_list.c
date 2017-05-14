@@ -75,7 +75,7 @@ linked_list_node_destroy(linked_list_node_type *node, void (*data_deconstructor)
 	return TRUE;
 }
 
-// insert back
+// insert at the tail of the list 
 bool 
 linked_list_insert_back(linked_list_type *list, void *data)
 {
@@ -108,6 +108,35 @@ linked_list_insert_back(linked_list_type *list, void *data)
 		new_node->next = NULL;
 	}
 
+	return TRUE;
+}
+
+bool
+linked_list_insert(linked_list_type *list, linked_list_node_type *index_node, linked_list_node_type *node)
+{
+	assert(list && index_node && node);	
+
+	// reset list->tail if necessary
+	if(list->tail == index_node)
+	{
+		list->tail = node;
+	}
+
+	// cache the node next to "index_node"
+	linked_list_node_type *next_to_index = index_node->next;
+
+	// set node->prev and index_node->next
+	node->prev = index_node;	
+	index_node->next = node;
+
+	// set node->next
+	node->next = next_to_index;
+
+	if (next_to_index != NULL)
+	{
+		next_to_index->prev = node;
+	}
+		
 	return TRUE;
 }
 
