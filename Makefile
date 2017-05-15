@@ -1,23 +1,65 @@
-SUBDIR := src 
+# project directory structure
+SRC_DIR = src
+TEST_DIR = test
+BUILD_DIR = build
+INCLUDE_DIR = include
 
-XCC_BIN := xcc
-XCC_OBJ := $(addsuffix .o, $(XCC_BIN))
+# sub directories in "src"
+UTIL_DIR = util
 
-BIN_DIR := bin
-SRC_DIR := src
+# source files
+SOURCE_FILE = $(UTIL_DIR)/util.c $(UTIL_DIR)/linked_list.c $(UTIL_DIR)/logger.c
+OBJ_FILE = $(patsubst	%.c, %.o, $(SOURCE_FILE))
+OBJ_FILE_FULL_PATH = $(addprefix	$(BUILD_DIR)/, $(OBJ_FILE)) 
+XCC_BIN = $(BUILD_DIR)/xcc
 
-# For test.
-TEST_U := test/test.u test/linked_list.u
-TEST_BIN := bin/test 
-SUB_OBJ := src/util/util.o
+# test files
+TEST_SOURCE_FILE = test_all.c $(UTIL_DIR)/linked_list_test.c $(UTIL_DIR)/logger_test.c
+TEST_OBJ_FILE = $(patsubst %.c, %.o, $(TEST_SOURCE_FILE))
+TEST_OBJ_FULL_PATH = $(addprefix	$(BUILD_DIR)/, $(TEST_OBJ_FILE))
+TEST_BIN = $(BUILD_DIR)/test_all
 
-include ./Makefile.common
+# config from "Makefile.config"
+include ./Makefile.config
 
-all:
-	@cp $(SRC_DIR)/$(XCC_OBJ) $(BIN_DIR)/$(XCC_BIN)
+DEBUG ?= 0
+ifeq ($(DEBUG), 0)
+FLAGS = -DRELEASE
+else 
+FLAGS = -DDEBUG
+endif
+
+# compiler
+CC = gcc $(FLAGS)
+
+.PHONY: test
+
+
+global: $(XCC_BIN)
+
+$(XCC_BIN): $(OBJ_FILE_FULL_PATH) $(BUILD_DIR)/main.o
+	$(CC) -I$(INCLUDE_DIR) -o $@ $^
+
+test: $(TEST_OBJ_FULL_PATH) $(OBJ_FILE_FULL_PATH)
+	$(CC) -I$(INCLUDE_DIR) -o $(TEST_BIN) $^
+
 clean: 
-	@rm -rf $(BIN_DIR)/* test/*.u test/*.o
-test: $(TEST_U) all
-	@echo "making test"
-	@cc -I$(XCC_INCLUDE) $(CFLAGS) -o $(TEST_BIN) $(TEST_U) $(SUB_OBJ)
-test/test.u: test/test.h test/test.def
+	@echo "clean-up done."
+	@rm -rf build/*
+$(BUILD_SUB_DIR):
+	@mkdir -p $@
+
+# rules for obj files in "src"
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(INCLUDE_DIR)/%.h
+	@$(eval parent_dir=$(shell dirname $@))
+	@mkdir -p $(parent_dir)
+	$(CC) -I$(INCLUDE_DIR) -c $< -o $@
+$(BUILD_DIR)/main.o: $(SRC_DIR)/main.c
+	$(CC) -I$(INCLUDE_DIR) -c $< -o $@
+
+# rules for obj files in "test"
+$(BUILD_DIR)/%.o: $(TEST_DIR)/%.c $(INCLUDE_DIR)/%.h
+	@dirname $@ | xargs mkdir -p
+	$(CC) -I$(INCLUDE_DIR) -c $< -o $@
+
+$(BUILD_DIR)/test_all.c: $(INCLUDE_DIR)/test.def
