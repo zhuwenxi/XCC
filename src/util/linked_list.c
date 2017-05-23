@@ -35,10 +35,7 @@ linked_list_destroy(linked_list_type *list, void (*data_deconstructor)(void *))
 	{
 		linked_list_node_type *next = node->next;
 
-		if (data_deconstructor != NULL)
-		{
-			data_deconstructor(node->data);
-		}
+		linked_list_node_destroy(node,data_deconstructor);
 		
 		free(node);
 

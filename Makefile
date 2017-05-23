@@ -8,7 +8,7 @@ INCLUDE_DIR = include
 UTIL_DIR = util
 
 # source files
-SOURCE_FILE = $(UTIL_DIR)/util.c $(UTIL_DIR)/linked_list.c $(UTIL_DIR)/logger.c
+SOURCE_FILE = $(UTIL_DIR)/util.c $(UTIL_DIR)/linked_list.c $(UTIL_DIR)/logger.c $(UTIL_DIR)/array_list.c
 OBJ_FILE = $(patsubst	%.c, %.o, $(SOURCE_FILE))
 OBJ_FILE_FULL_PATH = $(addprefix	$(BUILD_DIR)/, $(OBJ_FILE)) 
 XCC_BIN = $(BUILD_DIR)/xcc
@@ -62,4 +62,4 @@ $(BUILD_DIR)/%.o: $(TEST_DIR)/%.c $(INCLUDE_DIR)/%.h
 	@dirname $@ | xargs mkdir -p
 	$(CC) -I$(INCLUDE_DIR) -c $< -o $@
 
-$(BUILD_DIR)/test_all.c: $(INCLUDE_DIR)/test.def
+$(BUILD_DIR)/test_all.c: include/test.def
