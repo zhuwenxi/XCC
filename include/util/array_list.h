@@ -56,6 +56,6 @@ void array_list_set(array_list_type *list, int index, void *data);
 /*
  * String for debug.
  */
-char *linked_list_debug_str(array_list_type *list, char * (*data_to_str)(void *data));
+char *array_list_debug_str(array_list_type *list, char * (*data_to_str)(void *data));
 
 #endif
