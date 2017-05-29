@@ -13,7 +13,8 @@ SOURCE_FILE = $(UTIL_DIR)/util.c \
 	$(UTIL_DIR)/logger.c \
 	$(UTIL_DIR)/array_list.c \
 	$(UTIL_DIR)/string_buffer.c \
-	$(UTIL_DIR)/stack.c
+	$(UTIL_DIR)/stack.c \
+	$(UTIL_DIR)/hash_table.c
 OBJ_FILE = $(patsubst	%.c, %.o, $(SOURCE_FILE))
 OBJ_FILE_FULL_PATH = $(addprefix	$(BUILD_DIR)/, $(OBJ_FILE)) 
 XCC_BIN = $(BUILD_DIR)/xcc
