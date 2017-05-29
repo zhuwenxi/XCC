@@ -3,6 +3,7 @@
 
 #include "util/array_list.h"
 #include "util/logger.h"
+#include "util/string_buffer.h"
 
 
 
@@ -113,5 +114,25 @@ void array_list_set(array_list_type *list, int index, void *data)
 
 char *array_list_debug_str(array_list_type *list, char * (*data_to_str)(void *data))
 {
+	string_buffer debug_str = string_buffer_create();
 
+	string_buffer_append(&debug_str, "[");
+
+	int i;
+	for (i = 0; i < list->length; i ++)
+	{
+		char *item_str = array_list_get(list, i);
+
+		if (data_to_str != NULL)
+		{
+			item_str = data_to_str(array_list_get(list, i));
+		}
+
+		string_buffer_append(&debug_str, item_str);
+
+		if (i != list->length - 1)
+			string_buffer_append(&debug_str, ", ");
+	}
+
+	string_buffer_append(&debug_str, "]");
 }

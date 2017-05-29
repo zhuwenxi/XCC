@@ -1,18 +1,16 @@
 #include "util/logger.h"
 #include "util/string_buffer.h"
+#include "util/array_list.h"
 
 int main(int argc, char *argv[])
 {
 	printf("Hello, world!\n");
 
-	string_buffer str = string_buffer_create();
-	string_buffer_append(&str, "Foo");
-	LOG(TRUE, str);
-	string_buffer_append(&str, "Bar");
-	LOG(TRUE, str);
-	string_buffer_append(&str, ": string_buffer");
-	LOG(TRUE, str);
-
-	string_buffer_destroy(str);
 	
+	array_list_type *list = array_list_create();
+	array_list_append(list, "a");
+	array_list_append(list, "bb");
+	array_list_append(list, "ccc");
+
+	LOG(TRUE, array_list_debug_str(list, NULL));
 }
