@@ -93,7 +93,7 @@ array_list_set_test()
 
 	for (i = 0; i < len; i++)
 	{
-		if (!EXPECT_EQUAL(*(int *)array_list_get(list, i), 110)) return FALSE;
+		if (!EXPECT_EQUAL(*(int *)array_list_get(list, i), default_data)) return FALSE;
 	}
 
 	return TRUE;
