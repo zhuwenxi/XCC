@@ -4,6 +4,7 @@
 
 
 
+#include <stddef.h>
 #include "stddefs.h"
 
 typedef struct array_list_node

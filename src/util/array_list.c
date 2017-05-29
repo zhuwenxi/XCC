@@ -66,13 +66,12 @@ bool array_list_append(array_list_type *list, void *data)
 	if (list->length > list->capacity)
 	{
 		list->capacity *= 1.5;
-		list->content = (array_list_node_type **)realloc(list, sizeof(array_list_node_type *) * list->capacity);
+		list->content = (array_list_node_type **)realloc(list->content, sizeof(array_list_node_type *) * list->capacity);
 	}
 
 	// Create append node and set data.
 	array_list_node_type *append_node = array_list_node_create();
 	append_node->data = data;
-
 	list->content[list->length - 1] = append_node;
 
 	return TRUE;
