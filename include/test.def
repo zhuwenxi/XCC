@@ -17,3 +17,10 @@ TESTCASE(ARRAY_LIST_APPEND_TEST, array_list_append_test, "Test for array_list_ap
 TESTCASE(ARRAY_LIST_GET_TEST, array_list_get_test, "Test for array_list_get().")
 TESTCASE(ARRAY_LIST_SET_TEST, array_list_set_test, "Test for array_list_set().")
 
+/*
+ * Test cases for stack.c
+ */
+TESTCASE(STACK_CREATE_DESTROY_TEST, stack_create_destroy_test, "Test for stack_create_destroy().")
+TESTCASE(STACK_EMPTY_TEST, stack_empty_test, "Test for stack_empty().")
+TESTCASE(STACK_PUSH_POP_TEST, stack_push_pop_test, "Test for stack_push_pop().")
+TESTCASE(STACK_PEEK_TEST, stack_peek_test, "Test for stack_peek().")
