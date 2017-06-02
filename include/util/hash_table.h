@@ -4,9 +4,13 @@
 #include "array_list.h"
 #include "stddefs.h"
 
-typedef array_list_type hash_table_type;
+typedef struct
+{
+	array_list_type *buckets;
+	int (*hash)(void *data);
+} hash_table_type;
 
-hash_table_type *hash_table_create(void (*hash)(void *));
+hash_table_type *hash_table_create(int (*hash)(void *));
 
 bool hash_table_destroy(hash_table_type *table, void (*data_destroyer)());
 
