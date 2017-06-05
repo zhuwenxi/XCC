@@ -5,6 +5,8 @@
 
 
 #include <stddef.h>
+#include <stdarg.h>
+
 #include "stddefs.h"
 
 typedef struct array_list_node
@@ -27,7 +29,12 @@ array_list_type *array_list_create();
 /*
  * Destroy array list.
  */
-bool array_list_destroy(array_list_type *list, void (*data_deconstructor)(void *));
+bool array_list_destroy(array_list_type *list, ...);
+
+/*
+ * De-constructor.
+ */
+bool array_list_deconstructor(array_list_type *list, va_list arg_list);
 
 /*
  * Create array list node.
@@ -37,7 +44,7 @@ array_list_node_type *array_list_node_create();
 /*
  * Destory array list node.
  */
-bool array_list_node_destroy(array_list_node_type *node, void (*data_deconstructor)(void *));
+bool array_list_node_destroy(array_list_node_type *node, va_list arg_list);
 
 /*
  * Append node to array list.

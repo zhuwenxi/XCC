@@ -16,6 +16,7 @@ TESTCASE(ARRAY_LIST_DESTROY_TEST, array_list_destroy_test, "Test for array_list_
 TESTCASE(ARRAY_LIST_APPEND_TEST, array_list_append_test, "Test for array_list_append().")
 TESTCASE(ARRAY_LIST_GET_TEST, array_list_get_test, "Test for array_list_get().")
 TESTCASE(ARRAY_LIST_SET_TEST, array_list_set_test, "Test for array_list_set().")
+TESTCASE(ARRAY_LIST_MULTI_DIM_ARRAY_TEST, array_list_multi_dim_test, "Test for multi dim array_list.")
 
 /*
  * Test cases for stack.c

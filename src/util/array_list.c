@@ -21,18 +21,62 @@ array_list_create()
 }
 
 bool
-array_list_destroy(array_list_type *list, void (*data_deconstructor)(void *))
+array_list_destroy(array_list_type *list, ...)
 {
+	if (list == NULL)
+	{
+		return FALSE;
+	}
+
+	va_list ap;
+	va_start(ap, list);
+	array_list_deconstructor(list, ap);
+	va_end(ap);
+
+	return TRUE;
+}
+
+// bool
+// array_list_destroy_diy(array_list_type *list, void (*data_deconstructor)(void *))
+// {
+// 	int i;
+// 	for (i = 0; i < list->length; i++)
+// 	{
+// 		array_list_node_destroy(list->content[i], data_deconstructor);
+// 	}
+
+// 	free(list->content);
+// 	free(list);
+// 	return TRUE;
+	
+// }
+
+bool
+array_list_deconstructor(array_list_type *list, va_list arg_list)
+{
+	if (list == NULL)
+	{
+		return FALSE;
+	}
+	
 	int i;
 	for (i = 0; i < list->length; i++)
 	{
-		array_list_node_destroy(list->content[i], data_deconstructor);
+		void *node = list->content[i];
+		if (node != NULL)
+		{
+			va_list tmp;
+			va_copy(tmp, arg_list);
+			array_list_node_destroy(node, tmp);
+			va_end(tmp);
+		}
 	}
 
+	// destroy list itself
 	free(list->content);
 	free(list);
+
 	return TRUE;
-	
 }
 
 array_list_node_type *
@@ -45,11 +89,15 @@ array_list_node_create()
 }
 
 bool
-array_list_node_destroy(array_list_node_type *node, void (*data_deconstructor)(void *))
+array_list_node_destroy(array_list_node_type *node, va_list arg_list)
 {
-	if (data_deconstructor != NULL)
+	// get sub-deconstructor from "arg_list"
+	bool (*sub_deconstructor)(void *, va_list);
+	sub_deconstructor = va_arg(arg_list, bool (*)(void *, va_list));
+
+	if (sub_deconstructor != NULL)
 	{
-		data_deconstructor(node->data);
+		sub_deconstructor(node->data, arg_list);
 	}
 
 	free(node);
