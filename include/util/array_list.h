@@ -64,6 +64,7 @@ void array_list_set(array_list_type *list, int index, void *data);
 /*
  * String for debug.
  */
-char *array_list_debug_str(array_list_type *list, char * (*data_to_str)(void *data));
+char *get_array_list_debug_str(array_list_type *list, ...);
 
+char *array_list_debug_str(array_list_type *list, va_list arg_list);
 #endif

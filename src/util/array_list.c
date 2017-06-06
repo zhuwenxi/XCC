@@ -160,27 +160,75 @@ void array_list_set(array_list_type *list, int index, void *data)
 	list->content[index]->data = data;
 }
 
-char *array_list_debug_str(array_list_type *list, char * (*data_to_str)(void *data))
+char *get_array_list_debug_str(array_list_type *list, ...)
+{
+	va_list arg_list;
+	va_start(arg_list, list);
+
+	// int i;
+	// for (i = 0; i < list->length; i ++)
+	// {
+	// 	char *item_str;
+
+	// 	if (data_to_str != NULL)
+	// 	{
+	// 		item_str = data_to_str(array_list_get(list, i));
+	// 	}
+	// 	else
+	// 	{
+	// 		item_str = array_list_get(list, i);
+	// 	}
+
+	// 	string_buffer_append(&debug_str, item_str);
+
+	// 	if (i != list->length - 1)
+	// 		string_buffer_append(&debug_str, ", ");
+	// }
+	char* debug_str = array_list_debug_str(list, arg_list);
+
+	va_end(arg_list);
+
+	
+	return debug_str;
+}
+
+char *
+array_list_debug_str(array_list_type *list, va_list arg_list)
 {
 	string_buffer debug_str = string_buffer_create();
 
 	string_buffer_append(&debug_str, "[");
 
+	va_list arg_list_copy;
+	va_copy(arg_list_copy, arg_list);
+
+	char *(*sub_debug_str)(void *, va_list);
+	sub_debug_str = va_arg(arg_list_copy, char *(*)(void *, va_list));
+
 	int i;
-	for (i = 0; i < list->length; i ++)
+	for (i = 0; i < list->length; i++)
 	{
-		char *item_str = array_list_get(list, i);
-
-		if (data_to_str != NULL)
+		if (sub_debug_str != NULL)
 		{
-			item_str = data_to_str(array_list_get(list, i));
+			char *item_str = sub_debug_str(list->content[i]->data, arg_list_copy);
+			string_buffer_append(&debug_str, item_str);
+			string_buffer_destroy(item_str);
 		}
-
-		string_buffer_append(&debug_str, item_str);
+		else
+		{
+			string_buffer_append(&debug_str, list->content[i]->data);
+		}
 
 		if (i != list->length - 1)
 			string_buffer_append(&debug_str, ", ");
 	}
 
+	
+
+	va_end(arg_list_copy);
+
 	string_buffer_append(&debug_str, "]");
+
+	return debug_str;
+
 }
