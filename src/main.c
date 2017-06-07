@@ -45,6 +45,9 @@ int main(int argc, char *argv[])
 	linked_list_insert_back(inner_list_3, "hhh");
 	linked_list_insert_back(inner_list_3, "iii");
 
+	#define fuck linked_list_insert_back
+	fuck(inner_list_3, "kkkk");
+
 	list_str = get_linked_list_debug_str(outer_list, linked_list_debug_str, NULL);
 	LOG(TRUE, list_str);
 	free(list_str);

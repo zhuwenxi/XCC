@@ -11,11 +11,11 @@ stack_create()
 	return stack;
 }
 
-bool
-stack_destroy(stack_type *stack, void (*data_deconstructor)(void *))
-{
-	return array_list_destroy(stack, data_deconstructor);
-}
+// bool
+// stack_destroy(stack_type *stack, void (*data_deconstructor)(void *))
+// {
+// 	return array_list_destroy(stack, data_deconstructor);
+// }
 
 bool
 stack_empty(stack_type *stack)

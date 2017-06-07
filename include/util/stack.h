@@ -1,6 +1,8 @@
 #ifndef __STACK_H__
 #define __STACK_H__
 
+#include <stdarg.h>
+
 #include "util/array_list.h"
 #include "stddefs.h"
 
@@ -9,7 +11,8 @@ typedef array_list_type stack_type;
 
 stack_type *stack_create();
 
-bool stack_destroy(stack_type *stack, void (*data_deconstructor)(void *));
+// bool stack_destroy(stack_type *stack, void (*data_deconstructor)(void *));
+#define stack_destroy array_list_destroy
 
 bool stack_empty(stack_type *stack);
 
