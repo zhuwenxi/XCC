@@ -1,8 +1,7 @@
 #ifndef __LINKED_LIST_H__
 #define __LINKED_LIST_H__
 
-
-
+#include <stdarg.h>
 
 #include "stddefs.h"
 
@@ -36,7 +35,9 @@ linked_list_type *linked_list_create();
 /*
  * Destroy list.
  */
-bool linked_list_destroy(linked_list_type *list, void (*data_deconstructor)(void *));
+bool linked_list_destroy(linked_list_type *list, ...);
+
+bool linked_list_deconstructor(linked_list_type *list, va_list arg_list); 
 
 /*
  * Create node.
@@ -46,7 +47,7 @@ linked_list_node_type *linked_list_node_create();
 /*
  * Destroy node.
  */
-bool linked_list_node_destroy(linked_list_node_type *node, void (*data_deconstructor)(void *));
+bool linked_list_node_destroy(linked_list_node_type *node, va_list arg_list);
 
 /*
  * Insert node to list.
@@ -62,10 +63,11 @@ linked_list_node_type *linked_list_search(linked_list_type *list, void *data, bo
 /*
  * Delete node in list.
  */
-bool linked_list_delete(linked_list_type *list, linked_list_node_type *node, void (*data_deconstructor)(void *));
+bool linked_list_delete(linked_list_type *list, linked_list_node_type *node, ...);
 
 /*
  * String for debug.
  */
-char *linked_list_debug_str(linked_list_type *list, char * (*data_to_str)(void *data));
+char *get_linked_list_debug_str(linked_list_type *list, ...);
+char *linked_list_debug_str(linked_list_type *list, va_list arg_list);
 #endif

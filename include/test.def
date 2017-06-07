@@ -7,6 +7,7 @@ TESTCASE(LINKED_LIST_INSERT_TEST, linked_list_insert_test, "Test for linked_list
 TESTCASE(LINKED_LIST_INSERT_BACK_TEST, linked_list_insert_back_test, "Test for linked_list_insert_back().")
 TESTCASE(LINKED_LIST_SEARCH_TEST, linked_list_search_test, "Test for linked_list_search().")
 TESTCASE(LINKED_LIST_DELETE_TEST, linked_list_delete_test, "Test for linked_list_delete().")
+TESTCASE(LINKED_LIST_MULTI_DIM_TEST, linked_list_multi_dim_test, "Test for multi-dim linked_list.")
 
 /*
  * Test cases for array_list.c

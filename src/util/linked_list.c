@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "util/linked_list.h"
+#include "util/string_buffer.h"
 #include "stddefs.h"
 #include "opts.h"
 #include "util/logger.h"
@@ -23,26 +24,67 @@ linked_list_create()
 }
 
 // destroy list
-bool
-linked_list_destroy(linked_list_type *list, void (*data_deconstructor)(void *))
-{
-	assert(list);
+// bool
+// linked_list_destroy(linked_list_type *list, void (*data_deconstructor)(void *))
+// {
+// 	assert(list);
 	
-	linked_list_node_type *node = list->head;
+// 	linked_list_node_type *node = list->head;
 
-	// destroy all nodes
-	while (node != NULL)
-	{
-		linked_list_node_type *next = node->next;
+// 	// destroy all nodes
+// 	while (node != NULL)
+// 	{
+// 		linked_list_node_type *next = node->next;
 
-		linked_list_node_destroy(node,data_deconstructor);
+// 		linked_list_node_destroy(node,data_deconstructor);
 		
-		free(node);
+// 		free(node);
 
-		node = next;
+// 		node = next;
+// 	}
+
+// 	// destroy list
+// 	free(list);
+
+// 	return TRUE;
+// }
+bool
+linked_list_destroy(linked_list_type *list, ...)
+{
+	if (list == NULL)
+	{
+		return FALSE;
 	}
 
-	// destroy list
+	va_list ap;
+	va_start(ap, list);
+	linked_list_deconstructor(list, ap);
+	va_end(ap);
+
+	return TRUE;
+}
+
+bool
+linked_list_deconstructor(linked_list_type *list, va_list arg_list)
+{
+	if (list == NULL)
+	{
+		return FALSE;
+	}
+
+	linked_list_node_type *node = list->head;
+	while (node != NULL)
+	{
+		linked_list_node_type *next_node = node->next;
+
+		va_list tmp;
+		va_copy(tmp, arg_list);
+		linked_list_node_destroy(node, tmp);
+		va_end(tmp);
+
+		node = next_node;
+	}
+
 	free(list);
 
 	return TRUE;
@@ -61,15 +103,18 @@ linked_list_node_create()
 
 // destroy node
 bool 
-linked_list_node_destroy(linked_list_node_type *node, void (*data_deconstructor)(void *))
+linked_list_node_destroy(linked_list_node_type *node, va_list arg_list)
 {
-	assert(node);
-	
-	if (data_deconstructor)	
+	bool (*sub_deconstructor)(void *, va_list);
+	sub_deconstructor = va_arg(arg_list, bool (*)(void *, va_list));
+
+	if (sub_deconstructor != NULL)
 	{
-		data_deconstructor(node->data);	
+		sub_deconstructor(node->data, arg_list);
 	}
-	
+
+	free(node);
+
 	return TRUE;
 }
 
@@ -161,7 +206,7 @@ linked_list_search(linked_list_type *list, void *data, bool (*equal)(void *, voi
 
 // delete node in list.
 bool
-linked_list_delete(linked_list_type *list, linked_list_node_type *node, void (*data_deconstructor)(void *))
+linked_list_delete(linked_list_type *list, linked_list_node_type *node, ...)
 {
 	assert(list && node);
 
@@ -202,58 +247,71 @@ linked_list_delete(linked_list_type *list, linked_list_node_type *node, void (*d
 		next_node->prev = prev_node;
 	}
 
-	linked_list_node_destroy(node, data_deconstructor);	
+	va_list arg_list;
+	va_start(arg_list, node);
+	linked_list_node_destroy(node, arg_list);
+	va_end(arg_list);
 
 	return TRUE;
 }
 
+char *
+get_linked_list_debug_str(linked_list_type *list, ...)
+{
+	va_list arg_list;
+	va_start(arg_list, list);
+
+	char* debug_str = linked_list_debug_str(list, arg_list);
+
+	va_end(arg_list);
+
+	
+	return debug_str;
+}
 
 char *
-linked_list_debug_str(linked_list_type *list, char * (*data_to_str)(void *data))
+linked_list_debug_str(linked_list_type *list, va_list arg_list)
 {
-	// Initialize "debug_str", 5 for "[  ]\0"
-	int size_of_debug_str = 5;
-	char *debug_str = (char *)malloc(sizeof(char) * size_of_debug_str);
-	debug_str[0] = '[';
-	debug_str[1] = ' ';
+	string_buffer debug_str = string_buffer_create();
+
+	string_buffer_append(&debug_str, "[");
+
+	va_list arg_list_copy;
+	va_copy(arg_list_copy, arg_list);
 	
+	char *(*sub_debug_str)(void *, va_list);
+	sub_debug_str = va_arg(arg_list_copy, char *(*)(void *, va_list));
+
 	linked_list_node_type *node = list->head;
-	
 	while (node != NULL)
 	{
-		char *node_text = data_to_str(node->data);		
-		
-		if (node_text == NULL)
+		linked_list_node_type *next_node = node->next;
+
+		char *item_str;
+		if (sub_debug_str != NULL)
 		{
-			node_text = (char *)malloc(sizeof(char) * (strlen("NULL") + 1));
-			strcpy(node_text, "NULL");
+			item_str = sub_debug_str(node->data, arg_list_copy);
+			string_buffer_append(&debug_str, item_str);
+			string_buffer_destroy(item_str);
 		}
-		
-		// extra 2 size is for ", "
-		size_of_debug_str += (strlen(node_text) + 2);
-		if (node->next == NULL) size_of_debug_str -= 2;
+		else
+		{
+			item_str = (char *)node->data;
+			string_buffer_append(&debug_str, item_str);
+		}
 
-		// reallocate memory
-		debug_str = (char *)realloc(debug_str, size_of_debug_str);
-		 
-		// copy "node_text" to "debu_str"
-		strcat(debug_str, node_text);
-		
-		if (node->next != NULL)
-			strcat(debug_str, ", ");
-		
-		free(node_text);
+		if (node != list->tail)
+			string_buffer_append(&debug_str, " -> ");
 
-		node = node->next;
+		node = next_node;
 	}
-	
-	DB_LOG(TRUE, "%d", size_of_debug_str);
-	debug_str[size_of_debug_str - 3] = ' ';
-	debug_str[size_of_debug_str - 2] = ']';
-	debug_str[size_of_debug_str - 1] = '\0';
+
+	va_end(arg_list_copy);
+
+	string_buffer_append(&debug_str, "]");
 
 	return debug_str;
-		
+
 }
 
 

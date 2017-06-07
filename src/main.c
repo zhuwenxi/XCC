@@ -1,6 +1,6 @@
 #include "util/logger.h"
 #include "util/string_buffer.h"
-#include "util/array_list.h"
+#include "util/linked_list.h"
 #include <stdlib.h>
 
 static char *
@@ -14,38 +14,38 @@ int main(int argc, char *argv[])
 	printf("Hello, world!\n");
 
 	
-	array_list_type *list = array_list_create();
-	array_list_append(list, "a");
-	array_list_append(list, "bb");
-	array_list_append(list, "ccc");
+	linked_list_type *list = linked_list_create();
+	linked_list_insert_back(list, "a");
+	linked_list_insert_back(list, "bb");
+	linked_list_insert_back(list, "ccc");
 
-	char *list_str = get_array_list_debug_str(list, NULL);
+	char *list_str = get_linked_list_debug_str(list, NULL);
 	LOG(TRUE, list_str);
 
 	free(list_str);
 
-	array_list_type *outer_list = array_list_create();
-	array_list_type *inner_list_1 = array_list_create();
-	array_list_type *inner_list_2 = array_list_create();
-	array_list_type *inner_list_3 = array_list_create();
+	linked_list_type *outer_list = linked_list_create();
+	linked_list_type *inner_list_1 = linked_list_create();
+	linked_list_type *inner_list_2 = linked_list_create();
+	linked_list_type *inner_list_3 = linked_list_create();
 
-	array_list_append(outer_list, inner_list_1);
-	array_list_append(outer_list, inner_list_2);
-	array_list_append(outer_list, inner_list_3);
+	linked_list_insert_back(outer_list, inner_list_1);
+	linked_list_insert_back(outer_list, inner_list_2);
+	linked_list_insert_back(outer_list, inner_list_3);
 
-	array_list_append(inner_list_1, "a");
-	array_list_append(inner_list_1, "b");
-	array_list_append(inner_list_1, "c");
+	linked_list_insert_back(inner_list_1, "a");
+	linked_list_insert_back(inner_list_1, "b");
+	linked_list_insert_back(inner_list_1, "c");
 
-	array_list_append(inner_list_2, "dd");
-	array_list_append(inner_list_2, "ee");
-	array_list_append(inner_list_2, "ff");
+	linked_list_insert_back(inner_list_2, "dd");
+	linked_list_insert_back(inner_list_2, "ee");
+	linked_list_insert_back(inner_list_2, "ff");
 
-	array_list_append(inner_list_3, "ggg");
-	array_list_append(inner_list_3, "hhh");
-	array_list_append(inner_list_3, "iii");
+	linked_list_insert_back(inner_list_3, "ggg");
+	linked_list_insert_back(inner_list_3, "hhh");
+	linked_list_insert_back(inner_list_3, "iii");
 
-	list_str = get_array_list_debug_str(outer_list, array_list_debug_str, NULL);
+	list_str = get_linked_list_debug_str(outer_list, linked_list_debug_str, NULL);
 	LOG(TRUE, list_str);
 	free(list_str);
 }

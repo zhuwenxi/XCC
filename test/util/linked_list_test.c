@@ -71,7 +71,7 @@ linked_list_destroy_test()
 	}
 
 	// destroy the list
-	linked_list_destroy(list, destroy_int);
+	linked_list_destroy(list, destroy_int, NULL);
 
 	return TRUE;
 }
@@ -265,6 +265,63 @@ linked_list_delete_test()
 		}
 		node = node->next;	
 	}
+
+	return TRUE;
+}
+
+static bool
+int_destroyer(void *int_data, va_list arg_list)
+{
+	free(int_data);
+	return TRUE;
+}
+
+bool
+linked_list_multi_dim_test()
+{
+	/*
+	 * outer_list = [inner_list_1, inner_list_2, inner_list_3]
+	 */
+	linked_list_type *outer_list = linked_list_create();
+	linked_list_type *inner_list_1 = linked_list_create();
+	linked_list_type *inner_list_2 = linked_list_create();
+	linked_list_type *inner_list_3 = linked_list_create();
+
+	linked_list_insert_back(outer_list, inner_list_1);
+	linked_list_insert_back(outer_list, inner_list_2);
+	linked_list_insert_back(outer_list, inner_list_3);
+
+	/* inner_list_1 = [0, 1, 2]
+	 * inner_list_2 = [3, 4, 5]
+	 * inner_list_3 = [6, 7, 8]
+	 */ 
+
+	// init data
+	#define data_num 9
+	int *p_data[data_num];
+	int i;
+	for (i = 0; i < data_num; i++)
+	{
+		p_data[i] = (int *)malloc(sizeof(int));
+		*p_data[i] = i;
+	}
+
+	for (i = 0; i < 3; i++)
+	{
+		linked_list_insert_back(inner_list_1, p_data[i]);
+	}
+
+	for (i = 3; i < 6; i++)
+	{
+		linked_list_insert_back(inner_list_2, p_data[i]);
+	}
+
+	for (i = 6; i < 9; i++)
+	{
+		linked_list_insert_back(inner_list_3, p_data[i]);
+	}
+
+	linked_list_destroy(outer_list, linked_list_deconstructor, int_destroyer, NULL);
 
 	return TRUE;
 }
