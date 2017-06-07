@@ -105,7 +105,8 @@ array_list_node_destroy(array_list_node_type *node, va_list arg_list)
 	return TRUE;
 }
 
-bool array_list_append(array_list_type *list, void *data)
+bool
+array_list_append(array_list_type *list, void *data)
 {
 	assert(list != NULL);
 
@@ -126,14 +127,16 @@ bool array_list_append(array_list_type *list, void *data)
 	return TRUE;
 }
 
-static int _negtive_index_to_positive(array_list_type *list, int index)
+static int 
+_negtive_index_to_positive(array_list_type *list, int index)
 {
 	assert(list != NULL);
 
 	return index >= 0 ? index : list->length + index;
 }
 
-void *array_list_get(array_list_type *list, int index)
+void *
+array_list_get(array_list_type *list, int index)
 {
 	assert(list != NULL);
 
@@ -149,7 +152,8 @@ void *array_list_get(array_list_type *list, int index)
 	}
 }
 
-void array_list_set(array_list_type *list, int index, void *data)
+void 
+array_list_set(array_list_type *list, int index, void *data)
 {
 	assert(list != NULL);
 
@@ -160,7 +164,8 @@ void array_list_set(array_list_type *list, int index, void *data)
 	list->content[index]->data = data;
 }
 
-char *get_array_list_debug_str(array_list_type *list, ...)
+char *
+get_array_list_debug_str(array_list_type *list, ...)
 {
 	va_list arg_list;
 	va_start(arg_list, list);
