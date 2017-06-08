@@ -4,12 +4,12 @@
 #include "util/util.h"
 #include "util/logger.h"
 
-stack_type *
-stack_create()
-{
-	stack_type *stack = array_list_create();
-	return stack;
-}
+// stack_type *
+// stack_create()
+// {
+// 	stack_type *stack = array_list_create();
+// 	return stack;
+// }
 
 // bool
 // stack_destroy(stack_type *stack, void (*data_deconstructor)(void *))
@@ -44,7 +44,7 @@ stack_pop(stack_type *stack)
 void *
 stack_peek(stack_type *stack)
 {
-	return stack->content[stack->length - 1]->data;
+	return array_list_get(stack, stack->length - 1);
 }
 
 

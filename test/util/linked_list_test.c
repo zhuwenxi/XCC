@@ -24,7 +24,7 @@ int_equal(void *a, void *b)
 }
 
 static void
-destroy_int(void *data)
+destroy_int(void *data, va_list arg_list)
 {
 	int *int_pointer = TYPE_CAST(data, int*);	
 	free(int_pointer);
