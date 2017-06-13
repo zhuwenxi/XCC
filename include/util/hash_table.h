@@ -4,6 +4,8 @@
 #include "array_list.h"
 #include "stddefs.h"
 
+#include <stdarg.h>
+
 typedef struct
 {
 	array_list_type *buckets;
@@ -12,7 +14,9 @@ typedef struct
 
 hash_table_type *hash_table_create(int (*hash)(void *));
 
-bool hash_table_destroy(hash_table_type *table, void (*data_destroyer)());
+bool hash_table_destroy(hash_table_type *table, ...);
+
+bool hash_table_deconstructor(hash_table_type *table, va_list arg_list);
 
 bool hash_table_update(hash_table_type *table, void *key, void *value);
 

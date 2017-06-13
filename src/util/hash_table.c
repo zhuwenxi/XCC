@@ -14,10 +14,15 @@ hash_table_create(int (*hash)(void *))
 }
 
 bool 
-hash_table_destroy(hash_table_type *table, void (*data_destroyer)())
+hash_table_destroy(hash_table_type *table, ...)
 {
-	array_list_destroy(table->buckets, data_destroyer);
+	va_list arg_list;
+	va_start(arg_list, table);
+
+	array_list_destroy(table->buckets, arg_list);
 	free(table);
+
+	va_end(arg_list);
 
 	return TRUE;
 }
