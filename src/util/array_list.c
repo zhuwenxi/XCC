@@ -164,6 +164,21 @@ array_list_set(array_list_type *list, int index, void *data)
 	list->content[index]->data = data;
 }
 
+bool
+array_list_resize(array_list_type *list, int new_size)
+{
+	if (list->capacity >= new_size)
+	{
+		return FALSE;
+	}
+
+	list->capacity = new_size;
+
+	list->content = (array_list_node_type **)realloc(list->content, sizeof(array_list_node_type *) * list->capacity);
+
+	return TRUE;
+}
+
 char *
 get_array_list_debug_str(array_list_type *list, ...)
 {

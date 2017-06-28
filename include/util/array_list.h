@@ -62,6 +62,11 @@ void *array_list_get(array_list_type *list,int index);
 void array_list_set(array_list_type *list, int index, void *data);
 
 /*
+ * Resize the inner dynamic array
+ */
+bool array_list_resize(array_list_type *list, int new_size);
+
+/*
  * String for debug.
  */
 char *get_array_list_debug_str(array_list_type *list, ...);
