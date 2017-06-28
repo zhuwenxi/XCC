@@ -36,6 +36,11 @@ void *hash_table_search(hash_table_type *table, void *key, bool (*equal)(void *,
 
 bool hash_table_delete(hash_table_type *table, void *key, bool (*equal)(void *, void *));
 
+char *get_hash_table_debug_str(hash_table_type *table, ...);
+
+char *hash_table_debug_str(hash_table_type *table, va_list arg_list);
+
+char *hash_table_element_str(hash_table_element_type *table_element, va_list arg_list);
 // We use division method to create hash function
 #define HASH_TABLE_SLOT_NUMBER 701
 

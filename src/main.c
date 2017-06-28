@@ -2,58 +2,40 @@
 #include "util/string_buffer.h"
 #include "util/linked_list.h"
 #include "util/stack.h"
+#include "util/hash_table.h"
+
 #include <stdlib.h>
+#include <stdarg.h>
 
 static char *
-str_to_str(void *data)
+str_to_str(void *data, va_list arg_list)
 {
+	return data;
+}
 
+static char *
+int_to_str(void *data, va_list arg_list)
+{
+	return "haha";
 }
 
 int main(int argc, char *argv[])
 {
 	printf("Hello, world!\n");
 
-	stack_type *stack = stack_create();
-	stack_push(stack, "a");
-	stack_push(stack, "b");
-	stack_push(stack, "c");
-	LOG(TRUE, get_stack_debug_str(stack, NULL));
-	// linked_list_type *list = linked_list_create();
-	// linked_list_insert_back(list, "a");
-	// linked_list_insert_back(list, "bb");
-	// linked_list_insert_back(list, "ccc");
+	static char *keys[] = {"Abby", "Bob", "Cathy", "Douglas", "Emma"};
+	static int values[] = {1, 2, 3, 4, 5};
+	int item_num = 5;
 
-	// char *list_str = get_linked_list_debug_str(list, NULL);
-	// LOG(TRUE, list_str);
+	hash_table_type *hash_table = hash_table_create(string_hash);
 
-	// free(list_str);
+	int i;
+	for (i = 0; i < item_num; i ++)
+	{
+		hash_table_insert(hash_table, keys[i], &values[i]);
+	}
 
-	// linked_list_type *outer_list = linked_list_create();
-	// linked_list_type *inner_list_1 = linked_list_create();
-	// linked_list_type *inner_list_2 = linked_list_create();
-	// linked_list_type *inner_list_3 = linked_list_create();
+	printf("%s\n", get_hash_table_debug_str(hash_table, linked_list_debug_str, str_to_str, int_to_str, NULL));
 
-	// linked_list_insert_back(outer_list, inner_list_1);
-	// linked_list_insert_back(outer_list, inner_list_2);
-	// linked_list_insert_back(outer_list, inner_list_3);
-
-	// linked_list_insert_back(inner_list_1, "a");
-	// linked_list_insert_back(inner_list_1, "b");
-	// linked_list_insert_back(inner_list_1, "c");
-
-	// linked_list_insert_back(inner_list_2, "dd");
-	// linked_list_insert_back(inner_list_2, "ee");
-	// linked_list_insert_back(inner_list_2, "ff");
-
-	// linked_list_insert_back(inner_list_3, "ggg");
-	// linked_list_insert_back(inner_list_3, "hhh");
-	// linked_list_insert_back(inner_list_3, "iii");
-
-	// #define fuck linked_list_insert_back
-	// fuck(inner_list_3, "kkkk");
-
-	// list_str = get_linked_list_debug_str(outer_list, linked_list_debug_str, NULL);
-	// LOG(TRUE, list_str);
-	// free(list_str);
+	hash_table_destroy(hash_table, linked_list_deconstructor, NULL);
 }
