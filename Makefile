@@ -24,7 +24,8 @@ TEST_SOURCE_FILE = test_all.c \
 	$(UTIL_DIR)/linked_list_test.c \
 	$(UTIL_DIR)/array_list_test.c \
 	$(UTIL_DIR)/logger_test.c \
-	$(UTIL_DIR)/stack_test.c
+	$(UTIL_DIR)/stack_test.c \
+	$(UTIL_DIR)/hash_table_test.c 
 TEST_OBJ_FILE = $(patsubst %.c, %.o, $(TEST_SOURCE_FILE))
 TEST_OBJ_FULL_PATH = $(addprefix	$(BUILD_DIR)/, $(TEST_OBJ_FILE))
 TEST_BIN = $(BUILD_DIR)/test_all
@@ -48,10 +49,10 @@ CC = gcc $(FLAGS)
 global: $(XCC_BIN)
 
 $(XCC_BIN): $(OBJ_FILE_FULL_PATH) $(BUILD_DIR)/main.o
-	$(CC) -I$(INCLUDE_DIR) -o $@ $^
+	$(CC) -I$(INCLUDE_DIR) -o $@ $^ -lm
 
 test: $(TEST_OBJ_FULL_PATH) $(OBJ_FILE_FULL_PATH)
-	$(CC) -I$(INCLUDE_DIR) -o $(TEST_BIN) $^
+	$(CC) -I$(INCLUDE_DIR) -o $(TEST_BIN) $^ -lm
 
 clean: 
 	@echo "clean-up done."
@@ -63,13 +64,13 @@ $(BUILD_SUB_DIR):
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(INCLUDE_DIR)/%.h
 	@$(eval parent_dir=$(shell dirname $@))
 	@mkdir -p $(parent_dir)
-	$(CC) -I$(INCLUDE_DIR) -c $< -o $@
+	$(CC) -I$(INCLUDE_DIR) -c $< -o $@ -lm
 $(BUILD_DIR)/main.o: $(SRC_DIR)/main.c
-	$(CC) -I$(INCLUDE_DIR) -c $< -o $@
+	$(CC) -I$(INCLUDE_DIR) -c $< -o $@ -lm
 
 # rules for obj files in "test"
 $(BUILD_DIR)/%.o: $(TEST_DIR)/%.c $(INCLUDE_DIR)/%.h
 	@dirname $@ | xargs mkdir -p
-	$(CC) -I$(INCLUDE_DIR) -c $< -o $@
+	$(CC) -I$(INCLUDE_DIR) -c $< -o $@ -lm
 
 $(BUILD_DIR)/test_all.c: include/test.def

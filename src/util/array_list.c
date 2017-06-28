@@ -176,6 +176,12 @@ array_list_resize(array_list_type *list, int new_size)
 
 	list->content = (array_list_node_type **)realloc(list->content, sizeof(array_list_node_type *) * list->capacity);
 
+	int i;
+	for (i = list->length; i < list->capacity; i ++)
+	{
+		list->content[i] = NULL;
+	}
+
 	return TRUE;
 }
 

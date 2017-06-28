@@ -123,7 +123,7 @@ bool
 linked_list_insert_back(linked_list_type *list, void *data)
 {
 	assert(list != NULL);
-	
+
 	// create a new node, and set it's "data" field.
 	linked_list_node_type *new_node = linked_list_node_create();
 	new_node->data = data;
