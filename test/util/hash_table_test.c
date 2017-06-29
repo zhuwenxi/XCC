@@ -11,7 +11,7 @@ bool
 hash_table_create_destroy_test()
 {
 	hash_table_type *hash_table = hash_table_create(string_hash);
-	hash_table_destroy(hash_table, linked_list_deconstructor, NULL);
+	hash_table_destroy(hash_table, NULL);
 
 	return TRUE;
 }
@@ -31,7 +31,7 @@ hash_table_insert_test()
 		hash_table_insert(hash_table, &keys[i], &values[i]);
 	}
 
-	hash_table_destroy(hash_table, linked_list_deconstructor, NULL);
+	hash_table_destroy(hash_table, NULL);
 
 	return TRUE;
 }
@@ -70,7 +70,7 @@ hash_table_search_test()
 		}
 	}
 
-	hash_table_destroy(hash_table, linked_list_deconstructor, NULL);
+	hash_table_destroy(hash_table, NULL);
 
 	return TRUE;
 }
@@ -94,6 +94,6 @@ hash_table_delete_test()
 		}	
 	}
 
-	hash_table_destroy(hash_table, linked_list_deconstructor, NULL);
+	hash_table_destroy(hash_table, NULL);
 	return TRUE;
 }

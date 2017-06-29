@@ -48,5 +48,5 @@ int main(int argc, char *argv[])
 
 	printf("%s\n", get_hash_table_debug_str(hash_table, str_to_str, int_to_str, NULL));
 
-	hash_table_destroy(hash_table, linked_list_deconstructor, NULL);
+	hash_table_destroy(hash_table, NULL);
 }

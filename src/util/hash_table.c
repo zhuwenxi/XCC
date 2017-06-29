@@ -45,8 +45,26 @@ hash_table_deconstructor(hash_table_type *table, va_list arg_list)
 	{
 		return FALSE;
 	}
+	
+	array_list_type *list = table->buckets;
+	
+	int i;
+	for (i = 0; i < list->capacity; i++)
+	{
+		void *node = list->content[i];
+		if (node != NULL)
+		{
+			va_list tmp;
+			va_copy(tmp, arg_list);
+			linked_list_deconstructor(((array_list_node_type *)node)->data, arg_list);
+			va_end(tmp);
+		}
+	}
 
-	array_list_deconstructor(table->buckets, arg_list);
+	// destroy list itself
+	free(list->content);
+	free(list);
+
 	free(table);
 
 	return TRUE;
@@ -260,9 +278,6 @@ hash_table_debug_str(hash_table_type *table, va_list arg_list)
 	va_list arg_list_copy;
 	va_copy(arg_list_copy, arg_list);
 
-	// char *(*sub_debug_str)(void *, va_list);
-	// sub_debug_str = va_arg(arg_list_copy, char *(*)(void *, va_list));
-
 	// print as array_list
 	int i;
 	array_list_type *list = table->buckets;
@@ -270,27 +285,13 @@ hash_table_debug_str(hash_table_type *table, va_list arg_list)
 	{
 		if (list->content[i] == NULL) continue;
 		
-		// if (sub_debug_str != NULL)
-		// {
-		// pritn as linked_list
-		// char *item_str = sub_debug_str(list->content[i]->data, arg_list_copy);
 		string_buffer item_str = _print_as_linked_list(list->content[i]->data, hash_table_element_str, arg_list_copy);
 
 		if (item_str != NULL)
 		{
 			string_buffer_append(&debug_str, item_str);
 			string_buffer_destroy(item_str);
-			// string_buffer_append(&debug_str, ",");
 		}
-		// }
-		// else
-		// {
-		// 	if (list->content[i]->data != NULL)
-		// 	{
-		// 		string_buffer_append(&debug_str, list->content[i]->data);
-		// 		string_buffer_append(&debug_str, ",");
-		// 	}
-		// }
 	}
 
 	va_end(arg_list_copy);
