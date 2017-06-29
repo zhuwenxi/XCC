@@ -95,11 +95,13 @@ hash_table_insert(hash_table_type *table, void *key, void *value)
 	}
 
 	int slot_index = _select_slot(table, key);
+	LOG(HASH_TABLE_LOG_ENABLE && HASH_TABLE_INSERT_LOG_ENABLE, "slot_index: %d", slot_index);
 
 	array_list_node_type *slot = table->buckets->content[slot_index];
 
 	if (slot == NULL)
 	{
+		LOG(HASH_TABLE_LOG_ENABLE && HASH_TABLE_INSERT_LOG_ENABLE, "slot is NULL");
 		slot = array_list_node_create();
 		table->buckets->content[slot_index] = slot;
 	}
@@ -107,6 +109,7 @@ hash_table_insert(hash_table_type *table, void *key, void *value)
 	linked_list_type *bucket = slot->data;
 	if (bucket == NULL)
 	{
+		LOG(HASH_TABLE_LOG_ENABLE && HASH_TABLE_INSERT_LOG_ENABLE, "bucket is NULL");
 		slot->data = linked_list_create();
 	}
 
@@ -205,6 +208,43 @@ get_hash_table_debug_str(hash_table_type *table, ...)
 	return debug_str;
 }
 
+static char *
+_print_as_linked_list(linked_list_type *list, char *(*sub_debug_str)(hash_table_element_type *, va_list), va_list arg_list)
+{
+	string_buffer debug_str = string_buffer_create();
+
+	va_list arg_list_copy;
+	va_copy(arg_list_copy, arg_list);
+
+	linked_list_node_type *node = list->head;
+	while (node != NULL)
+	{
+		linked_list_node_type *next_node = node->next;
+
+		char *item_str;
+		if (sub_debug_str != NULL)
+		{
+			item_str = sub_debug_str(node->data, arg_list_copy);
+			string_buffer_append(&debug_str, item_str);
+			string_buffer_destroy(item_str);
+		}
+		else
+		{
+			item_str = (char *)node->data;
+			string_buffer_append(&debug_str, item_str);
+		}
+
+
+		string_buffer_append(&debug_str, ", ");
+
+		node = next_node;
+	}
+
+	va_end(arg_list_copy);
+
+	return debug_str;
+}
+
 char *
 hash_table_debug_str(hash_table_type *table, va_list arg_list)
 {
@@ -220,38 +260,42 @@ hash_table_debug_str(hash_table_type *table, va_list arg_list)
 	va_list arg_list_copy;
 	va_copy(arg_list_copy, arg_list);
 
-	char *(*sub_debug_str)(void *, va_list);
-	sub_debug_str = va_arg(arg_list_copy, char *(*)(void *, va_list));
+	// char *(*sub_debug_str)(void *, va_list);
+	// sub_debug_str = va_arg(arg_list_copy, char *(*)(void *, va_list));
 
+	// print as array_list
 	int i;
 	array_list_type *list = table->buckets;
-	for (i = 0; i < list->length; i++)
+	for (i = 0; i < list->capacity; i++)
 	{
-		if (sub_debug_str != NULL)
-		{
-			char *item_str = sub_debug_str(list->content[i]->data, arg_list_copy);
+		if (list->content[i] == NULL) continue;
+		
+		// if (sub_debug_str != NULL)
+		// {
+		// pritn as linked_list
+		// char *item_str = sub_debug_str(list->content[i]->data, arg_list_copy);
+		string_buffer item_str = _print_as_linked_list(list->content[i]->data, hash_table_element_str, arg_list_copy);
 
-			if (item_str != NULL)
-			{
-				string_buffer_append(&debug_str, item_str);
-				string_buffer_destroy(item_str);
-				string_buffer_append(&debug_str, ",");
-			}
-		}
-		else
+		if (item_str != NULL)
 		{
-			if (list->content[i]->data != NULL)
-			{
-				string_buffer_append(&debug_str, list->content[i]->data);
-				string_buffer_append(&debug_str, ",");
-			}
+			string_buffer_append(&debug_str, item_str);
+			string_buffer_destroy(item_str);
+			// string_buffer_append(&debug_str, ",");
 		}
-			
+		// }
+		// else
+		// {
+		// 	if (list->content[i]->data != NULL)
+		// 	{
+		// 		string_buffer_append(&debug_str, list->content[i]->data);
+		// 		string_buffer_append(&debug_str, ",");
+		// 	}
+		// }
 	}
 
 	va_end(arg_list_copy);
 
-	string_buffer_append(&debug_str, "}\n");
+	string_buffer_append(&debug_str, "}");
 
 	return debug_str;
 }
@@ -265,7 +309,6 @@ char *hash_table_element_str(hash_table_element_type *table_element, va_list arg
 	get_key_str = va_arg(arg_list, char *(*)(void *, va_list));
 
 	char *key_str = get_key_str(table_element->key, arg_list);
-
 	// prapre value's debug str
 	char *(*get_value_str)(void *, va_list);
 	get_value_str = va_arg(arg_list, char *(*)(void *, va_list));
@@ -275,6 +318,9 @@ char *hash_table_element_str(hash_table_element_type *table_element, va_list arg
 	string_buffer_append(&debug_str, key_str);
 	string_buffer_append(&debug_str, ": ");
 	string_buffer_append(&debug_str, value_str);
+
+	string_buffer_destroy(key_str);
+	string_buffer_destroy(value_str);
 
 	return debug_str;
 }

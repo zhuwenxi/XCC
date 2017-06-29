@@ -10,13 +10,24 @@
 static char *
 str_to_str(void *data, va_list arg_list)
 {
-	return data;
+	string_buffer ret_str = string_buffer_create();
+	string_buffer_append(&ret_str, "\"");
+
+	char **str_ptr = (char **)data;
+	string_buffer_append(&ret_str, *str_ptr);
+
+	string_buffer_append(&ret_str, "\"");
+
+	return ret_str;
 }
 
 static char *
 int_to_str(void *data, va_list arg_list)
 {
-	return "haha";
+	string_buffer ret_str = string_buffer_create();
+	string_buffer_append(&ret_str, "12306");
+
+	return ret_str;
 }
 
 int main(int argc, char *argv[])
@@ -32,10 +43,10 @@ int main(int argc, char *argv[])
 	int i;
 	for (i = 0; i < item_num; i ++)
 	{
-		hash_table_insert(hash_table, keys[i], &values[i]);
+		hash_table_insert(hash_table, &keys[i], &values[i]);
 	}
 
-	printf("%s\n", get_hash_table_debug_str(hash_table, linked_list_debug_str, str_to_str, int_to_str, NULL));
+	printf("%s\n", get_hash_table_debug_str(hash_table, str_to_str, int_to_str, NULL));
 
 	hash_table_destroy(hash_table, linked_list_deconstructor, NULL);
 }
