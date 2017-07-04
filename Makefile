@@ -37,8 +37,17 @@ DEBUG ?= 0
 ifeq ($(DEBUG), 0)
 FLAGS = -DRELEASE
 else 
-FLAGS = -DDEBUG
+FLAGS = -DDEBUG -gdwarf-2
 endif
+
+MTRACE ?= 0
+ifeq ($(MTRACE), 0)
+FLAGS += -DNO_MTRACE
+else
+FLAGS += -DMTRACE
+endif
+
+# FLAGS += -fPIC
 
 # compiler
 CC = gcc $(FLAGS)

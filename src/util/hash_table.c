@@ -48,6 +48,7 @@ hash_table_deconstructor(hash_table_type *table, va_list arg_list)
 	
 	array_list_type *list = table->buckets;
 	
+	// destroy "array_list_type *" table->buckets
 	int i;
 	for (i = 0; i < list->capacity; i++)
 	{
@@ -56,8 +57,27 @@ hash_table_deconstructor(hash_table_type *table, va_list arg_list)
 		{
 			va_list tmp;
 			va_copy(tmp, arg_list);
-			linked_list_deconstructor(((array_list_node_type *)node)->data, arg_list);
+
+			// destroy "linked_list type *" node->data
+			linked_list_type *linked_list = ((array_list_node_type *)node)->data;
+			linked_list_node_type *linked_list_node = linked_list->head;
+			while (linked_list_node != NULL)
+			{
+				linked_list_node_type *next_node = linked_list_node->next;
+
+				va_list arg_list_copy_for_linked_list;
+				va_copy(arg_list_copy_for_linked_list, tmp);
+				hash_table_element_deconstructor(linked_list_node->data, arg_list_copy_for_linked_list);
+				va_end(arg_list_copy_for_linked_list);
+
+				free(linked_list_node);
+				linked_list_node = next_node;
+
+			}
 			va_end(tmp);
+
+			free(linked_list);
+			free(node);
 		}
 	}
 
@@ -82,14 +102,34 @@ hash_table_element_create(void *key, void *value)
 }
 
 bool
-hash_table_element_destroy(hash_table_element_type *element, void (*hash_table_element_deconstructor)(hash_table_element_type *))
+hash_table_element_deconstructor(hash_table_element_type *element, va_list arg_list)
 {
-	if (hash_table_element_deconstructor == NULL)
+	if (element == NULL)
 	{
 		return FALSE;
 	}
 
-	hash_table_element_deconstructor(element);
+	bool (*key_deconstructor)(void *, va_list);
+	key_deconstructor = va_arg(arg_list, bool (*)(void *, va_list));
+
+	if (key_deconstructor == NULL)
+	{
+		free(element);
+		return TRUE;
+	}
+	key_deconstructor(element->key, arg_list);
+
+	bool (*value_deconstructor)(void *, va_list);
+	value_deconstructor = va_arg(arg_list, bool (*)(void *, va_list));
+
+	if (value_deconstructor == NULL)
+	{
+		free(element);
+		return TRUE;
+	}
+	value_deconstructor(element->value, arg_list);
+
+
 	free(element);
 
 	return TRUE;
@@ -188,7 +228,7 @@ hash_table_search(hash_table_type *table, void *key, bool (*equal)(void *, void 
 }
 
 bool
-hash_table_delete(hash_table_type *table, void *key, bool (*equal)(void *, void *))
+hash_table_delete(hash_table_type *table, void *key, bool (*equal)(void *, void *), ...)
 {
 	assert(table != NULL && key != NULL);
 
@@ -203,7 +243,54 @@ hash_table_delete(hash_table_type *table, void *key, bool (*equal)(void *, void 
 		linked_list_type *bucket = (linked_list_type *)(slot->data);
 
 		LOG(HASH_TABLE_LOG_ENABLE && HASH_TABLE_DELETE_LOG_ENABLE, "find the bucket: 0x%x", bucket);
-		linked_list_delete(bucket, linked_list_node, NULL);
+		// linked_list_delete(bucket, linked_list_node, NULL);
+		linked_list_type *list = bucket;
+		linked_list_node_type *node = linked_list_node;
+
+		linked_list_node_type *next_node = node->next;
+		linked_list_node_type *prev_node = node->prev;
+	
+
+		/*
+		 * prev_node->next = next_node;
+		 */	
+		if (prev_node == NULL)
+		{
+			// node == list->head	
+			assert(list->head == node);
+		
+			list->head = next_node;
+		}
+		else
+		{
+			assert(list->head != node);
+
+			prev_node->next = node->next;
+		}
+
+		/*
+		 * next_node->prev = prev_node;
+		 */
+		if (next_node == NULL)
+		{
+			assert(list->tail == node);
+
+			list->tail = prev_node;
+		}
+		else
+		{
+			assert(list->tail != node);
+
+			next_node->prev = prev_node;
+		}	
+
+		va_list arg_list;
+		va_start(arg_list, equal);
+		
+		hash_table_element_deconstructor(node->data, arg_list);
+		free(node);
+		
+		va_end(arg_list);
 
 		return TRUE;
 	}

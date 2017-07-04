@@ -9,14 +9,7 @@
 #include <stdlib.h>
 
 bool
-array_list_create_test()
-{
-	array_list_type *list = array_list_create();
-	return TRUE;
-}
-
-bool
-array_list_destroy_test()
+array_list_create_destroy_test()
 {
 	array_list_type *list = array_list_create();
 	array_list_destroy(list, NULL);
@@ -49,6 +42,8 @@ array_list_append_test()
 		return FALSE;
 	}
 
+	array_list_destroy(list, NULL);
+
 	return TRUE;
 }
 
@@ -67,6 +62,8 @@ array_list_get_test()
 		array_list_append(list, &data[i]);
 		if (!EXPECT_EQUAL(*(int *)array_list_get(list, i), i)) return FALSE;
 	}
+
+	array_list_destroy(list, NULL);
 
 	return TRUE;
 }

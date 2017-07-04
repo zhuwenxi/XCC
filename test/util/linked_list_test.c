@@ -30,30 +30,12 @@ destroy_int(void *data, va_list arg_list)
 	free(int_pointer);
 }
 
-/*
- * linked_list_create() tests.
- */
-bool
-linked_list_create_test()
-{
-	linked_list_type *list = linked_list_create();
-	
-	if (list == NULL || list->head != NULL)
-	{
-		return FALSE;
-	} 
-	else 
-	{
-		return TRUE;
-	}
-}
-
 
 /*
- * linked_list_destroy() tests.
+ * linked_list_create() and linked_list_destroy() tests.
  */
 bool
-linked_list_destroy_test()
+linked_list_create_destroy_test()
 {
 	// prepare data.
 	int *int_pointer[7];
@@ -133,6 +115,8 @@ linked_list_insert_test()
 		node = node->next;	
 	}
 
+	linked_list_destroy(list, NULL);
+
 	return TRUE;
 }
 
@@ -168,6 +152,8 @@ linked_list_insert_back_test()
 
 		current_node = current_node->next;
 	}
+
+	linked_list_destroy(list, NULL);
 	
 	return TRUE;
 }
@@ -200,6 +186,15 @@ linked_list_search_test()
 
 	}
 
+	linked_list_destroy(list, NULL);
+
+	return TRUE;
+}
+
+static bool
+int_destroyer(void *int_data, va_list arg_list)
+{
+	free(int_data);
 	return TRUE;
 }
 
@@ -266,13 +261,8 @@ linked_list_delete_test()
 		node = node->next;	
 	}
 
-	return TRUE;
-}
+	linked_list_destroy(list, destroy_int, NULL);
 
-static bool
-int_destroyer(void *int_data, va_list arg_list)
-{
-	free(int_data);
 	return TRUE;
 }
 

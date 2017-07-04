@@ -87,7 +87,7 @@ hash_table_delete_test()
 	
 	for (i = 0; i < item_num; i ++)
 	{
-		bool ret = hash_table_delete(hash_table, &keys[i], str_equal);
+		bool ret = hash_table_delete(hash_table, &keys[i], str_equal, NULL);
 		if (ret == FALSE)
 		{
 			return FALSE;
