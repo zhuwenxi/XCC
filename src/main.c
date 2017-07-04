@@ -7,6 +7,10 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+#ifdef MTRACE
+#include <mcheck.h>
+#endif
+
 static char *
 str_to_str(void *data, va_list arg_list)
 {
@@ -32,6 +36,10 @@ int_to_str(void *data, va_list arg_list)
 
 int main(int argc, char *argv[])
 {
+#ifdef MTRACE
+	mtrace();
+#endif
+
 	printf("Hello, world!\n");
 
 	static char *keys[] = {"Abby", "Bob", "Cathy", "Douglas", "Emma"};
@@ -46,7 +54,13 @@ int main(int argc, char *argv[])
 		hash_table_insert(hash_table, &keys[i], &values[i]);
 	}
 
-	printf("%s\n", get_hash_table_debug_str(hash_table, str_to_str, int_to_str, NULL));
+	string_buffer debug_str = get_hash_table_debug_str(hash_table, str_to_str, int_to_str, NULL);
+	printf("%s\n", debug_str);
+	string_buffer_destroy(debug_str);
 
 	hash_table_destroy(hash_table, NULL);
+
+#ifdef MTRACE
+	muntrace();
+#endif
 }
