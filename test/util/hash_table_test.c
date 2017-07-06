@@ -59,7 +59,7 @@ hash_table_search_test()
 	{	
 		int *val_ptr = hash_table_search(hash_table, &keys[i], str_equal);
 
-		if (!EXPECT_NOT_EQUAL(val_ptr, NULL))
+		if (!EXPECT_POINTER_NOT_EQUAL(val_ptr, NULL))
 		{
 			return FALSE;
 		}

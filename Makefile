@@ -6,6 +6,7 @@ INCLUDE_DIR = include
 
 # sub directories in "src"
 UTIL_DIR = util
+SCANNER_DIR = scanner
 
 # source files
 SOURCE_FILE = $(UTIL_DIR)/util.c \
@@ -14,7 +15,11 @@ SOURCE_FILE = $(UTIL_DIR)/util.c \
 	$(UTIL_DIR)/array_list.c \
 	$(UTIL_DIR)/string_buffer.c \
 	$(UTIL_DIR)/stack.c \
-	$(UTIL_DIR)/hash_table.c
+	$(UTIL_DIR)/hash_table.c \
+	$(UTIL_DIR)/regexp.c \
+	$(UTIL_DIR)/context_free_grammar.c \
+	$(UTIL_DIR)/LR_automata.c \
+	$(SCANNER_DIR)/scanner.c
 OBJ_FILE = $(patsubst	%.c, %.o, $(SOURCE_FILE))
 OBJ_FILE_FULL_PATH = $(addprefix	$(BUILD_DIR)/, $(OBJ_FILE)) 
 XCC_BIN = $(BUILD_DIR)/xcc
@@ -48,6 +53,7 @@ FLAGS += -DMTRACE
 endif
 
 # FLAGS += -fPIC
+FLAGS += -Iinclude/util
 
 # compiler
 CC = gcc $(FLAGS)
