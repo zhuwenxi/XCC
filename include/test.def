@@ -28,7 +28,13 @@ TESTCASE(STACK_PEEK_TEST, stack_peek_test, "Test for stack_peek().")
 /*
  * Test cases for hash_table.c
  */
-TESTCASE(HASH_TABLE_CREATE_DESTORY_TEST, hash_table_create_destroy_test, "Test for hash_table_create_destroy()")
+TESTCASE(HASH_TABLE_CREATE_DESTORY_TEST, hash_table_create_destroy_test, "Test for hash_table_create() and hash_table_destroy()")
 TESTCASE(HASH_TABLE_INSERT_TEST, hash_table_insert_test, "Test for hash_table_insert()")
 TESTCASE(HASH_TABLE_SEARCH_TEST, hash_table_search_test, "Test for hash_table_search()")
 TESTCASE(HASH_TABLE_DELETE_TEST, hash_table_delete_test, "Test for hash_table_delete()")
+
+/*
+ * Test cases for context_free_grammar.c
+ */
+TESTCASE(CONTEXT_FREE_GRAMMAR_CREATE_DESTROY_TEST, context_free_grammar_create_destroy_test, "Test for context_free_grammar_create() and context_free_grammar_destroy()")
+TESTCASE(CONTEXT_FREE_GRAMMAR_ADD_PRODUCTION_TEST, context_free_grammar_add_production_test, "Test for context_free_grammar_add()")

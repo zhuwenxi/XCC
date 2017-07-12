@@ -8,7 +8,7 @@
 
 typedef struct
 {
-	char *head;
+	int *head;
 	linked_list_type *body;
 } production_type;
 
@@ -27,6 +27,6 @@ production_type *production_create();
 
 bool production_deconstructor(production_type *prod, va_list arg_list);
 
-void context_free_grammar_add(context_free_grammar_type *grammar, char *head, ...);
+void context_free_grammar_add(context_free_grammar_type *grammar, int head_value, ...);
 
 #endif
