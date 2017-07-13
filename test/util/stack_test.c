@@ -2,6 +2,7 @@
 #include "util/stack.h"
 #include "test.h"
 #include "util/util.h"
+#include "logger.h"
 
 bool
 stack_create_destroy_test()
@@ -83,7 +84,7 @@ stack_peek_test()
 	}
 
 	if (!EXPECT_EQUAL(stack_empty(stack), FALSE)) return FALSE;
-
+	
 	stack_destroy(stack, NULL);
 
 	return TRUE;

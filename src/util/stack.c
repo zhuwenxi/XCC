@@ -37,6 +37,7 @@ stack_pop(stack_type *stack)
 	array_list_node_type *top_node = stack->content[stack->length];
 	void *top_data = top_node->data;
 	free(top_node);
+	stack->content[stack->length] = NULL;
 
 	return top_data;
 }

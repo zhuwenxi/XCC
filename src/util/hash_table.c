@@ -23,7 +23,7 @@ hash_table_create(int (*hash)(void *))
 }
 
 bool 
-hash_table_destroy(hash_table_type *table, ...)
+_hash_table_destroy_impl(hash_table_type *table, ...)
 {
 	if (table == NULL)
 	{
@@ -38,6 +38,58 @@ hash_table_destroy(hash_table_type *table, ...)
 	return TRUE;
 }
 
+// bool
+// hash_table_deconstructor(hash_table_type *table, va_list arg_list)
+// {
+// 	if (table == NULL)
+// 	{
+// 		return FALSE;
+// 	}
+	
+// 	array_list_type *list = table->buckets;
+	
+// 	// destroy "array_list_type *" table->buckets
+// 	int i;
+// 	for (i = 0; i < list->capacity; i++)
+// 	{
+// 		void *node = list->content[i];
+// 		if (node != NULL)
+// 		{
+// 			va_list tmp;
+// 			va_copy(tmp, arg_list);
+
+// 			// destroy "linked_list type *" node->data
+// 			linked_list_type *linked_list = ((array_list_node_type *)node)->data;
+// 			linked_list_node_type *linked_list_node = linked_list->head;
+// 			while (linked_list_node != NULL)
+// 			{
+// 				linked_list_node_type *next_node = linked_list_node->next;
+
+// 				va_list arg_list_copy_for_linked_list;
+// 				va_copy(arg_list_copy_for_linked_list, tmp);
+// 				hash_table_element_deconstructor(linked_list_node->data, arg_list_copy_for_linked_list);
+// 				va_end(arg_list_copy_for_linked_list);
+
+// 				free(linked_list_node);
+// 				linked_list_node = next_node;
+
+// 			}
+// 			va_end(tmp);
+
+// 			free(linked_list);
+// 			free(node);
+// 		}
+// 	}
+
+// 	// destroy list itself
+// 	free(list->content);
+// 	free(list);
+
+// 	free(table);
+
+// 	return TRUE;
+// }
+
 bool
 hash_table_deconstructor(hash_table_type *table, va_list arg_list)
 {
@@ -47,43 +99,8 @@ hash_table_deconstructor(hash_table_type *table, va_list arg_list)
 	}
 	
 	array_list_type *list = table->buckets;
-	
-	// destroy "array_list_type *" table->buckets
-	int i;
-	for (i = 0; i < list->capacity; i++)
-	{
-		void *node = list->content[i];
-		if (node != NULL)
-		{
-			va_list tmp;
-			va_copy(tmp, arg_list);
 
-			// destroy "linked_list type *" node->data
-			linked_list_type *linked_list = ((array_list_node_type *)node)->data;
-			linked_list_node_type *linked_list_node = linked_list->head;
-			while (linked_list_node != NULL)
-			{
-				linked_list_node_type *next_node = linked_list_node->next;
-
-				va_list arg_list_copy_for_linked_list;
-				va_copy(arg_list_copy_for_linked_list, tmp);
-				hash_table_element_deconstructor(linked_list_node->data, arg_list_copy_for_linked_list);
-				va_end(arg_list_copy_for_linked_list);
-
-				free(linked_list_node);
-				linked_list_node = next_node;
-
-			}
-			va_end(tmp);
-
-			free(linked_list);
-			free(node);
-		}
-	}
-
-	// destroy list itself
-	free(list->content);
-	free(list);
+	array_list_deconstructor(list, arg_list);
 
 	free(table);
 

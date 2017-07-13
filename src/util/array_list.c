@@ -17,6 +17,13 @@ array_list_create()
 	list->capacity = 16;
 
 	list->content = (array_list_node_type **)malloc(sizeof(array_list_node_type *) * list->capacity);
+
+	int i;
+	for (i = 0; i < list->capacity; i ++)
+	{
+		list->content[i] = NULL;
+	}
+
 	return list;
 }
 
@@ -60,7 +67,7 @@ array_list_deconstructor(array_list_type *list, va_list arg_list)
 	}
 	
 	int i;
-	for (i = 0; i < list->length; i++)
+	for (i = 0; i < list->capacity; i++)
 	{
 		void *node = list->content[i];
 		if (node != NULL)
@@ -68,6 +75,7 @@ array_list_deconstructor(array_list_type *list, va_list arg_list)
 			va_list tmp;
 			va_copy(tmp, arg_list);
 			array_list_node_destroy(node, tmp);
+			list->content[i] = NULL;
 			va_end(tmp);
 		}
 	}
@@ -115,8 +123,8 @@ array_list_append(array_list_type *list, void *data)
 	// if list's capacity not enough for new element, increase the capacity by 50%.
 	if (list->length > list->capacity)
 	{
-		list->capacity *= 1.5;
-		list->content = (array_list_node_type **)realloc(list->content, sizeof(array_list_node_type *) * list->capacity);
+		int new_size = list->capacity * 1.5;
+		array_list_resize(list, new_size);
 	}
 
 	// Create append node and set data.
