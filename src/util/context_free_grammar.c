@@ -98,3 +98,14 @@ context_free_grammar_add(context_free_grammar_type *grammar, int head_value, ...
 	array_list_append(grammar->productions, production);
 }
 
+char *
+get_context_free_grammar_debug_str(context_free_grammar_type *grammar, ...)
+{
+
+}
+
+char *
+context_free_grammar_debug_str(context_free_grammar_type *grammar, va_list arg_list)
+{
+
+}
