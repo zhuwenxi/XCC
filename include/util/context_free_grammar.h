@@ -29,4 +29,6 @@ bool production_deconstructor(production_type *prod, va_list arg_list);
 
 void context_free_grammar_add(context_free_grammar_type *grammar, int head_value, ...);
 
+char *get_context_free_grammar_debug_str(context_free_grammar_type *grammar, char **desc_table);
+
 #endif

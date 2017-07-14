@@ -38,3 +38,4 @@ TESTCASE(HASH_TABLE_DELETE_TEST, hash_table_delete_test, "Test for hash_table_de
  */
 TESTCASE(CONTEXT_FREE_GRAMMAR_CREATE_DESTROY_TEST, context_free_grammar_create_destroy_test, "Test for context_free_grammar_create() and context_free_grammar_destroy()")
 TESTCASE(CONTEXT_FREE_GRAMMAR_ADD_PRODUCTION_TEST, context_free_grammar_add_production_test, "Test for context_free_grammar_add()")
+TESTCASE(CONTEXT_FREE_GRAMMAR_DEBUG_STR_TEST, context_free_grammar_debug_str_test, "Test for get_context_free_grammar_debug_str()")

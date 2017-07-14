@@ -1,6 +1,8 @@
 #include "context_free_grammar.h"
 #include "util.h"
 #include "logger.h"
+#include "string_buffer.h"
+#include "linked_list.h"
 
 #include <stdarg.h>
 #include <assert.h>
@@ -99,13 +101,77 @@ context_free_grammar_add(context_free_grammar_type *grammar, int head_value, ...
 }
 
 char *
-get_context_free_grammar_debug_str(context_free_grammar_type *grammar, ...)
+production_debug_str(production_type *prod, char **desc_table)
 {
+	string_buffer debug_str = string_buffer_create();
 
+	if (desc_table != NULL)
+	{
+		string_buffer_append(&debug_str, desc_table[*TYPE_CAST(prod->head, int *)]);
+		string_buffer_append(&debug_str, " -> ");
+
+		linked_list_node_type *node = prod->body->head;
+		while (node != NULL)
+		{
+			int body_token = *TYPE_CAST(node->data, int *);
+			string_buffer_append(&debug_str, desc_table[body_token]);
+			string_buffer_append(&debug_str, " ");
+
+			node = node->next;
+		}
+
+	}
+	else
+	{	
+		char str[2] = {'\0', '\0'};
+
+		str[0] = *TYPE_CAST(prod->head, int *) + '0';
+		string_buffer_append(&debug_str, str);
+		string_buffer_append(&debug_str, " -> ");
+
+		linked_list_node_type *node = prod->body->head;
+		while (node != NULL)
+		{
+			int body_token = *TYPE_CAST(node->data, int *);
+
+			str[0] = body_token + '0';
+			string_buffer_append(&debug_str, str);
+			string_buffer_append(&debug_str, " ");
+
+			node = node->next;
+		}
+	}
+
+
+	return debug_str;
 }
 
 char *
-context_free_grammar_debug_str(context_free_grammar_type *grammar, va_list arg_list)
+get_context_free_grammar_debug_str(context_free_grammar_type *grammar, char **desc_table)
 {
+	if (grammar == NULL || grammar->productions == NULL)
+	{
+		return NULL;
+	}
+	
+	string_buffer debug_str = string_buffer_create();
 
+	string_buffer_append(&debug_str, "[");
+
+	array_list_type *list = grammar->productions;
+
+	int i;
+	for (i = 0; i < list->length; i++)
+	{
+		char *item_str = production_debug_str(list->content[i]->data, desc_table); // sub_debug_str(list->content[i]->data, arg_list_copy);
+		string_buffer_append(&debug_str, item_str);
+		string_buffer_destroy(item_str);
+
+		if (i != list->length - 1)
+			string_buffer_append(&debug_str, ", ");
+	}
+
+	string_buffer_append(&debug_str, "]");
+
+	return debug_str;
 }
