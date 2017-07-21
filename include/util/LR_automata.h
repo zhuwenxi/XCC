@@ -15,6 +15,17 @@ typedef struct
 	hash_table_type *action_table;
 } LR_automata_type;
 
+typedef struct
+{
+	array_list_type *productions;
+} LR_automata_item_type;
+
+typedef struct
+{
+	LR_automata_item_type state;
+	production_token_type symbol;
+} key_pair_type;
+
 LR_automata_type *LR_automata_create(context_free_grammar_type *grammar);
 
 bool LR_automata_destory(LR_automata_type *lr_automata, ...);

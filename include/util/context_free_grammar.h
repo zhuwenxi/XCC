@@ -6,9 +6,11 @@
 
 #include <stdarg.h>
 
+typedef int production_token_type;
+
 typedef struct
 {
-	int *head;
+	production_token_type *head;
 	linked_list_type *body;
 } production_type;
 
