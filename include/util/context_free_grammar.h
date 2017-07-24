@@ -16,7 +16,7 @@ typedef struct
 
 typedef struct
 {
-	array_list_type *productions;
+	linked_list_type *productions;
 } context_free_grammar_type;
 
 context_free_grammar_type *context_free_grammar_create();

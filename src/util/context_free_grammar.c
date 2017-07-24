@@ -11,7 +11,7 @@ context_free_grammar_type *
 context_free_grammar_create()
 {
 	context_free_grammar_type *grammar = (context_free_grammar_type *)malloc(sizeof(context_free_grammar_type));
-	grammar->productions = array_list_create();
+	grammar->productions = linked_list_create();
 
 	return grammar;
 }
@@ -40,7 +40,7 @@ context_free_grammar_deconstructor(context_free_grammar_type *grammar, va_list a
 		return FALSE;
 	}
 
-	array_list_destroy(grammar->productions, production_deconstructor);
+	linked_list_destroy(grammar->productions, production_deconstructor, NULL);
 
 	free(grammar);
 
@@ -97,7 +97,7 @@ context_free_grammar_add(context_free_grammar_type *grammar, int head_value, ...
 	}
 	va_end(ap);
 
-	array_list_append(grammar->productions, production);
+	linked_list_insert_back(grammar->productions, production);
 }
 
 char *
@@ -158,17 +158,18 @@ get_context_free_grammar_debug_str(context_free_grammar_type *grammar, char **de
 
 	string_buffer_append(&debug_str, "[");
 
-	array_list_type *list = grammar->productions;
+	linked_list_type *list = grammar->productions;
 
-	int i;
-	for (i = 0; i < list->length; i++)
+	linked_list_node_type *node = list->head;
+
+	while (node != NULL)
 	{
-		char *item_str = production_debug_str(list->content[i]->data, desc_table); // sub_debug_str(list->content[i]->data, arg_list_copy);
+		char *item_str = production_debug_str(node->data, desc_table);
+
 		string_buffer_append(&debug_str, item_str);
 		string_buffer_destroy(item_str);
-
-		if (i != list->length - 1)
-			string_buffer_append(&debug_str, ", ");
+		
+		node = node->next;
 	}
 
 	string_buffer_append(&debug_str, "]");
