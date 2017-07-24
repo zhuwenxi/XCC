@@ -1,6 +1,8 @@
 #include "LR_automata.h"
 #include "array_list.h"
 
+#include <stdlib.h>
+
 void
 construct_canonical_collection(LR_automata_type *lr_automata)
 {
@@ -44,7 +46,7 @@ LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list)
 
 	array_list_deconstructor(lr_automata->LR_items, arg_list);
 
-	free(LR_automata);
+	free(lr_automata);
 
 	return TRUE;
 }
