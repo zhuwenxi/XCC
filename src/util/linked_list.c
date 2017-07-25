@@ -183,6 +183,31 @@ linked_list_insert(linked_list_type *list, linked_list_node_type *index_node, li
 	return TRUE;
 }
 
+bool
+linked_list_insert_before(linked_list_type *list, linked_list_node_type *index_node, linked_list_node_type *node)
+{
+	assert(list != NULL && index_node != NULL && node != NULL);
+
+	if (index_node->prev != NULL)
+	{ // index_node is NOT "head node"
+		index_node->prev->next = node;
+		node->prev = index_node->prev;
+
+		node->next = index_node;
+		index_node->prev = node;
+	}
+	else
+	{ // index_node is "head node"
+		list->head = node;
+		node->next = index_node;
+		node->prev = NULL;
+
+		index_node->prev = node;
+	}
+
+	return TRUE;
+}
+
 // search node in list
 linked_list_node_type *
 linked_list_search(linked_list_type *list, void *data, bool (*equal)(void *, void *))

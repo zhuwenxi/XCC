@@ -158,6 +158,66 @@ linked_list_insert_back_test()
 	return TRUE;
 }
 
+/*
+ * linked_list_insert_before() tests.
+ */
+bool
+linked_list_insert_before_test()
+{
+	linked_list_type *list = linked_list_create();
+	
+	int element[] = {2, 3, 5, 7, 11};
+	int element_num = 5;
+	int i;
+	for (i = 0; i < element_num; i ++)
+	{
+		linked_list_insert_back(list, &element[i]);
+	}
+
+	//
+	// insert "1" before "2"
+	//
+	linked_list_node_type *head_node = linked_list_search(list, &element[0], int_equal);
+	
+	int new_head_node_data = 1;
+	linked_list_node_type *new_head_node = linked_list_node_create();
+	new_head_node->data = &new_head_node_data;
+	
+	linked_list_insert_before(list, head_node, new_head_node);
+
+	//
+	// insert "6" before "7"'
+	//
+	linked_list_node_type *node_7 = linked_list_search(list, &element[3], int_equal);
+
+	int new_node_6_value = 6;
+	linked_list_node_type *new_node_6 = linked_list_node_create();
+	new_node_6->data = &new_node_6_value;
+
+	linked_list_insert_before(list, node_7, new_node_6);
+
+	//
+	// check if the element squence is correct
+	//
+	int new_element_squence[] = {1, 2, 3, 5, 6, 7, 11};
+	int new_element_squence_length = 7;
+
+	linked_list_node_type *node = list->head;
+	for (i = 0; i < new_element_squence_length; i++)
+	{
+		if (!EXPECT_EQUAL(*TYPE_CAST(node->data, int *), new_element_squence[i]))
+		{
+			return FALSE;
+		}
+
+		node = node->next;	
+	}
+
+	linked_list_destroy(list, NULL);
+
+	return TRUE;
+}
+
 
 /*
  * linked_list_search() tests.

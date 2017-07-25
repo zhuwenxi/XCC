@@ -52,7 +52,12 @@ bool linked_list_node_destroy(linked_list_node_type *node, va_list arg_list);
 /*
  * Insert node to list.
  */
+
+// insert after a node
 bool linked_list_insert(linked_list_type *list, linked_list_node_type *index_node, linked_list_node_type *node);
+// insert before a node
+bool linked_list_insert_before(linked_list_type *list, linked_list_node_type *index_node, linked_list_node_type *node);
+// insert at the tail of the list
 bool linked_list_insert_back(linked_list_type *list, void *data);
 
 /*
