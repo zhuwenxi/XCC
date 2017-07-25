@@ -27,10 +27,15 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 	production_token_type *initial_production_body = create_int(first_production_head);
 	linked_list_insert_back(initial_production->body, initial_production_body);
 
-	LOG(LR_AUTOMATA_LOG_ENABLE, production_debug_str(initial_production, grammar->desc_table));
+	LOG(LR_AUTOMATA_LOG_ENABLE, "initial production: %s", production_debug_str(initial_production, grammar->desc_table));
 
 	// Add the generated initial production to the given context-free grammar, as the new "first productoin".
 	// In the regexp case, it is adding the production "Goal -> Regexp" to the first place of grammar
+	linked_list_node_type *intial_production_node = linked_list_node_create();
+	intial_production_node->data = initial_production;
+	linked_list_insert_before(grammar->productions, grammar->productions->head, intial_production_node);
+	
+	LOG(LR_AUTOMATA_LOG_ENABLE, "the context-free grammar pass to LR automata: \n%s", get_context_free_grammar_debug_str(grammar));
 }
 
 LR_automata_type *
