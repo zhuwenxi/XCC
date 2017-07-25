@@ -8,10 +8,11 @@
 #include <assert.h>
 
 context_free_grammar_type *
-context_free_grammar_create()
+context_free_grammar_create(char **desc_table)
 {
 	context_free_grammar_type *grammar = (context_free_grammar_type *)malloc(sizeof(context_free_grammar_type));
 	grammar->productions = linked_list_create();
+	grammar->desc_table = desc_table;
 
 	return grammar;
 }
@@ -147,7 +148,7 @@ production_debug_str(production_type *prod, char **desc_table)
 }
 
 char *
-get_context_free_grammar_debug_str(context_free_grammar_type *grammar, char **desc_table)
+get_context_free_grammar_debug_str(context_free_grammar_type *grammar)
 {
 	if (grammar == NULL || grammar->productions == NULL)
 	{
@@ -164,7 +165,7 @@ get_context_free_grammar_debug_str(context_free_grammar_type *grammar, char **de
 
 	while (node != NULL)
 	{
-		char *item_str = production_debug_str(node->data, desc_table);
+		char *item_str = production_debug_str(node->data, grammar->desc_table);
 
 		string_buffer_append(&debug_str, item_str);
 		string_buffer_destroy(item_str);

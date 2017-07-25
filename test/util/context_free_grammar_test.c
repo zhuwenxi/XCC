@@ -15,7 +15,7 @@ typedef enum
 
 static char *token_desc_table[] =
 {
-	"UNKNOWN",
+	"GOAL",
 #define PRODUCTION_TOKEN(code, name) name,
 #include "regexp_grammar.def"
 #undef PRODUCTION_TOKEN
@@ -25,7 +25,7 @@ static char *token_desc_table[] =
 bool
 context_free_grammar_create_destroy_test()
 {
-	context_free_grammar_type *cfg = context_free_grammar_create();
+	context_free_grammar_type *cfg = context_free_grammar_create(token_desc_table);
 	context_free_grammar_destroy(cfg, NULL);
 	return TRUE;
 }
@@ -33,7 +33,7 @@ context_free_grammar_create_destroy_test()
 bool
 context_free_grammar_add_production_test()
 {
-	context_free_grammar_type *cfg = context_free_grammar_create();
+	context_free_grammar_type *cfg = context_free_grammar_create(token_desc_table);
 
 	context_free_grammar_add(cfg, REGEXP, REGEXP, VERTICAL_BAR, CONCAT, 0);
 	context_free_grammar_add(cfg, REGEXP, CONCAT, 0);
@@ -54,7 +54,7 @@ context_free_grammar_add_production_test()
 bool
 context_free_grammar_debug_str_test()
 {
-	context_free_grammar_type *cfg = context_free_grammar_create();
+	context_free_grammar_type *cfg = context_free_grammar_create(token_desc_table);
 
 	context_free_grammar_add(cfg, REGEXP, REGEXP, VERTICAL_BAR, CONCAT, 0);
 	context_free_grammar_add(cfg, REGEXP, CONCAT, 0);
@@ -68,7 +68,7 @@ context_free_grammar_debug_str_test()
 	context_free_grammar_add(cfg, UNIT, LEFT_PARENTHESIS, REGEXP, RIGHT_PARENTHESIS, 0);
 	context_free_grammar_add(cfg, UNIT, CHAR, 0);
 
-	char *debug_str = get_context_free_grammar_debug_str(cfg, token_desc_table);
+	char *debug_str = get_context_free_grammar_debug_str(cfg);
 	// LOG(TRUE, "%s", debug_str);
 	free(debug_str);
 
