@@ -20,8 +20,8 @@ SOURCE_FILE = $(UTIL_DIR)/util.c \
 	$(UTIL_DIR)/context_free_grammar.c \
 	$(UTIL_DIR)/LR_automata.c \
 	$(SCANNER_DIR)/scanner.c
-OBJ_FILE = $(patsubst	%.c, %.o, $(SOURCE_FILE))
-OBJ_FILE_FULL_PATH = $(addprefix	$(BUILD_DIR)/, $(OBJ_FILE)) 
+OBJ_FILE = $(patsubst %.c, %.o, $(SOURCE_FILE))
+OBJ_FILE_FULL_PATH = $(addprefix $(BUILD_DIR)/, $(OBJ_FILE)) 
 XCC_BIN = $(BUILD_DIR)/xcc
 
 # test files
@@ -33,7 +33,7 @@ TEST_SOURCE_FILE = test_all.c \
 	$(UTIL_DIR)/hash_table_test.c \
 	$(UTIL_DIR)/context_free_grammar_test.c
 TEST_OBJ_FILE = $(patsubst %.c, %.o, $(TEST_SOURCE_FILE))
-TEST_OBJ_FULL_PATH = $(addprefix	$(BUILD_DIR)/, $(TEST_OBJ_FILE))
+TEST_OBJ_FULL_PATH = $(addprefix $(BUILD_DIR)/, $(TEST_OBJ_FILE))
 TEST_BIN = $(BUILD_DIR)/test_all
 
 # config from "Makefile.config"
