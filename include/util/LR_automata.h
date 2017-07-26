@@ -9,7 +9,6 @@
 #include <stdarg.h>
 
 // "Goal" indicates the desired non-terminial symbol.
-#define Goal 0
 
 typedef struct
 {

@@ -8,13 +8,20 @@
 #include <stdlib.h>
 #include <assert.h>
 
+typedef enum
+{
+#define PRODUCTION_TOKEN(code, name) code,
+#include "LR_automata_symbol.def"
+#undef PRODUCTION_TOKEN
+} production_token_id;
+
 void
 construct_canonical_collection(LR_automata_type *lr_automata, context_free_grammar_type *grammar)
 {
 	// Add an extra production "Goal -> [target production]", which represents the initial state of the parser.
 	// In the regexp case, it is "Goal -> Regexp".
 	production_type *initial_production = production_create();
-	*(initial_production->head) = Goal;
+	*(initial_production->head) = GOAL;
 
 	// Retrieve the first production of the grammar
 	// In the regexp case, it is "Regexp -> Regexp | Concat"
