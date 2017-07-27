@@ -376,5 +376,57 @@ linked_list_multi_dim_test()
 	return TRUE;
 }
 
+bool
+linked_list_copy_test()
+{
+	//
+	// Original linked list.
+	//
+	linked_list_type *list = linked_list_create();
+	
+	int element[] = {2, 3, 5, 7, 11};
+	int element_num = 5;
+	int i;
+
+	int *int_p[5];
+	for (i = 0; i < element_num; i++)
+	{
+		int_p[i] = (int *)malloc(sizeof(int));	
+		*(int_p[i]) = element[i];
+	}
+
+	for (i = 0; i < element_num; i ++)
+	{
+		linked_list_insert_back(list, int_p[i]);
+	}
+
+	//
+	// Copy the original list.
+	//
+	linked_list_type *list_copy = linked_list_copy(list, int_copier, NULL);
+
+	//
+	// Compare origin & copy, to make sure they are equal.
+	//
+	linked_list_node_type *origin_node = NULL;
+	linked_list_node_type *copy_node = NULL;
+	
+	for (origin_node = list->head, copy_node = list_copy->head; origin_node != NULL && copy_node != NULL; origin_node = origin_node->next, copy_node = copy_node->next)
+	{
+		int origin_node_data = *TYPE_CAST(origin_node->data, int *);
+		int copy_node_data = *TYPE_CAST(copy_node->data, int *);
+
+		if (!EXPECT_EQUAL(origin_node_data, copy_node_data))
+		{
+			return FALSE;
+		}
+	}
+
+	linked_list_destroy(list, destroy_int, NULL);
+	linked_list_destroy(list_copy, destroy_int, NULL);
+
+	return TRUE;
+}
+
 
 

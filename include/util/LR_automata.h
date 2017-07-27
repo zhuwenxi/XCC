@@ -12,7 +12,7 @@
 
 typedef struct
 {
-	array_list_type *LR_items;
+	array_list_type *items;
 	hash_table_type *goto_table;
 	hash_table_type *action_table;
 } LR_automata_type;

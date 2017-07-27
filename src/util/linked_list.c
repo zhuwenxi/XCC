@@ -339,6 +339,51 @@ linked_list_debug_str(linked_list_type *list, va_list arg_list)
 
 }
 
+linked_list_type *
+linked_list_copier(linked_list_type *list, va_list arg_list)
+{
+	if (list == NULL)
+	{
+		return NULL;
+	}
+
+	// initialize a new linked_list "list_copy"
+	linked_list_type *list_copy = linked_list_create();
+	list_copy->head = NULL;
+	list_copy->tail = NULL;
+
+	linked_list_node_type *node = list->head;
+
+	while (node != NULL)
+	{
+		va_list arg_list_copy;
+		va_copy(arg_list_copy, arg_list);
+		void *(*sub_copier)(void *, va_list) = va_arg(arg_list_copy, void *(*)(void *, va_list));
+
+		linked_list_insert_back(list_copy, sub_copier(node->data, arg_list_copy));
+		va_end(arg_list_copy);
+
+		node = node->next;
+	}
+
+	return list_copy;
+}
+
+linked_list_node_type *
+linked_list_node_copier(linked_list_node_type *node, va_list arg_list)
+{
+	linked_list_node_type *node_copy = linked_list_node_create();
+
+	void *(*sub_copier)(void *, va_list) = va_arg(arg_list, void *(*)(void *, va_list));
+	if (sub_copier != NULL)
+	{
+		node_copy->data = sub_copier(node->data, arg_list);
+	}
+
+	return node_copy;
+}
+
+
 
 
 

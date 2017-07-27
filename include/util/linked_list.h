@@ -4,6 +4,7 @@
 #include <stdarg.h>
 
 #include "stddefs.h"
+#include "util.h"
 
 /*
  * linked list node definition.
@@ -75,4 +76,15 @@ bool linked_list_delete(linked_list_type *list, linked_list_node_type *node, ...
  */
 char *get_linked_list_debug_str(linked_list_type *list, ...);
 char *linked_list_debug_str(linked_list_type *list, va_list arg_list);
+
+/*
+ * Copy linked list.
+ */
+linked_list_type *linked_list_copier(linked_list_type *list, va_list arg_list);
+DECLARE_COPY(linked_list)
+
+/*
+ * Copy linked list's node.
+ */
+linked_list_node_type *linked_list_node_copier(linked_list_node_type *node, va_list arg_list);
 #endif

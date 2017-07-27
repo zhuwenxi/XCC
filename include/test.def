@@ -8,6 +8,7 @@ TESTCASE(LINKED_LIST_INSERT_BEFORE_TEST, linked_list_insert_before_test, "Test f
 TESTCASE(LINKED_LIST_SEARCH_TEST, linked_list_search_test, "Test for linked_list_search().")
 TESTCASE(LINKED_LIST_DELETE_TEST, linked_list_delete_test, "Test for linked_list_delete().")
 TESTCASE(LINKED_LIST_MULTI_DIM_TEST, linked_list_multi_dim_test, "Test for multi-dim linked_list.")
+TESTCASE(LINKED_LIST_COPY_TEST, linked_list_copy_test, "Test for linked_list_copy().")
 
 /*
  * Test cases for array_list.c
