@@ -358,9 +358,13 @@ linked_list_copier(linked_list_type *list, va_list arg_list)
 	{
 		va_list arg_list_copy;
 		va_copy(arg_list_copy, arg_list);
-		void *(*sub_copier)(void *, va_list) = va_arg(arg_list_copy, void *(*)(void *, va_list));
 
-		linked_list_insert_back(list_copy, sub_copier(node->data, arg_list_copy));
+		void *(*sub_copier)(void *, va_list) = va_arg(arg_list_copy, void *(*)(void *, va_list));
+		void *sub_data_copy = NULL;
+		if (sub_copier != NULL) {
+			sub_data_copy = sub_copier(node->data, arg_list_copy);
+		}
+		linked_list_insert_back(list_copy, sub_data_copy);
 		va_end(arg_list_copy);
 
 		node = node->next;
