@@ -434,13 +434,13 @@ char *hash_table_element_str(hash_table_element_type *table_element, va_list arg
 /*
  * common hash function
  */
-inline int
+int
 int_hash(void *int_val)
 {
 	return *((int *)int_val);
 }
 
-inline int
+int
 string_hash(void *string_val)
 {
 	int hashcode = 0;

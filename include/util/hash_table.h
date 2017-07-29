@@ -49,8 +49,8 @@ char *hash_table_element_str(hash_table_element_type *table_element, va_list arg
 /*
  * common hash function
  */
-inline int int_hash(void *int_val);
+int int_hash(void *int_val);
 
-inline int string_hash(void *string_val);
+int string_hash(void *string_val);
 
 #endif
