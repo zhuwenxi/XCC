@@ -8,6 +8,7 @@
 #include <stdarg.h>
 
 #include "stddefs.h"
+#include "util.h"
 
 typedef struct array_list_node
 {
@@ -72,4 +73,15 @@ bool array_list_resize(array_list_type *list, int new_size);
 char *get_array_list_debug_str(array_list_type *list, ...);
 
 char *array_list_debug_str(array_list_type *list, va_list arg_list);
+
+/*
+ * Copy array lis.
+ */
+array_list_type *array_list_copier(array_list_type *list, va_list arg_list);
+DECLARE_COPY(array_list)
+
+/*
+ * Copy array list's node.
+ */
+array_list_node_type *array_list_node_copier(array_list_node_type *node, va_list arg_list);
 #endif

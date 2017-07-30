@@ -266,3 +266,51 @@ array_list_debug_str(array_list_type *list, va_list arg_list)
 	return debug_str;
 
 }
+
+array_list_type *
+array_list_copier(array_list_type *list, va_list arg_list)
+{
+	if (list == NULL)
+	{
+		return NULL;
+	}
+
+	// intialize a new array list "list_copy"
+	array_list_type *list_copy = array_list_create();
+	list_copy->length = list->length;
+	array_list_resize(list_copy, list->capacity);
+
+	int i;
+	for (i = 0; i < list->capacity; i ++)
+	{
+		va_list arg_list_copy;
+		va_copy(arg_list_copy, arg_list);
+
+		array_list_node_type *node_copy = array_list_node_copier(list->content[i], arg_list_copy);
+
+		list_copy->content[i] = node_copy;
+
+		va_end(arg_list_copy);
+	}
+
+	return list_copy;
+}
+
+array_list_node_type *
+array_list_node_copier(array_list_node_type *node, va_list arg_list)
+{
+	if (node == NULL)
+	{
+		return NULL;
+	}
+
+	array_list_node_type *node_copy = array_list_node_create();
+
+	void *(*sub_copier)(void *, va_list) = va_arg(arg_list, void *(*)(void *, va_list));
+	if (sub_copier != NULL)
+	{
+		node_copy->data = sub_copier(node->data, arg_list);
+	}
+
+	return node_copy;
+}

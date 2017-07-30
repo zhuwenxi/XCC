@@ -22,6 +22,8 @@ typedef struct
 
 hash_table_type *hash_table_create(int (*hash)(void *));
 
+bool _hash_table_destroy_impl(hash_table_type *table, ...);
+
 // bool hash_table_destroy(hash_table_type *table, ...);
 #define hash_table_destroy(table, ...) \
 	_hash_table_destroy_impl(table, linked_list_deconstructor, hash_table_element_deconstructor, __VA_ARGS__);

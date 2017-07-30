@@ -8,8 +8,6 @@
 
 #include <stdarg.h>
 
-// "Goal" indicates the desired non-terminial symbol.
-
 typedef struct
 {
 	array_list_type *items;
