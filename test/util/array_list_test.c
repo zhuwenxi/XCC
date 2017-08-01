@@ -157,3 +157,58 @@ array_list_multi_dim_test()
 	
 	return TRUE;
 }
+
+bool
+array_list_copy_test()
+{
+	//
+	// Original list
+	//
+	array_list_type *list = array_list_create();
+
+	int element[] = {2, 3, 5, 7, 11};
+	int element_num = 5;
+	int i;
+
+	int *int_p[5];
+	for (i = 0; i < element_num; i++)
+	{
+		int_p[i] = (int *)malloc(sizeof(int));	
+		*(int_p[i]) = element[i];
+	}
+
+	for (i = 0; i < element_num; i ++)
+	{
+		array_list_append(list, int_p[i]);
+	}
+
+
+	//
+	// Copy list
+	//
+	array_list_type *list_copy = array_list_copy(list, int_copier, NULL);
+
+	//
+	// Compare origin & copy lists, to confirm they are equal;
+	//
+	if (!EXPECT_EQUAL(list->length, list_copy->length)) return FALSE;
+	if (!EXPECT_EQUAL(list->capacity, list_copy->capacity)) return FALSE;
+
+	for (i = 0; i < list->length; i ++)
+	{
+		void *origin = array_list_get(list, i);
+		void *copy = array_list_get(list_copy, i);
+
+		if (origin == NULL && copy == NULL) continue;
+
+		int origin_data = *TYPE_CAST(origin, int *);
+		int copy_data = *TYPE_CAST(copy, int *);
+
+		if (!EXPECT_EQUAL(origin_data, copy_data))
+		{
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
