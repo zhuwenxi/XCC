@@ -21,8 +21,13 @@
 	((a) != (b) ? printf("[%s:%d] Oops! Expect pointer %p and %p to be equal.\n", __FILE__, __LINE__, a, b), FALSE : TRUE)
 
 #define EXPECT_POINTER_NOT_EQUAL(a, b) \
-	((a) == (b) ? printf("[%s:%d] Oops! Expect %p and %p to be not equal.\n", __FILE__, __LINE__, a, b), FALSE : TRUE)
+	((a) == (b) ? printf("[%s:%d] Oops! Expect pointer %p and %p to be not equal.\n", __FILE__, __LINE__, a, b), FALSE : TRUE)
 
+#define EXPECT_SIZE_EQUAL(a, b) \
+	((a) != (b) ? printf("[%s:%d] Oops! Expect %ld and %ld to be equal.\n", __FILE__, __LINE__, a, b), FALSE : TRUE)
+
+#define EXPECT_SIZE_NOT_EQUAL(a, b) \
+	((a) == (b) ? printf("[%s:%d] Oops! Expect %ld and %ld to be not equal.\n", __FILE__, __LINE__, a, b), FALSE : TRUE)
 // strcmp(a, b) == 0
 #define EXPECT_STRING_EQUAL(a, b) \
 	(strcmp(a, b) != 0 printf("[%s:%d] Oops! Expect \"%s\" and \"%s\" to be equal.\n", __FILE__, __LINE__, a, b), FALSE : TRUE)

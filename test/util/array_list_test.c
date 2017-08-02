@@ -191,8 +191,8 @@ array_list_copy_test()
 	//
 	// Compare origin & copy lists, to confirm they are equal;
 	//
-	if (!EXPECT_EQUAL(list->length, list_copy->length)) return FALSE;
-	if (!EXPECT_EQUAL(list->capacity, list_copy->capacity)) return FALSE;
+	if (!EXPECT_SIZE_EQUAL(list->length, list_copy->length)) return FALSE;
+	if (!EXPECT_SIZE_EQUAL(list->capacity, list_copy->capacity)) return FALSE;
 
 	for (i = 0; i < list->length; i ++)
 	{
@@ -209,6 +209,9 @@ array_list_copy_test()
 			return FALSE;
 		}
 	}
+
+	array_list_destroy(list, int_destroyer, NULL);
+	array_list_destroy(list_copy, int_destroyer, NULL);
 
 	return TRUE;
 }
