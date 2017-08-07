@@ -53,7 +53,11 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 	//
 
 	// the initial set "cc0"
-	array_list_type *cc0 = array_list_create();
+	// linked_list_type *cc0 = linked_list_copy(grammar->productions, production_copier, NULL);
+	context_free_grammar_type *cc0 = context_free_grammar_copy(grammar, NULL);
+	// LOG(TRUE, "here");
+	// LOG(LR_AUTOMATA_LOG_ENABLE, "cc0: %s", get_linked_list_debug_str(cc0, production_debug_str, NULL));
+	LOG(LR_AUTOMATA_LOG_ENABLE, "cc0: %s", get_context_free_grammar_debug_str(cc0));
 	// array_list_append();
 }
 

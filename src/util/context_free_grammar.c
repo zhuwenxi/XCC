@@ -179,3 +179,28 @@ get_context_free_grammar_debug_str(context_free_grammar_type *grammar)
 
 	return debug_str;
 }
+
+production_type *
+production_copier(production_type *prod, va_list arg_list)
+{
+	production_type *prod_copy = production_create();
+	prod_copy->head = create_int(*TYPE_CAST(prod->head, int *));
+	prod_copy->body = linked_list_copy(prod->body, int_copier, NULL);
+
+	return prod_copy;
+}
+
+context_free_grammar_type *
+context_free_grammar_copier(context_free_grammar_type *grammar, va_list arg_list)
+{
+	if (grammar == NULL)
+	{
+		return NULL;
+	}
+
+	context_free_grammar_type *grammar_copy = context_free_grammar_create(grammar->desc_table);
+	grammar_copy->productions = linked_list_copy(grammar->productions, production_copier, NULL);
+
+	return grammar_copy;
+}
+

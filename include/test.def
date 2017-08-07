@@ -46,4 +46,4 @@ TESTCASE(CONTEXT_FREE_GRAMMAR_DEBUG_STR_TEST, context_free_grammar_debug_str_tes
 /*
  * Test cases for LR_automata.c
  */
-XTESTCASE(LR_AUTOMATA_CREATE_DESTROY_TEST, LR_automata_create_destroy_test, "Test for LR_automata_create() and LR_automata_destroy()")
+TESTCASE(LR_AUTOMATA_CREATE_DESTROY_TEST, LR_automata_create_destroy_test, "Test for LR_automata_create() and LR_automata_destroy()")
