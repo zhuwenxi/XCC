@@ -203,4 +203,3 @@ context_free_grammar_copier(context_free_grammar_type *grammar, va_list arg_list
 
 	return grammar_copy;
 }
-

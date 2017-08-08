@@ -215,3 +215,38 @@ array_list_copy_test()
 
 	return TRUE;
 }
+
+bool
+array_list_search_test()
+{
+	array_list_type *list = array_list_create();
+
+	int element[] = {2, 3, 5, 7, 11};
+	int element_num = 5;
+	int i;
+
+	int *int_p[5];
+	for (i = 0; i < element_num; i++)
+	{
+		int_p[i] = (int *)malloc(sizeof(int));	
+		*(int_p[i]) = element[i];
+	}
+
+	for (i = 0; i < element_num; i +=2)
+	{
+		array_list_append(list, int_p[i]);
+	}
+
+	for (i = 0; i < element_num; i ++)
+	{
+		void *search_data = array_list_search(list, int_p[i], int_equal);
+		if (search_data == NULL && i % 2 != 1)
+		{
+			return FALSE;
+		}
+	}
+
+	array_list_destroy(list, int_destroyer, NULL);
+
+	return TRUE;
+}

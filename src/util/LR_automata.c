@@ -114,6 +114,7 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 					context_free_grammar_type *new_set = LR_automata_goto(set, next_symbol);
 
 					// TO DO: if "new_set" doesn't exist in "cc", then add it to "cc"
+					// if ()
 				}
 
 				prod_node = prod_node->next;

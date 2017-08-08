@@ -172,6 +172,24 @@ array_list_set(array_list_type *list, int index, void *data)
 	list->content[index]->data = data;
 }
 
+array_list_node_type *
+array_list_search(array_list_type *list, void *data, bool (*equal)(void *, void *))
+{
+	assert(list != NULL);
+	int i;
+	for (i = 0; i < list->length; i ++)
+	{
+		void *node_data = array_list_get(list, i);
+
+		if (equal(node_data, data))
+		{
+			return list->content[i];
+		}
+	}
+
+	return NULL;
+}
+
 bool
 array_list_resize(array_list_type *list, int new_size)
 {

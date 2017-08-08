@@ -210,21 +210,25 @@ linked_list_insert_before(linked_list_type *list, linked_list_node_type *index_n
 
 // search node in list
 linked_list_node_type *
-linked_list_search(linked_list_type *list, void *data, bool (*equal)(void *, void *))
+linked_list_search(linked_list_type *list, void *data, bool (*comparator)(void *, void *, va_list), ...)
 {
-	assert(list && data && equal);
+	assert(list && data && comparator);
 	
 	linked_list_node_type *node = list->head;
+
+	va_list arg_list;
+	va_start(arg_list, comparator);
 	while (node)
 	{
 		// find the element
-		if (equal(node->data, data)) 	
+		if (comparator(node->data, data, arg_list)) 	
 		{
 			return node;
 		}
 
 		node = node->next;
 	}
+	va_end(arg_list);
 
 	return NULL;
 }

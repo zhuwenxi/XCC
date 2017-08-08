@@ -8,6 +8,30 @@
 
 #define GET_DATA(node, type) (*((type *)(node->data)))
 
+#define DECLARE_COMPARE(t) \
+static bool\
+t##_copy( t##_type *instance1, t##_type *instance2, ...) \
+{ \
+	if (instance1 == NULL || instance2 == NULL) \
+	{\
+		if (instance1 == NULL && instance2 == NULL) \
+		{ \
+			return TRUE; \
+		} \
+		else \
+		{ \
+			return FALSE;\
+		} \
+	}\
+\
+	va_list ap;\
+	va_start(ap, instance);\
+	bool ret = t##_compartor(instance1, instance2, ap);\
+	va_end(ap);\
+\
+	return ret;\
+}
+
 #define DECLARE_COPY(t) \
 static t##_type *\
 t##_copy( t##_type *instance, ...) \
@@ -62,6 +86,27 @@ int_equal(void *a, void *b)
 	int b_value = *TYPE_CAST(b, int *);
 
 	return a_value == b_value;
+}
+
+static inline bool
+int_comparator(void *a, void *b, va_list arg_list)
+{
+	if (a == NULL || b == NULL)
+	{
+		if (a == NULL && b == NULL)
+		{
+			return TRUE;
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+
+	int a_val = *TYPE_CAST(a, int *);
+	int b_val = *TYPE_CAST(b, int *);
+
+	return a_val == b_val;
 }
 
 #endif

@@ -42,4 +42,5 @@ DECLARE_COPY(production)
 context_free_grammar_type *context_free_grammar_copier(context_free_grammar_type *grammar, va_list arg_list);
 DECLARE_COPY(context_free_grammar)
 
+
 #endif

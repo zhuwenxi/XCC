@@ -66,7 +66,7 @@ linked_list_insert_test()
 		linked_list_insert_back(list, &element[i]);
 	}
 
-	linked_list_node_type *node2 = linked_list_search(list, &element[2], int_equal);
+	linked_list_node_type *node2 = linked_list_search(list, &element[2], int_comparator, NULL);
 
 	int new_data = 6;
 	linked_list_node_type *new_node = linked_list_node_create();
@@ -85,7 +85,7 @@ linked_list_insert_test()
 		node = node->next;	
 	}
 
-	linked_list_node_type *last_node = linked_list_search(list, &new_element[5], int_equal);
+	linked_list_node_type *last_node = linked_list_search(list, &new_element[5], int_comparator, NULL);
 	
 	int new_data_2 = 12;
 	linked_list_node_type *old_node = new_node;
@@ -168,7 +168,7 @@ linked_list_insert_before_test()
 	//
 	// insert "1" before "2"
 	//
-	linked_list_node_type *head_node = linked_list_search(list, &element[0], int_equal);
+	linked_list_node_type *head_node = linked_list_search(list, &element[0], int_comparator, NULL);
 	
 	int new_head_node_data = 1;
 	linked_list_node_type *new_head_node = linked_list_node_create();
@@ -179,7 +179,7 @@ linked_list_insert_before_test()
 	//
 	// insert "6" before "7"'
 	//
-	linked_list_node_type *node_7 = linked_list_search(list, &element[3], int_equal);
+	linked_list_node_type *node_7 = linked_list_search(list, &element[3], int_comparator, NULL);
 
 	int new_node_6_value = 6;
 	linked_list_node_type *new_node_6 = linked_list_node_create();
@@ -228,7 +228,7 @@ linked_list_search_test()
 	
 	for (i = 0; i < element_num; i++)
 	{
-		linked_list_node_type *node = linked_list_search(list, &element[i], int_equal);
+		linked_list_node_type *node = linked_list_search(list, &element[i], int_comparator, NULL);
 		int node_data = *TYPE_CAST(node->data, int *);
 		if(!EXPECT_EQUAL(node_data, element[i]))
 		{
@@ -277,7 +277,7 @@ linked_list_delete_test()
 	}
 
 	// "target" node whose value is 5
-	linked_list_node_type *target = linked_list_search(list, &element[2], int_equal);
+	linked_list_node_type *target = linked_list_search(list, &element[2], int_comparator, NULL);
 
 	// delete the "target" node
 	linked_list_delete(list, target, destroy_int);
