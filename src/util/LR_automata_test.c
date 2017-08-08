@@ -3,8 +3,8 @@
 
 typedef enum 
 {
-	TOKEN_UNKNOWN,
 #define PRODUCTION_TOKEN(code, name) code,
+#include "LR_automata_symbol.def"
 #include "regexp_grammar.def"
 #undef PRODUCTION_TOKEN
 	TOKEN_LIMIT
@@ -12,8 +12,8 @@ typedef enum
 
 static char *token_desc_table[] =
 {
-	"GOAL",
 #define PRODUCTION_TOKEN(code, name) name,
+#include "LR_automata_symbol.def"
 #include "regexp_grammar.def"
 #undef PRODUCTION_TOKEN
 	"PRODUCTION_TOKEN_LIMIT"

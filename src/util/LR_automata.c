@@ -15,6 +15,24 @@ typedef enum
 #undef PRODUCTION_TOKEN
 } production_token_id;
 
+context_free_grammar_type *
+LR_automata_closure(context_free_grammar_type *state)
+{
+	//
+	// TO DO
+	//
+	return state;
+}
+
+context_free_grammar_type *
+LR_automata_goto(context_free_grammar_type *state, production_token_type *symbol)
+{
+	//
+	// TO DO
+	//
+	return state;
+}
+
 void
 construct_canonical_collection(LR_automata_type *lr_automata, context_free_grammar_type *grammar)
 {
@@ -52,10 +70,60 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 	// Construct the canonical collection of LR items
 	//
 
+	// the canonical collection "cc"
+	array_list_type *cc = array_list_create();
+
 	// the initial set "cc0"
-	context_free_grammar_type *cc0 = context_free_grammar_copy(grammar, NULL);
+	context_free_grammar_type *cc0 = context_free_grammar_create(grammar->desc_table);
+
+	// add "Goal -> Dot Regexp" to "cc0"
+	production_type *goal_production = production_copy(grammar->productions->head->data, NULL);
+	linked_list_node_type *dot_node = linked_list_node_create();
+	dot_node->data = create_int(DOT);
+	linked_list_insert_before(goal_production->body, goal_production->body->head, dot_node);
+	linked_list_insert_back(cc0->productions, goal_production);
 	LOG(LR_AUTOMATA_LOG_ENABLE, "cc0: %s", get_context_free_grammar_debug_str(cc0));
-	// array_list_append();
+
+	// add "cc0" to "cc"
+	array_list_append(cc, cc0);
+
+	int last_iter_cc_size = 0;
+
+	// while new sets are still being added to "cc"
+	while (cc->length > last_iter_cc_size)
+	{	
+		// for each unprocessed set
+		int i;
+		for (i = last_iter_cc_size; i < cc->length; i ++)
+		{
+			context_free_grammar_type *set = array_list_get(cc, i);
+
+			// for each symbol following a "DOT" in an item in set
+			linked_list_node_type *prod_node = set->productions->head;
+			while (prod_node != NULL)
+			{
+				// search "DOT" in the production's body
+				production_type *prod = prod_node->data;
+				production_token_type *dot = create_int(DOT);
+				linked_list_node_type *dot_node = linked_list_search(prod->body, dot, int_equal);
+				
+				if (dot_node != NULL)
+				{
+					production_token_type *next_symbol = dot_node->next->data;
+
+					context_free_grammar_type *new_set = LR_automata_goto(set, next_symbol);
+
+					// TO DO: if "new_set" doesn't exist in "cc", then add it to "cc"
+				}
+
+				prod_node = prod_node->next;
+			}
+		}
+
+		last_iter_cc_size = cc->length;
+	}
+
+
 }
 
 LR_automata_type *

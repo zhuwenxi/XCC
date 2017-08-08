@@ -14,15 +14,6 @@
 /*
  * helper functions:
  */
-static bool
-int_equal(void *a, void *b)
-{
-	int a_data = *TYPE_CAST(a, int*);
-	int b_data = *TYPE_CAST(b, int*);
-	
-	return a_data == b_data;
-}
-
 static void
 destroy_int(void *data, va_list arg_list)
 {

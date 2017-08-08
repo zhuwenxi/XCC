@@ -17,7 +17,6 @@ int main(int argc, char *argv[])
 #ifdef MTRACE
 	mtrace();
 #endif
-
 	printf("Hello, world!\n");
 
 	scanner_main();

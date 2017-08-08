@@ -51,4 +51,17 @@ int_copier(void *origin_int, va_list arg_list)
 	return int_copy;
 }
 
+static inline bool
+int_equal(void *a, void *b)
+{
+	if (a == b) return TRUE;
+	if (a == NULL && b != NULL) return FALSE;
+	if (a != NULL && b == NULL) return FALSE;
+
+	int a_value = *TYPE_CAST(a, int *);
+	int b_value = *TYPE_CAST(b, int *);
+
+	return a_value == b_value;
+}
+
 #endif
