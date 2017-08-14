@@ -36,9 +36,11 @@ bool hash_table_element_deconstructor(hash_table_element_type *element, va_list 
 
 bool hash_table_insert(hash_table_type *table, void *key, void *value);
 
-void *hash_table_search(hash_table_type *table, void *key, bool (*equal)(void *, void *));
+void *hash_table_searcher(hash_table_type *table, void *key, bool (*comparator)(void *, void *, va_list), va_list arg_list);
+DECLARE_SEARCH(hash_table_type, void, hash_table)
 
-bool hash_table_delete(hash_table_type *table, void *key, bool (*equal)(void *, void *), ...);
+bool hash_table_deletor(hash_table_type *table, void *key, bool (*equal)(void *, void *, va_list), va_list arg_list);
+DECLARE_DELETE(hash_table_type, hash_table);
 
 char *get_hash_table_debug_str(hash_table_type *table, ...);
 

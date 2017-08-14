@@ -239,14 +239,21 @@ array_list_search_test()
 
 	for (i = 0; i < element_num; i ++)
 	{
-		void *search_data = array_list_search(list, int_p[i], int_equal);
-		if (search_data == NULL && i % 2 != 1)
+		void *search_node = array_list_search(list, int_p[i], int_equal, NULL);
+		if (search_node == NULL && i % 2 != 1)
+		{
+			return FALSE;
+		}
+
+		if (search_node != NULL && i % 2 == 1)
 		{
 			return FALSE;
 		}
 	}
 
 	array_list_destroy(list, int_destroyer, NULL);
+	free(int_p[1]);
+	free(int_p[3]);
 
 	return TRUE;
 }

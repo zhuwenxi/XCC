@@ -105,7 +105,7 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 				// search "DOT" in the production's body
 				production_type *prod = prod_node->data;
 				production_token_type *dot = create_int(DOT);
-				linked_list_node_type *dot_node = linked_list_search(prod->body, dot, int_equal);
+				linked_list_node_type *dot_node = linked_list_search(prod->body, dot, int_equal, NULL);
 				
 				if (dot_node != NULL)
 				{
@@ -114,7 +114,10 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 					context_free_grammar_type *new_set = LR_automata_goto(set, next_symbol);
 
 					// TO DO: if "new_set" doesn't exist in "cc", then add it to "cc"
-					// if ()
+					if (!array_list_search(cc, new_set, context_free_grammar_comparator, NULL))
+					{
+						array_list_append(cc, new_set);
+					}
 				}
 
 				prod_node = prod_node->next;

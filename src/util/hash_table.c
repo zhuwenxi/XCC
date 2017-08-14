@@ -194,7 +194,7 @@ hash_table_insert(hash_table_type *table, void *key, void *value)
 }
 
 void *
-_search_element(hash_table_type *table, void *key, bool (*equal)(void *, void *))
+_search_element(hash_table_type *table, void *key, bool (*equal)(void *, void *, va_list), va_list arg_list)
 {
 	int slot_index = _select_slot(table, key);
 	LOG(HASH_TABLE_LOG_ENABLE && HASH_TABLE_SEARCH_LOG_ENABLE, "slot_index: %d", slot_index);
@@ -213,7 +213,7 @@ _search_element(hash_table_type *table, void *key, bool (*equal)(void *, void *)
 		return NULL;
 	}
 
-	linked_list_node_type *linked_list_node = linked_list_search(bucket, key, equal);
+	linked_list_node_type *linked_list_node = linked_list_search(bucket, key, equal, arg_list);
 
 	if (linked_list_node == NULL)
 	{
@@ -225,13 +225,13 @@ _search_element(hash_table_type *table, void *key, bool (*equal)(void *, void *)
 }
 
 void *
-hash_table_search(hash_table_type *table, void *key, bool (*equal)(void *, void *))
+hash_table_searcher(hash_table_type *table, void *key, bool (*comparator)(void *, void *, va_list), va_list arg_list)
 {
 	LOG(HASH_TABLE_LOG_ENABLE && HASH_TABLE_SEARCH_LOG_ENABLE, "hash_table_search");
 	
 	assert(table != NULL && key != NULL);
 
-	linked_list_node_type *linked_list_node = _search_element(table, key, equal);
+	linked_list_node_type *linked_list_node = _search_element(table, key, comparator, arg_list);
 	LOG(HASH_TABLE_LOG_ENABLE && HASH_TABLE_SEARCH_LOG_ENABLE, "node: 0x%x", linked_list_node);
 
 	if (linked_list_node != NULL)
@@ -245,11 +245,11 @@ hash_table_search(hash_table_type *table, void *key, bool (*equal)(void *, void 
 }
 
 bool
-hash_table_delete(hash_table_type *table, void *key, bool (*equal)(void *, void *), ...)
+hash_table_deletor(hash_table_type *table, void *key, bool (*equal)(void *, void *, va_list), va_list arg_list)
 {
 	assert(table != NULL && key != NULL);
 
-	linked_list_node_type *linked_list_node = _search_element(table, key, equal);
+	linked_list_node_type *linked_list_node = _search_element(table, key, equal, arg_list);
 	LOG(HASH_TABLE_LOG_ENABLE && HASH_TABLE_DELETE_LOG_ENABLE, "linked_list_node: 0x%x", linked_list_node);
 
 	if (linked_list_node != NULL)
@@ -301,14 +301,10 @@ hash_table_delete(hash_table_type *table, void *key, bool (*equal)(void *, void 
 			next_node->prev = prev_node;
 		}	
 
-		va_list arg_list;
-		va_start(arg_list, equal);
 		
 		hash_table_element_deconstructor(node->data, arg_list);
 		free(node);
 		
-		va_end(arg_list);
-
 		return TRUE;
 	}
 	else

@@ -4,13 +4,15 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+typedef void void_type;
+
 #define TYPE_CAST(data, type) ((type)(data))
 
 #define GET_DATA(node, type) (*((type *)(node->data)))
 
 #define DECLARE_COMPARE(t) \
-static bool\
-t##_copy( t##_type *instance1, t##_type *instance2, ...) \
+static bool \
+t##_compare( t##_type *instance1, t##_type *instance2, ...) \
 { \
 	if (instance1 == NULL || instance2 == NULL) \
 	{\
@@ -25,8 +27,42 @@ t##_copy( t##_type *instance1, t##_type *instance2, ...) \
 	}\
 \
 	va_list ap;\
-	va_start(ap, instance);\
-	bool ret = t##_compartor(instance1, instance2, ap);\
+	va_start(ap, instance2);\
+	bool ret = t##_comparator(instance1, instance2, ap);\
+	va_end(ap);\
+\
+	return ret;\
+}
+
+#define DECLARE_SEARCH(instance_type, node_type, instance_type_name) \
+static node_type *\
+instance_type_name##_search( instance_type *instance, void *data, bool (*comparator)(void *, void *, va_list), ...) \
+{ \
+	if (instance == NULL) \
+	{\
+		return NULL;\
+	}\
+\
+	va_list ap;\
+	va_start(ap, comparator);\
+	node_type *ret = instance_type_name##_searcher(instance, data, comparator, ap);\
+	va_end(ap);\
+\
+	return ret;\
+}
+
+#define DECLARE_DELETE(instance_type, instance_type_name) \
+static bool \
+instance_type_name##_delete( instance_type *instance, void *data, bool (*comparator)(void *, void *, va_list), ...) \
+{ \
+	if (instance == NULL) \
+	{\
+		return FALSE;\
+	}\
+\
+	va_list ap;\
+	va_start(ap, comparator);\
+	bool ret = instance_type_name##_deletor(instance, data, comparator, ap);\
 	va_end(ap);\
 \
 	return ret;\
@@ -76,7 +112,7 @@ int_copier(void *origin_int, va_list arg_list)
 }
 
 static inline bool
-int_equal(void *a, void *b)
+int_equal(void *a, void *b, va_list arg_list)
 {
 	if (a == b) return TRUE;
 	if (a == NULL && b != NULL) return FALSE;

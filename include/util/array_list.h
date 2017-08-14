@@ -65,7 +65,8 @@ void array_list_set(array_list_type *list, int index, void *data);
 /*
  * Search data in array list.
  */
-array_list_node_type *array_list_search(array_list_type *list, void *data, bool (*equal)(void *, void *));
+array_list_node_type *array_list_searcher(array_list_type *list, void *data, bool (*equal)(void *, void *, va_list), va_list arg_list);
+DECLARE_SEARCH(array_list_type, array_list_node_type, array_list)
 
 /*
  * Resize the inner dynamic array

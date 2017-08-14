@@ -42,5 +42,7 @@ DECLARE_COPY(production)
 context_free_grammar_type *context_free_grammar_copier(context_free_grammar_type *grammar, va_list arg_list);
 DECLARE_COPY(context_free_grammar)
 
+bool context_free_grammar_comparator(void *grammar1, void *grammar2, va_list arg_list);
+DECLARE_COMPARE(context_free_grammar)
 
 #endif

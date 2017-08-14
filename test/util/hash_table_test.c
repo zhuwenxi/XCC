@@ -37,7 +37,7 @@ hash_table_insert_test()
 }
 
 static bool
-str_equal(void *node_data, void *key)
+str_equal(void *node_data, void *key, va_list arg_list)
 {
 	hash_table_element_type *element = node_data;
 
@@ -57,7 +57,7 @@ hash_table_search_test()
 
 	for (i = 0; i < item_num; i ++)
 	{	
-		int *val_ptr = hash_table_search(hash_table, &keys[i], str_equal);
+		int *val_ptr = hash_table_search(hash_table, &keys[i], str_equal, NULL);
 
 		if (!EXPECT_POINTER_NOT_EQUAL(val_ptr, NULL))
 		{

@@ -173,7 +173,7 @@ array_list_set(array_list_type *list, int index, void *data)
 }
 
 array_list_node_type *
-array_list_search(array_list_type *list, void *data, bool (*equal)(void *, void *))
+array_list_searcher(array_list_type *list, void *data, bool (*equal)(void *, void *, va_list), va_list arg_list)
 {
 	assert(list != NULL);
 	int i;
@@ -181,7 +181,7 @@ array_list_search(array_list_type *list, void *data, bool (*equal)(void *, void 
 	{
 		void *node_data = array_list_get(list, i);
 
-		if (equal(node_data, data))
+		if (equal(node_data, data, arg_list))
 		{
 			return list->content[i];
 		}

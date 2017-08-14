@@ -64,7 +64,8 @@ bool linked_list_insert_back(linked_list_type *list, void *data);
 /*
  * Search node in list.
  */
-linked_list_node_type *linked_list_search(linked_list_type *list, void *data, bool (*comparator)(void *, void *, va_list arg_list), ...);
+linked_list_node_type *linked_list_searcher(linked_list_type *list, void *data, bool (*comparator)(void *, void *, va_list arg_list), va_list arg_list);
+DECLARE_SEARCH(linked_list_type, linked_list_node_type, linked_list)
 
 /*
  * Delete node in list.

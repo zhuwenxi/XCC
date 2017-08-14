@@ -203,3 +203,9 @@ context_free_grammar_copier(context_free_grammar_type *grammar, va_list arg_list
 
 	return grammar_copy;
 }
+
+bool
+context_free_grammar_comparator(void *grammar1, void *grammar2, va_list arg_list)
+{
+	return TRUE;
+}
