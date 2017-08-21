@@ -15,12 +15,82 @@ typedef enum
 #undef PRODUCTION_TOKEN
 } production_token_id;
 
-context_free_grammar_type *
-LR_automata_closure(context_free_grammar_type *state)
+linked_list_type *
+search_production_by_head(context_free_grammar_type *grammar, production_token_type *head)
 {
-	//
-	// TO DO
-	//
+	assert(grammar && grammar->productions && head);
+
+	linked_list_node_type *production_node = grammar->productions->head;
+	linked_list_type *ret_list = linked_list_create();
+
+	while (production_node != NULL)
+	{
+		production_type *prod = (production_type *)production_node->data;
+		production_token_type *prod_head = prod->head;
+
+		if (*TYPE_CAST(prod_head, int *) == *TYPE_CAST(head, int *))
+		{
+			linked_list_insert_back(ret_list, prod);
+		}
+
+		production_node = production_node->next;
+	}
+
+	if (ret_list == NULL)
+	{
+		linked_list_destroy(ret_list, NULL);
+		ret_list = NULL;
+	}
+
+	return ret_list;
+}
+
+context_free_grammar_type *
+LR_automata_closure(context_free_grammar_type *state, context_free_grammar_type* grammar)
+{
+	assert(state && state->productions);
+	
+	linked_list_node_type *tail_node = NULL;
+
+	while (state->productions->tail != tail_node)
+	{	
+		// for each item in "state"
+		linked_list_node_type *item_node = state->productions->head;
+
+		while (item_node != NULL)
+		{	
+			production_type *prod = (production_type *)item_node->data;
+			int dot_value = DOT;
+			linked_list_node_type *dot = linked_list_search(prod->body, &dot_value, int_comparator, NULL);
+
+			if (dot != NULL && dot->next != NULL)
+			{
+				production_token_type *symbol_next_to_dot = dot->next->data;
+
+				if (symbol_next_to_dot)
+				{
+					linked_list_type *searched_productions = search_production_by_head(grammar, symbol_next_to_dot);
+					if (searched_productions != NULL)
+					{	
+						linked_list_node_type *searched_production = searched_productions->head;
+
+						while (searched_production != NULL)
+						{
+							LOG(TRUE, "search the production: %s", production_debug_str(searched_production->data, grammar->desc_table));
+
+							searched_production = searched_production->next;
+						}
+						
+					}
+				}
+			}
+
+			item_node = item_node->next;
+		}
+
+		tail_node = state->productions->tail;
+	}
+
 	return state;
 }
 
@@ -40,9 +110,8 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 	// Preprocess the gramamr, by adding an extra production "Goal -> [target production]", which represents the initial state of the parser.
 	// In the regexp case, it is "Goal -> Regexp".
 	//
-
 	production_type *initial_production = production_create();
-	*(initial_production->head) = GOAL;
+	initial_production->head = create_int(GOAL);
 
 	// retrieve the first production of the grammar
 	// in the regexp case, it is "Regexp -> Regexp | Concat"
@@ -85,6 +154,7 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 	LOG(LR_AUTOMATA_LOG_ENABLE, "cc0: %s", get_context_free_grammar_debug_str(cc0));
 
 	// add "cc0" to "cc"
+	cc0 = LR_automata_closure(cc0, grammar);
 	array_list_append(cc, cc0);
 
 	int last_iter_cc_size = 0;

@@ -88,4 +88,7 @@ DECLARE_COPY(linked_list)
  * Copy linked list's node.
  */
 linked_list_node_type *linked_list_node_copier(linked_list_node_type *node, va_list arg_list);
+
+bool linked_list_comparator(linked_list_type *list1, linked_list_type *list2, va_list arg_list);
+DECLARE_COMPARE(linked_list)
 #endif

@@ -53,7 +53,7 @@ production_create()
 {
 	production_type *production = (production_type *)malloc(sizeof(production_type *));
 
-	production->head = create_int(0);
+	production->head = NULL;
 	production->body = linked_list_create();
 
 	return production;
@@ -67,10 +67,10 @@ production_deconstructor(production_type *prod, va_list arg_list)
 		return FALSE;
 	}
 
-	assert(prod->head != NULL && prod->body != NULL);
-
-	free(prod->head);
-	linked_list_destroy(prod->body, int_deconstructor);
+	if (prod->head != NULL)
+		free(prod->head);
+	
+	linked_list_destroy(prod->body, int_deconstructor, NULL);
 
 	free(prod);
 
@@ -84,6 +84,7 @@ context_free_grammar_add(context_free_grammar_type *grammar, int head_value, ...
 	assert(grammar != NULL && head_value != 0);
 
 	production_type *production = production_create();
+	production->head = create_int(0);
 	*(production->head) = head_value;
 
 	va_list ap;
@@ -208,4 +209,47 @@ bool
 context_free_grammar_comparator(void *grammar1, void *grammar2, va_list arg_list)
 {
 	return TRUE;
+}
+
+linked_list_node_type *
+production_search_symbol(production_type *prod, production_token_type *symbol)
+{
+	assert(prod && symbol);
+
+	return linked_list_search(prod->body, symbol, int_comparator, NULL);
+}
+
+production_type *
+context_free_grammar_search_production(context_free_grammar_type *grammar, production_type *production)
+{
+	assert(grammar && production);
+
+	if (grammar->productions == NULL) return NULL;
+
+	linked_list_node_type *prod_node = grammar->productions->head;
+
+	while (prod_node != NULL)
+	{
+		production_type *prod = (production_type *)prod_node->data;
+
+
+		prod_node = prod_node->next;
+	}
+
+	return NULL;
+}
+
+bool
+production_comparator(production_type *p1, production_type *p2, va_list arg_list)
+{
+	if (p1 == p2) return TRUE;
+	if (p1 == NULL || p2 == NULL)
+	{
+		if (p1 == NULL && p2 == NULL)
+			return TRUE;
+		else
+			return FALSE;
+	}
+
+	return int_comparator(p1->head, p2->head, NULL) && linked_list_compare(p1->body, p2->body, int_comparator, NULL);
 }

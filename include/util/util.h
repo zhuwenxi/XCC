@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 typedef void void_type;
 
@@ -80,6 +81,23 @@ t##_copy( t##_type *instance, ...) \
 	va_list ap;\
 	va_start(ap, instance);\
 	t##_type *ret = t##_copier(instance, ap);\
+	va_end(ap);\
+\
+	return ret;\
+}
+
+#define DECLARE_DESTROY(t) \
+static bool \
+t##_destroy( t##_type *instance, ...) \
+{ \
+	if (instance == NULL) \
+	{\
+		return FALSE;\
+	}\
+\
+	va_list ap;\
+	va_start(ap, instance);\
+	bool ret = t##_deconstructor(instance, ap);\
 	va_end(ap);\
 \
 	return ret;\

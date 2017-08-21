@@ -74,3 +74,26 @@ context_free_grammar_debug_str_test()
 
 	return TRUE;
 }
+
+bool
+production_compare_test()
+{
+	production_type *prod1 = production_create();
+	prod1->head = create_int(0);
+
+	linked_list_insert_back(prod1->body, create_int(1));
+	linked_list_insert_back(prod1->body, create_int(2));
+
+	production_type *prod2 = production_create();
+	prod2->head = create_int(0);
+
+	linked_list_insert_back(prod2->body, create_int(1));
+	linked_list_insert_back(prod2->body, create_int(2));
+
+	if (production_compare(prod1, prod2) == FALSE) return FALSE;
+
+	production_destroy(prod1, NULL);
+	production_destroy(prod2, NULL);
+
+	return TRUE;
+}

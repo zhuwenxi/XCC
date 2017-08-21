@@ -211,7 +211,7 @@ linked_list_insert_before(linked_list_type *list, linked_list_node_type *index_n
 // search node in list
 linked_list_node_type *
 linked_list_searcher(linked_list_type *list, void *data, bool (*comparator)(void *, void *, va_list), va_list arg_list)
-{
+{	
 	assert(list && data && comparator);
 	
 	linked_list_node_type *node = list->head;
@@ -388,7 +388,37 @@ linked_list_node_copier(linked_list_node_type *node, va_list arg_list)
 	return node_copy;
 }
 
+bool
+linked_list_comparator(linked_list_type *list1, linked_list_type *list2, va_list arg_list)
+{
+	if (list1 == list2) return TRUE;
+	if (list1 == NULL || list2 == NULL)
+	{
+		if (list1 != list2) return FALSE;
+	}
 
+	bool (*sub_comparator)(void *, void *, va_list) = va_arg(arg_list, bool (*)(void *, void *, va_list));
+
+	assert(sub_comparator);
+
+	linked_list_node_type *list1_node = list1->head;
+	linked_list_node_type *list2_node = list2->head;
+
+	while (list1_node != NULL && list2_node != NULL)
+	{
+		bool is_node_data_equal = sub_comparator(list1_node->data, list2_node->data, arg_list);
+		
+		if (is_node_data_equal == FALSE) return FALSE;
+
+		list1_node = list1_node->next;
+		list2_node = list2_node->next;
+	}
+
+	if (list1_node == NULL && list2_node == NULL)
+		return TRUE;
+	else
+		return FALSE;
+}
 
 
 

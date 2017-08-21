@@ -419,5 +419,58 @@ linked_list_copy_test()
 	return TRUE;
 }
 
+bool
+linked_list_compare_test()
+{
+	//
+	// list 1
+	//
+	linked_list_type *list1 = linked_list_create();
+	
+	int element[] = {2, 3, 5, 7, 11};
+	int element_num = 5;
+	int i;
+
+	int *int_p[5];
+	for (i = 0; i < element_num; i++)
+	{
+		int_p[i] = (int *)malloc(sizeof(int));	
+		*(int_p[i]) = element[i];
+	}
+
+	for (i = 0; i < element_num; i ++)
+	{
+		linked_list_insert_back(list1, int_p[i]);
+	}
+
+	//
+	// list 2
+	//
+	linked_list_type *list2 = linked_list_create();
+	
+	int element2[] = {2, 3, 5, 7, 11};
+	int element_num2 = 5;
+	int i2;
+
+	int *int_p2[5];
+	for (i2 = 0; i2 < element_num2; i2++)
+	{
+		int_p2[i2] = (int *)malloc(sizeof(int));	
+		*(int_p2[i2]) = element2[i2];
+	}
+
+	for (i2 = 0; i2 < element_num2; i2 ++)
+	{
+		linked_list_insert_back(list2, int_p2[i2]);
+	}
+
+	if (!linked_list_compare(list1, list2, int_comparator, NULL)) return FALSE;
+
+	linked_list_destroy(list1, destroy_int, NULL);
+	linked_list_destroy(list2, destroy_int, NULL);
+
+	return TRUE;
+}
+
 
 
