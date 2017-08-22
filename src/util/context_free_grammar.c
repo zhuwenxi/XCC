@@ -102,6 +102,15 @@ context_free_grammar_add(context_free_grammar_type *grammar, int head_value, ...
 	linked_list_insert_back(grammar->productions, production);
 }
 
+void
+context_free_grammar_add_production(context_free_grammar_type *grammar, production_type *prod)
+{
+	assert(grammar != NULL && prod != NULL);
+
+	linked_list_insert_back(grammar->productions, prod);
+}
+
+
 char *
 production_debug_str(production_type *prod, char **desc_table)
 {
@@ -208,6 +217,9 @@ context_free_grammar_copier(context_free_grammar_type *grammar, va_list arg_list
 bool
 context_free_grammar_comparator(void *grammar1, void *grammar2, va_list arg_list)
 {
+	//
+	// TO DO
+	//
 	return TRUE;
 }
 
@@ -240,8 +252,11 @@ context_free_grammar_search_production(context_free_grammar_type *grammar, produ
 }
 
 bool
-production_comparator(production_type *p1, production_type *p2, va_list arg_list)
+production_comparator(void *raw_p1, void *raw_p2, va_list arg_list)
 {
+	production_type *p1 = TYPE_CAST(raw_p1, production_type *);
+	production_type *p2 = TYPE_CAST(raw_p2, production_type *);
+
 	if (p1 == p2) return TRUE;
 	if (p1 == NULL || p2 == NULL)
 	{

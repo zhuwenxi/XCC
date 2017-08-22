@@ -30,6 +30,7 @@ bool context_free_grammar_destroy(context_free_grammar_type *grammar, ...);
 bool context_free_grammar_deconstructor(context_free_grammar_type *grammar, va_list arg_list);
 
 void context_free_grammar_add(context_free_grammar_type *grammar, int head_value, ...);
+void context_free_grammar_add_production(context_free_grammar_type *grammar, production_type *prod);
 
 char *get_context_free_grammar_debug_str(context_free_grammar_type *grammar);
 
@@ -56,7 +57,7 @@ DECLARE_COPY(production)
 
 linked_list_node_type *production_search_symbol(production_type *prod, production_token_type *symbol);
 
-bool production_comparator(production_type *p1, production_type *p2, va_list arg_list);
+bool production_comparator(void *p1, void *p2, va_list arg_list);
 DECLARE_COMPARE(production)
 
 #endif

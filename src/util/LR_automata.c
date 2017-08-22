@@ -45,6 +45,18 @@ search_production_by_head(context_free_grammar_type *grammar, production_token_t
 	return ret_list;
 }
 
+linked_list_type *
+get_all_grammar_symbol(context_free_grammar_type *grammar)
+{
+	return NULL;
+}
+
+linked_list_type *
+LR_automata_first(linked_list_type *symbols, context_free_grammar_type *grammar)
+{
+	return NULL;
+}
+
 context_free_grammar_type *
 LR_automata_closure(context_free_grammar_type *state, context_free_grammar_type* grammar)
 {
@@ -72,13 +84,21 @@ LR_automata_closure(context_free_grammar_type *state, context_free_grammar_type*
 					linked_list_type *searched_productions = search_production_by_head(grammar, symbol_next_to_dot);
 					if (searched_productions != NULL)
 					{	
-						linked_list_node_type *searched_production = searched_productions->head;
+						linked_list_node_type *searched_production_node = searched_productions->head;
 
-						while (searched_production != NULL)
+						while (searched_production_node != NULL)
 						{
-							LOG(TRUE, "search the production: %s", production_debug_str(searched_production->data, grammar->desc_table));
+							LOG(LR_AUTOMATA_LOG_ENABLE, "search the production: %s", production_debug_str(searched_production_node->data, grammar->desc_table));
 
-							searched_production = searched_production->next;
+							production_type *searched_production_copy = production_copy(searched_production_node->data, NULL);
+							linked_list_node_type *inserted_dot_node = linked_list_node_create();
+							inserted_dot_node->data = create_int(DOT);
+							linked_list_insert_before(searched_production_copy->body, searched_production_copy->body->head, inserted_dot_node);
+
+							if (linked_list_search(state->productions, searched_production_copy, production_comparator, NULL) == NULL)
+								context_free_grammar_add_production(state, searched_production_copy);
+
+							searched_production_node = searched_production_node->next;
 						}
 						
 					}
@@ -90,6 +110,8 @@ LR_automata_closure(context_free_grammar_type *state, context_free_grammar_type*
 
 		tail_node = state->productions->tail;
 	}
+
+	LOG(LR_AUTOMATA_LOG_ENABLE, "item: %s", get_context_free_grammar_debug_str(state));
 
 	return state;
 }
