@@ -33,6 +33,7 @@ void context_free_grammar_add(context_free_grammar_type *grammar, int head_value
 void context_free_grammar_add_production(context_free_grammar_type *grammar, production_type *prod);
 
 char *get_context_free_grammar_debug_str(context_free_grammar_type *grammar);
+char *context_free_grammar_debug_str(context_free_grammar_type *grammar, va_list arg_list);
 
 context_free_grammar_type *context_free_grammar_copier(context_free_grammar_type *grammar, va_list arg_list);
 DECLARE_COPY(context_free_grammar)

@@ -92,8 +92,7 @@ LR_automata_first(linked_list_type *symbols, context_free_grammar_type *grammar)
 context_free_grammar_type *
 LR_automata_closure(context_free_grammar_type *state, context_free_grammar_type* grammar)
 {
-	LOG(TRUE, "LR_automata_closure");
-	assert(state && state->productions);
+	if (state == NULL) return NULL;
 	
 	linked_list_node_type *tail_node = NULL;
 
@@ -142,8 +141,6 @@ LR_automata_closure(context_free_grammar_type *state, context_free_grammar_type*
 		tail_node = state->productions->tail;
 	}
 
-	LOG(LR_AUTOMATA_LOG_ENABLE, "item: %s", get_context_free_grammar_debug_str(state));
-
 	return state;
 }
 
@@ -167,21 +164,19 @@ LR_automata_goto(context_free_grammar_type *state, production_token_type *symbol
 			dot_node = linked_list_search(prod_copy->body, dot, int_equal, NULL);
 			linked_list_node_type *next_node = dot_node->next;
 
-			LOG(TRUE, "before switch: %s", production_debug_str(prod_copy, grammar->desc_table));
-			linked_list_switch_node(prod_copy->body, dot_node, next_node);
-			LOG(TRUE, "after switch: %s", production_debug_str(prod_copy, grammar->desc_table));
-			void *res = linked_list_search(new_state->productions, prod_copy, production_comparator, NULL);
-			if (res == NULL)
+			if (int_comparator(next_node->data, symbol, NULL))
 			{
-				context_free_grammar_add_production(new_state, prod_copy);
-				LOG(TRUE, "after context_free_grammar_add_production");
+				linked_list_switch_node(prod_copy->body, dot_node, next_node);
+				void *res = linked_list_search(new_state->productions, prod_copy, production_comparator, NULL);
+				if (res == NULL)
+				{
+					context_free_grammar_add_production(new_state, prod_copy);
+				}
+				else
+				{
+					context_free_grammar_destroy(new_state, NULL);
+				}
 			}
-			else
-			{
-				context_free_grammar_destroy(new_state, NULL);
-				LOG(TRUE, "this state has been seen before, destroy it");
-			}
-			
 		}
 
 		prod_node = prod_node->next;
@@ -268,7 +263,6 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 	// while new sets are still being added to "cc"
 	while (cc->length > last_iter_cc_size)
 	{	
-		LOG(TRUE, "cc->length loop");
 		// for each unprocessed set
 		int i;
 		for (i = last_iter_cc_size; i < cc->length; i ++)
@@ -280,13 +274,14 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 
 			for (grammar_symbol_node = grammar_symbols->head; grammar_symbol_node != NULL; grammar_symbol_node = grammar_symbol_node->next)
 			{
-				LOG(TRUE, "grammar_symbol_node loop");
 				production_token_type *grammar_symbol = grammar_symbol_node->data;
 				context_free_grammar_type *next_state = LR_automata_goto(set, grammar_symbol, grammar);
+				LOG(LR_AUTOMATA_LOG_ENABLE, "state:\n%s", get_context_free_grammar_debug_str(set));
+				LOG(LR_AUTOMATA_LOG_ENABLE, "symbol: %s", grammar->desc_table[*TYPE_CAST(grammar_symbol, int *)]);
+				LOG(LR_AUTOMATA_LOG_ENABLE, "next_state:\n%s", get_context_free_grammar_debug_str(next_state));
 				if (next_state != NULL && array_list_search(cc, next_state, context_free_grammar_comparator, NULL) == NULL)
 				{
 					array_list_append(cc, next_state);
-					LOG(TRUE, "this item has not been seen before.");
 				}
 			}
 
@@ -319,6 +314,7 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 		last_iter_cc_size = cc->length;
 	}
 
+	LOG(LR_AUTOMATA_LOG_ENABLE, "cc->length: %d, cc: \n%s", cc->length, get_array_list_debug_str(cc, context_free_grammar_debug_str, NULL));
 
 }
 

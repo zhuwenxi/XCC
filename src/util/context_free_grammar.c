@@ -190,6 +190,12 @@ get_context_free_grammar_debug_str(context_free_grammar_type *grammar)
 	return debug_str;
 }
 
+char *
+context_free_grammar_debug_str(context_free_grammar_type *grammar, va_list arg_list)
+{
+	return get_context_free_grammar_debug_str(grammar);
+}
+
 production_type *
 production_copier(production_type *prod, va_list arg_list)
 {
