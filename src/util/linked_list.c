@@ -420,7 +420,105 @@ linked_list_comparator(linked_list_type *list1, linked_list_type *list2, va_list
 		return FALSE;
 }
 
+bool 
+linked_list_switch_node(linked_list_type *list, linked_list_node_type *node1, linked_list_node_type* node2)
+{	
+	if (node1->next == node2 || node2->next == node1)
+	{
+		//
+		// node1 and node2 are adjacent
+		//
+		
+		// one of node1 and node2 who appears earlier in the list 
+		linked_list_node_type *node_early = NULL;
+		// one of node1 and node2 who appears later in the list
+		linked_list_node_type *node_later = NULL;
 
+		if (node1->next == node2)
+		{
+			node_early = node1;
+			node_later = node2;
+		}
+		else
+		{
+			node_early = node2;
+			node_later = node1;
+		}
+
+		linked_list_node_type *node_before_early = node_early->prev;
+		linked_list_node_type *node_after_later = node_later->next;
+
+		node_early->next = node_after_later;
+		node_early->prev = node_later;
+
+		node_later->next = node_early;
+		node_later->prev = node_before_early;
+
+		if (node_before_early != NULL)
+			node_before_early->next = node_later;
+		else
+			list->head = node_later;
+		if (node_after_later != NULL)
+			node_after_later->prev = node_early;
+		else
+			list->tail = node_early;
+	}
+	else
+	{
+		//
+		// node1 and node2 are NOT adjacent
+		//
+		linked_list_node_type *node_before_node1 = node1->prev;
+		linked_list_node_type *node_after_node1 = node1->next;
+
+		linked_list_node_type *node_before_node2 = node2->prev;
+		linked_list_node_type *node_after_node2 = node2->next;
+
+		if (node_before_node1 != NULL)
+		{
+			node_before_node1->next = node2;
+		}
+		else
+		{	
+			list->head = node2;
+		}
+		node2->prev = node_before_node1;
+
+		if (node_after_node1 != NULL)
+		{
+			node_after_node1->prev = node2;
+		}
+		else
+		{
+			list->tail = node2;
+		}
+		node2->next = node_after_node1;
+
+		if (node_before_node2 != NULL)
+		{
+			node_before_node2->next = node1;
+		}
+		else
+		{
+			list->head = node1;
+		}
+		node1->prev = node_before_node2;
+
+		if (node_after_node2 != NULL)
+		{
+			node_after_node2->prev = node1;
+		}
+		else
+		{
+			list->tail = node1;
+		}
+		node1->next = node_after_node2;
+	}
+
+	
+
+	return TRUE;
+}
 
 
 

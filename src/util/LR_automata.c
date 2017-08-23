@@ -4,6 +4,7 @@
 #include "util.h"
 #include "opts.h"
 #include "logger.h"
+#include "string_buffer.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -48,7 +49,38 @@ search_production_by_head(context_free_grammar_type *grammar, production_token_t
 linked_list_type *
 get_all_grammar_symbol(context_free_grammar_type *grammar)
 {
-	return NULL;
+	assert(grammar != NULL);
+
+	linked_list_type *symbols = linked_list_create();
+	linked_list_node_type *prod_node = NULL;
+
+	for (prod_node = grammar->productions->head; prod_node != NULL; prod_node = prod_node->next)
+	{
+		production_type *prod = prod_node->data;
+
+		assert(prod != NULL);
+
+		production_token_type *head = prod->head;
+		if (linked_list_search(symbols, head, int_comparator, NULL) == NULL)
+		{
+			linked_list_insert_back(symbols, head);
+		}
+
+		linked_list_type *body = prod->body;
+		linked_list_node_type *body_token_node = NULL;
+		for (body_token_node = body->head; body_token_node != NULL; body_token_node = body_token_node->next)
+		{
+			production_token_type *body_token = body_token_node->data;
+			assert(body_token != NULL);
+
+			if (linked_list_search(symbols, body_token, int_comparator, NULL) == NULL)
+			{
+				linked_list_insert_back(symbols, body_token);
+			}
+		}
+	}
+
+	return symbols;
 }
 
 linked_list_type *
@@ -60,6 +92,7 @@ LR_automata_first(linked_list_type *symbols, context_free_grammar_type *grammar)
 context_free_grammar_type *
 LR_automata_closure(context_free_grammar_type *state, context_free_grammar_type* grammar)
 {
+	LOG(TRUE, "LR_automata_closure");
 	assert(state && state->productions);
 	
 	linked_list_node_type *tail_node = NULL;
@@ -88,8 +121,6 @@ LR_automata_closure(context_free_grammar_type *state, context_free_grammar_type*
 
 						while (searched_production_node != NULL)
 						{
-							LOG(LR_AUTOMATA_LOG_ENABLE, "search the production: %s", production_debug_str(searched_production_node->data, grammar->desc_table));
-
 							production_type *searched_production_copy = production_copy(searched_production_node->data, NULL);
 							linked_list_node_type *inserted_dot_node = linked_list_node_create();
 							inserted_dot_node->data = create_int(DOT);
@@ -117,12 +148,52 @@ LR_automata_closure(context_free_grammar_type *state, context_free_grammar_type*
 }
 
 context_free_grammar_type *
-LR_automata_goto(context_free_grammar_type *state, production_token_type *symbol)
+LR_automata_goto(context_free_grammar_type *state, production_token_type *symbol, context_free_grammar_type* grammar)
 {
-	//
-	// TO DO
-	//
-	return state;
+	// for each symbol following a "DOT" in an item in set
+	context_free_grammar_type *new_state = context_free_grammar_create(grammar->desc_table);
+	linked_list_node_type *prod_node = state->productions->head;
+	
+	while (prod_node != NULL)
+	{
+		// search "DOT" in the production's body
+		production_type *prod = prod_node->data;
+		production_token_type *dot = create_int(DOT);
+		linked_list_node_type *dot_node = linked_list_search(prod->body, dot, int_equal, NULL);
+				
+		if (dot_node != NULL && dot_node->next != NULL)
+		{
+			production_type *prod_copy = production_copy(prod, NULL);
+			dot_node = linked_list_search(prod_copy->body, dot, int_equal, NULL);
+			linked_list_node_type *next_node = dot_node->next;
+
+			LOG(TRUE, "before switch: %s", production_debug_str(prod_copy, grammar->desc_table));
+			linked_list_switch_node(prod_copy->body, dot_node, next_node);
+			LOG(TRUE, "after switch: %s", production_debug_str(prod_copy, grammar->desc_table));
+			void *res = linked_list_search(new_state->productions, prod_copy, production_comparator, NULL);
+			if (res == NULL)
+			{
+				context_free_grammar_add_production(new_state, prod_copy);
+				LOG(TRUE, "after context_free_grammar_add_production");
+			}
+			else
+			{
+				context_free_grammar_destroy(new_state, NULL);
+				LOG(TRUE, "this state has been seen before, destroy it");
+			}
+			
+		}
+
+		prod_node = prod_node->next;
+	}
+
+	if (new_state->productions->head == NULL)
+	{
+		context_free_grammar_destroy(new_state, NULL);
+		new_state = NULL;
+	}
+
+	return LR_automata_closure(new_state, grammar);
 }
 
 void
@@ -179,41 +250,70 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 	cc0 = LR_automata_closure(cc0, grammar);
 	array_list_append(cc, cc0);
 
+	// get all grammar symbols
+	linked_list_type *grammar_symbols = get_all_grammar_symbol(grammar);
+	linked_list_node_type *symbol_node = NULL;
+	string_buffer symbol_str = string_buffer_create();
+	for (symbol_node = grammar_symbols->head; symbol_node != NULL; symbol_node = symbol_node->next)
+	{
+		production_token_type *symbol = symbol_node->data;
+		string_buffer_append(&symbol_str, grammar->desc_table[*TYPE_CAST(symbol, int *)]);
+		string_buffer_append(&symbol_str, " ");
+	}
+	LOG(LR_AUTOMATA_LOG_ENABLE, "symbols: %s", symbol_str);
+	assert(grammar_symbols != NULL);
+
 	int last_iter_cc_size = 0;
 
 	// while new sets are still being added to "cc"
 	while (cc->length > last_iter_cc_size)
 	{	
+		LOG(TRUE, "cc->length loop");
 		// for each unprocessed set
 		int i;
 		for (i = last_iter_cc_size; i < cc->length; i ++)
 		{
 			context_free_grammar_type *set = array_list_get(cc, i);
 
-			// for each symbol following a "DOT" in an item in set
-			linked_list_node_type *prod_node = set->productions->head;
-			while (prod_node != NULL)
+			// for each grammar symbol
+			linked_list_node_type *grammar_symbol_node = NULL;
+
+			for (grammar_symbol_node = grammar_symbols->head; grammar_symbol_node != NULL; grammar_symbol_node = grammar_symbol_node->next)
 			{
-				// search "DOT" in the production's body
-				production_type *prod = prod_node->data;
-				production_token_type *dot = create_int(DOT);
-				linked_list_node_type *dot_node = linked_list_search(prod->body, dot, int_equal, NULL);
-				
-				if (dot_node != NULL)
+				LOG(TRUE, "grammar_symbol_node loop");
+				production_token_type *grammar_symbol = grammar_symbol_node->data;
+				context_free_grammar_type *next_state = LR_automata_goto(set, grammar_symbol, grammar);
+				if (next_state != NULL && array_list_search(cc, next_state, context_free_grammar_comparator, NULL) == NULL)
 				{
-					production_token_type *next_symbol = dot_node->next->data;
-
-					context_free_grammar_type *new_set = LR_automata_goto(set, next_symbol);
-
-					// TO DO: if "new_set" doesn't exist in "cc", then add it to "cc"
-					if (!array_list_search(cc, new_set, context_free_grammar_comparator, NULL))
-					{
-						array_list_append(cc, new_set);
-					}
+					array_list_append(cc, next_state);
+					LOG(TRUE, "this item has not been seen before.");
 				}
-
-				prod_node = prod_node->next;
 			}
+
+			// // for each symbol following a "DOT" in an item in set
+			// linked_list_node_type *prod_node = set->productions->head;
+			// while (prod_node != NULL)
+			// {
+			// 	// search "DOT" in the production's body
+			// 	production_type *prod = prod_node->data;
+			// 	production_token_type *dot = create_int(DOT);
+			// 	linked_list_node_type *dot_node = linked_list_search(prod->body, dot, int_equal, NULL);
+				
+			// 	if (dot_node != NULL)
+			// 	{
+			// 		production_token_type *next_symbol = dot_node->next->data;
+
+			// 		context_free_grammar_type *new_set = LR_automata_goto(set, next_symbol);
+
+			// 		// TO DO: if "new_set" doesn't exist in "cc", then add it to "cc"
+			// 		if (!array_list_search(cc, new_set, context_free_grammar_comparator, NULL))
+			// 		{
+			// 			array_list_append(cc, new_set);
+			// 		}
+			// 	}
+
+			// 	prod_node = prod_node->next;
+			// }
 		}
 
 		last_iter_cc_size = cc->length;

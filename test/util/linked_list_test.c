@@ -472,5 +472,56 @@ linked_list_compare_test()
 	return TRUE;
 }
 
+bool
+linked_list_switch_node_test()
+{
+	linked_list_type *list1 = linked_list_create();
+	
+	int element[] = {2, 3, 5, 7, 11};
+	int element_num = 5;
+	int i;
+
+	int *int_p[5];
+	for (i = 0; i < element_num; i++)
+	{
+		int_p[i] = (int *)malloc(sizeof(int));	
+		*(int_p[i]) = element[i];
+	}
+
+	for (i = 0; i < element_num; i ++)
+	{
+		linked_list_insert_back(list1, int_p[i]);
+	}
+
+	linked_list_node_type *node0 = linked_list_search(list1, &element[0], int_comparator, NULL);
+	linked_list_node_type *node1 = linked_list_search(list1, &element[1], int_comparator, NULL);
+
+	linked_list_switch_node(list1, node0, node1);
+	if (!EXPECT_POINTER_EQUAL(node1->next, node0)) return FALSE;
+	if (!EXPECT_POINTER_EQUAL(node0->prev, node1)) return FALSE;
+	if (!EXPECT_POINTER_EQUAL(node1, list1->head)) return FALSE;
+
+	linked_list_node_type *node3 = linked_list_search(list1, &element[3], int_comparator, NULL);
+	linked_list_node_type *node4 = linked_list_search(list1, &element[4], int_comparator, NULL);
+
+	linked_list_switch_node(list1, node4, node3);
+	if (!EXPECT_POINTER_EQUAL(node4->next, node3)) return FALSE;
+	if (!EXPECT_POINTER_EQUAL(node3->prev, node4)) return FALSE;
+	if (!EXPECT_POINTER_EQUAL(node3, list1->tail)) return FALSE;
+
+	linked_list_switch_node(list1, node1, node3);
+	int new_data_squence[] = {7, 2, 5, 11, 3};
+	linked_list_node_type *node = list1->head;
+	for (i = 0; i < element_num; i ++, node = node->next)
+	{
+		int *data_ptr = (int *)(node->data);
+		if (!EXPECT_EQUAL(new_data_squence[i], *data_ptr)) return FALSE;
+	}
+
+	linked_list_destroy(list1, destroy_int, NULL);
+
+	return TRUE;
+}
+
 
 

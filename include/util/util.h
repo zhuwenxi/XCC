@@ -5,6 +5,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include "string_buffer.h"
+
 typedef void void_type;
 
 #define TYPE_CAST(data, type) ((type)(data))
@@ -161,6 +163,18 @@ int_comparator(void *a, void *b, va_list arg_list)
 	int b_val = *TYPE_CAST(b, int *);
 
 	return a_val == b_val;
+}
+
+static inline char *
+int_to_str(void *p, va_list arg_list)
+{
+	char str[10];
+	sprintf(str, "%d", *TYPE_CAST(p, int *));
+
+	string_buffer buffer = string_buffer_create();
+	string_buffer_append(&buffer, str);
+
+	return buffer;
 }
 
 #endif

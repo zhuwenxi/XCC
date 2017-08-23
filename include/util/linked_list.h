@@ -91,4 +91,9 @@ linked_list_node_type *linked_list_node_copier(linked_list_node_type *node, va_l
 
 bool linked_list_comparator(linked_list_type *list1, linked_list_type *list2, va_list arg_list);
 DECLARE_COMPARE(linked_list)
+
+/*
+ * Switch two nodes
+ */
+bool linked_list_switch_node(linked_list_type *list, linked_list_node_type *node1, linked_list_node_type* node2);
 #endif

@@ -10,6 +10,7 @@ TESTCASE(LINKED_LIST_DELETE_TEST, linked_list_delete_test, "Test for linked_list
 TESTCASE(LINKED_LIST_MULTI_DIM_TEST, linked_list_multi_dim_test, "Test for multi-dim linked_list.")
 TESTCASE(LINKED_LIST_COPY_TEST, linked_list_copy_test, "Test for linked_list_copy().")
 TESTCASE(LINKED_LIST_COMPARE_TEST, linked_list_compare_test, "Test for linked_list_compare().")
+TESTCASE(LINKED_LIST_SWITCH_NODE_TEST, linked_list_switch_node_test, "Test for linked_list_switch_node().")
 
 /*
  * Test cases for array_list.c
@@ -49,4 +50,4 @@ TESTCASE(PRODUCTION_COMPARE_TEST, production_compare_test, "Test for production_
 /*
  * Test cases for LR_automata.c
  */
-TESTCASE(LR_AUTOMATA_CREATE_DESTROY_TEST, LR_automata_create_destroy_test, "Test for LR_automata_create() and LR_automata_destroy()")
+XTESTCASE(LR_AUTOMATA_CREATE_DESTROY_TEST, LR_automata_create_destroy_test, "Test for LR_automata_create() and LR_automata_destroy()")
