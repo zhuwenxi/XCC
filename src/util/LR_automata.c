@@ -193,7 +193,12 @@ LR_automata_goto(context_free_grammar_type *state, production_token_type *symbol
 
 void
 construct_canonical_collection(LR_automata_type *lr_automata, context_free_grammar_type *grammar)
-{
+{	
+	//
+	// collect grammar symbols
+	//
+	linked_list_type *grammar_symbols = get_all_grammar_symbol(grammar);
+
 	//
 	// Preprocess the gramamr, by adding an extra production "Goal -> [target production]", which represents the initial state of the parser.
 	// In the regexp case, it is "Goal -> Regexp".
@@ -212,7 +217,7 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 	production_token_type *initial_production_body = create_int(first_production_head);
 	linked_list_insert_back(initial_production->body, initial_production_body);
 
-	LOG(LR_AUTOMATA_LOG_ENABLE, "initial production: %s", production_debug_str(initial_production, grammar->desc_table));
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "initial production: %s", production_debug_str(initial_production, grammar->desc_table));
 
 	// add the generated initial production to the given context-free grammar, as the new "first productoin".
 	// in the regexp case, it is adding the production "Goal -> Regexp" to the first place of grammar
@@ -220,7 +225,7 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 	intial_production_node->data = initial_production;
 	linked_list_insert_before(grammar->productions, grammar->productions->head, intial_production_node);
 	
-	LOG(LR_AUTOMATA_LOG_ENABLE, "the context-free grammar pass to LR automata: \n%s", get_context_free_grammar_debug_str(grammar));
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "the context-free grammar pass to LR automata: \n%s", get_context_free_grammar_debug_str(grammar));
 
 
 	//
@@ -239,14 +244,13 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 	dot_node->data = create_int(DOT);
 	linked_list_insert_before(goal_production->body, goal_production->body->head, dot_node);
 	linked_list_insert_back(cc0->productions, goal_production);
-	LOG(LR_AUTOMATA_LOG_ENABLE, "cc0: %s", get_context_free_grammar_debug_str(cc0));
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "cc0: %s", get_context_free_grammar_debug_str(cc0));
 
 	// add "cc0" to "cc"
 	cc0 = LR_automata_closure(cc0, grammar);
 	array_list_append(cc, cc0);
 
 	// get all grammar symbols
-	linked_list_type *grammar_symbols = get_all_grammar_symbol(grammar);
 	linked_list_node_type *symbol_node = NULL;
 	string_buffer symbol_str = string_buffer_create();
 	for (symbol_node = grammar_symbols->head; symbol_node != NULL; symbol_node = symbol_node->next)
@@ -255,7 +259,7 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 		string_buffer_append(&symbol_str, grammar->desc_table[*TYPE_CAST(symbol, int *)]);
 		string_buffer_append(&symbol_str, " ");
 	}
-	LOG(LR_AUTOMATA_LOG_ENABLE, "symbols: %s", symbol_str);
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "symbols: %s", symbol_str);
 	assert(grammar_symbols != NULL);
 
 	int last_iter_cc_size = 0;
@@ -276,45 +280,21 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 			{
 				production_token_type *grammar_symbol = grammar_symbol_node->data;
 				context_free_grammar_type *next_state = LR_automata_goto(set, grammar_symbol, grammar);
-				LOG(LR_AUTOMATA_LOG_ENABLE, "state:\n%s", get_context_free_grammar_debug_str(set));
-				LOG(LR_AUTOMATA_LOG_ENABLE, "symbol: %s", grammar->desc_table[*TYPE_CAST(grammar_symbol, int *)]);
-				LOG(LR_AUTOMATA_LOG_ENABLE, "next_state:\n%s", get_context_free_grammar_debug_str(next_state));
+				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "state:\n%s", get_context_free_grammar_debug_str(set));
+				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "symbol: %s", grammar->desc_table[*TYPE_CAST(grammar_symbol, int *)]);
+				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "next_state:\n%s", get_context_free_grammar_debug_str(next_state));
+				
 				if (next_state != NULL && array_list_search(cc, next_state, context_free_grammar_comparator, NULL) == NULL)
 				{
 					array_list_append(cc, next_state);
 				}
 			}
-
-			// // for each symbol following a "DOT" in an item in set
-			// linked_list_node_type *prod_node = set->productions->head;
-			// while (prod_node != NULL)
-			// {
-			// 	// search "DOT" in the production's body
-			// 	production_type *prod = prod_node->data;
-			// 	production_token_type *dot = create_int(DOT);
-			// 	linked_list_node_type *dot_node = linked_list_search(prod->body, dot, int_equal, NULL);
-				
-			// 	if (dot_node != NULL)
-			// 	{
-			// 		production_token_type *next_symbol = dot_node->next->data;
-
-			// 		context_free_grammar_type *new_set = LR_automata_goto(set, next_symbol);
-
-			// 		// TO DO: if "new_set" doesn't exist in "cc", then add it to "cc"
-			// 		if (!array_list_search(cc, new_set, context_free_grammar_comparator, NULL))
-			// 		{
-			// 			array_list_append(cc, new_set);
-			// 		}
-			// 	}
-
-			// 	prod_node = prod_node->next;
-			// }
 		}
 
 		last_iter_cc_size = cc->length;
 	}
 
-	LOG(LR_AUTOMATA_LOG_ENABLE, "cc->length: %d, cc: \n%s", cc->length, get_array_list_debug_str(cc, context_free_grammar_debug_str, NULL));
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "cc->length: %d, cc: \n%s", cc->length, get_array_list_debug_str(cc, context_free_grammar_debug_str, NULL));
 
 }
 

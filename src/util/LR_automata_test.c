@@ -6,6 +6,7 @@ typedef enum
 #define PRODUCTION_TOKEN(code, name) code,
 #include "LR_automata_symbol.def"
 #include "regexp_grammar.def"
+#include "expression_grammar.def"
 #undef PRODUCTION_TOKEN
 	TOKEN_LIMIT
 } token_type;
@@ -15,6 +16,7 @@ static char *token_desc_table[] =
 #define PRODUCTION_TOKEN(code, name) name,
 #include "LR_automata_symbol.def"
 #include "regexp_grammar.def"
+#include "expression_grammar.def"
 #undef PRODUCTION_TOKEN
 	"PRODUCTION_TOKEN_LIMIT"
 };
@@ -38,5 +40,22 @@ LR_automata_create_destroy_test()
 	context_free_grammar_add(cfg, UNIT, CHAR, 0);
 
 	// create LR automata
+	LR_automata_type *lr_automata = LR_automata_create(cfg);
+
+	return TRUE;
+}
+
+bool
+LR_automata_expression_grammar_test()
+{
+	context_free_grammar_type *cfg = context_free_grammar_create(token_desc_table);
+
+	context_free_grammar_add(cfg, E, E, ADD, T, 0);
+	context_free_grammar_add(cfg, E, T, 0);
+	context_free_grammar_add(cfg, E, T, MUL, F, 0);
+	context_free_grammar_add(cfg, T, F, 0);
+	context_free_grammar_add(cfg, F, LEFT_PARENTHESIS, E, RIGHT_PARENTHESIS, 0);
+	context_free_grammar_add(cfg, F, ID, 0);
+
 	LR_automata_type *lr_automata = LR_automata_create(cfg);
 }
