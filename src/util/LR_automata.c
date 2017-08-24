@@ -9,12 +9,32 @@
 #include <stdlib.h>
 #include <assert.h>
 
+static char **desc_table;
+
 typedef enum
 {
 #define PRODUCTION_TOKEN(code, name) code,
 #include "LR_automata_symbol.def"
 #undef PRODUCTION_TOKEN
 } production_token_id;
+
+int
+key_pair_hash(void *kp)
+{
+	assert(kp != NULL);
+
+	lr_table_key_pair_type *key_pair = (lr_table_key_pair_type *)kp;
+	int hashcode = 0;
+
+	hashcode += *TYPE_CAST(key_pair->symbol, int *);
+	linked_list_node_type *prod_node;
+	for (prod_node = key_pair->state->productions->head; prod_node != NULL; prod_node = prod_node->next)
+	{
+		hashcode += *TYPE_CAST(prod_node->data, int *);
+	}
+
+	return hashcode;
+}
 
 linked_list_type *
 search_production_by_head(context_free_grammar_type *grammar, production_token_type *head)
@@ -145,7 +165,7 @@ LR_automata_closure(context_free_grammar_type *state, context_free_grammar_type*
 }
 
 context_free_grammar_type *
-LR_automata_goto(context_free_grammar_type *state, production_token_type *symbol, context_free_grammar_type* grammar)
+LR_automata_goto(context_free_grammar_type *state, production_token_type *symbol, context_free_grammar_type* grammar, LR_automata_type *lr_automata)
 {
 	// for each symbol following a "DOT" in an item in set
 	context_free_grammar_type *new_state = context_free_grammar_create(grammar->desc_table);
@@ -187,8 +207,19 @@ LR_automata_goto(context_free_grammar_type *state, production_token_type *symbol
 		context_free_grammar_destroy(new_state, NULL);
 		new_state = NULL;
 	}
+	else
+	{
+		new_state = LR_automata_closure(new_state, grammar);
 
-	return LR_automata_closure(new_state, grammar);
+		// update goto table
+		lr_table_key_pair_type *key_pair = (lr_table_key_pair_type *)malloc(sizeof(lr_table_key_pair_type));
+		key_pair->state = state;
+		key_pair->symbol = symbol;
+		hash_table_insert(lr_automata->goto_table, key_pair, new_state);
+	}
+
+	
+	return new_state;
 }
 
 void
@@ -279,7 +310,7 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 			for (grammar_symbol_node = grammar_symbols->head; grammar_symbol_node != NULL; grammar_symbol_node = grammar_symbol_node->next)
 			{
 				production_token_type *grammar_symbol = grammar_symbol_node->data;
-				context_free_grammar_type *next_state = LR_automata_goto(set, grammar_symbol, grammar);
+				context_free_grammar_type *next_state = LR_automata_goto(set, grammar_symbol, grammar, lr_automata);
 				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "state:\n%s", get_context_free_grammar_debug_str(set));
 				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "symbol: %s", grammar->desc_table[*TYPE_CAST(grammar_symbol, int *)]);
 				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "next_state:\n%s", get_context_free_grammar_debug_str(next_state));
@@ -294,8 +325,10 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 		last_iter_cc_size = cc->length;
 	}
 
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "cc->length: %d, cc: \n%s", cc->length, get_array_list_debug_str(cc, context_free_grammar_debug_str, NULL));
+	lr_automata->items = cc;
 
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "cc->length: %d, cc: \n%s\n", cc->length, get_array_list_debug_str(cc, context_free_grammar_debug_str, NULL));
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "goto table: \n%s\n", get_hash_table_debug_str(lr_automata->goto_table, lr_table_key_pair_debug_str, context_free_grammar_debug_str, NULL));
 }
 
 LR_automata_type *
@@ -303,6 +336,11 @@ LR_automata_create(context_free_grammar_type *grammar)
 {
 	LR_automata_type *lr_automata = (LR_automata_type *)malloc(sizeof(LR_automata_type));
 	lr_automata->items = array_list_create();
+
+	// Initialize goto & action tables
+	lr_automata->goto_table = hash_table_create(key_pair_hash);
+	lr_automata->action_table = hash_table_create(key_pair_hash);
+	desc_table = grammar->desc_table;
 	
 	construct_canonical_collection(lr_automata, grammar);
 
@@ -338,4 +376,17 @@ LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list)
 	free(lr_automata);
 
 	return TRUE;
+}
+
+char *lr_table_key_pair_debug_str(lr_table_key_pair_type *key_pair, va_list arg_list)
+{
+	assert(key_pair != NULL);
+
+	string_buffer debug_str = string_buffer_create();
+
+	string_buffer_append(&debug_str, context_free_grammar_debug_str(key_pair->state, NULL));
+	string_buffer_append(&debug_str, " , ");
+	string_buffer_append(&debug_str, desc_table[*TYPE_CAST(key_pair->symbol ,int *)]); 
+
+	return debug_str;
 }

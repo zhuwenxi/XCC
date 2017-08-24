@@ -373,7 +373,7 @@ hash_table_debug_str(hash_table_type *table, va_list arg_list)
 
 	string_buffer debug_str = string_buffer_create();
 
-	string_buffer_append(&debug_str, "{");
+	string_buffer_append(&debug_str, "{ ");
 
 	va_list arg_list_copy;
 	va_copy(arg_list_copy, arg_list);

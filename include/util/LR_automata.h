@@ -17,14 +17,9 @@ typedef struct
 
 typedef struct
 {
-	array_list_type *productions;
-} LR_automata_item_type;
-
-typedef struct
-{
-	LR_automata_item_type state;
-	production_token_type symbol;
-} key_pair_type;
+	context_free_grammar_type *state;
+	production_token_type *symbol;
+} lr_table_key_pair_type;
 
 LR_automata_type *LR_automata_create(context_free_grammar_type *grammar);
 
@@ -32,4 +27,7 @@ bool LR_automata_destory(LR_automata_type *lr_automata, ...);
 
 bool LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list);
 
+int key_pair_hash(void *key_pair);
+
+char *lr_table_key_pair_debug_str(lr_table_key_pair_type *key_pair, va_list arg_list);
 #endif

@@ -180,7 +180,8 @@ get_context_free_grammar_debug_str(context_free_grammar_type *grammar)
 		string_buffer_append(&debug_str, item_str);
 		string_buffer_destroy(item_str);
 
-		string_buffer_append(&debug_str, ", ");
+		if (node->next != NULL)
+			string_buffer_append(&debug_str, ", ");
 		
 		node = node->next;
 	}
