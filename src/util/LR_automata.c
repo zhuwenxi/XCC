@@ -18,6 +18,12 @@ typedef enum
 #undef PRODUCTION_TOKEN
 } production_token_id;
 
+bool
+is_terminal_symbol(LR_automata_type *lr_automata, production_token_type *symbol)
+{
+	return !linked_list_search(lr_automata->non_terminal_symbols, symbol, int_comparator, NULL);
+}
+
 int
 key_pair_hash(void *kp)
 {
@@ -310,6 +316,16 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "symbols: %s", symbol_str);
 	assert(grammar_symbols != NULL);
 
+	linked_list_node_type *non_terminal_symbol_node;
+	string_buffer non_terminal_symbols_str = string_buffer_create();
+	for (non_terminal_symbol_node = lr_automata->non_terminal_symbols->head; non_terminal_symbol_node != NULL; non_terminal_symbol_node = non_terminal_symbol_node->next)
+	{
+		production_token_type *symbol = non_terminal_symbol_node->data;
+		string_buffer_append(&non_terminal_symbols_str, grammar->desc_table[*TYPE_CAST(symbol, int *)]);
+		string_buffer_append(&non_terminal_symbols_str, " ");
+	}
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "non_terminal_symbols: %s", non_terminal_symbols_str);
+
 	int last_iter_cc_size = 0;
 
 	// while new sets are still being added to "cc"
@@ -328,9 +344,9 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 			{
 				production_token_type *grammar_symbol = grammar_symbol_node->data;
 				context_free_grammar_type *next_state = LR_automata_goto(set, grammar_symbol, lr_automata);
-				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "state:\n%s", get_context_free_grammar_debug_str(set));
-				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "symbol: %s", grammar->desc_table[*TYPE_CAST(grammar_symbol, int *)]);
-				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "next_state:\n%s", get_context_free_grammar_debug_str(next_state));
+				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE && LR_AUTOMATA_GOTO_TABLE_LOG_ENABLE, "state:\n%s", get_context_free_grammar_debug_str(set));
+				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE && LR_AUTOMATA_GOTO_TABLE_LOG_ENABLE, "symbol: %s", grammar->desc_table[*TYPE_CAST(grammar_symbol, int *)]);
+				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE && LR_AUTOMATA_GOTO_TABLE_LOG_ENABLE, "next_state:\n%s", get_context_free_grammar_debug_str(next_state));
 				
 				if (next_state != NULL && array_list_search(cc, next_state, context_free_grammar_comparator, NULL) == NULL)
 				{
@@ -351,7 +367,40 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 void
 construct_action_table(LR_automata_type *lr_automata)
 {
+	array_list_type *states = lr_automata->items;
+	int i;
+	for (i = 0; i < states->length; i ++)
+	{
+		context_free_grammar_type *state = array_list_get(states, i);
 
+		linked_list_node_type *prod_node;
+		for (prod_node = state->productions->head; prod_node != NULL; prod_node = prod_node->next)
+		{
+			production_type *prod = prod_node->data;
+
+			// if [A-> alpha DOT a beta] is i Ii and GOTO[Ii, a] = Ij, then set ACTION[i, a] to "shift j", here a is a terminal
+			int dot = DOT;
+			linked_list_node_type *dot_node = linked_list_search(prod->body, &dot, int_comparator, NULL);
+			if (dot_node != NULL && dot_node->next != NULL)
+			{
+				production_token_type *symbol_next_to_dot = dot_node->next->data;
+
+				if (is_terminal_symbol(lr_automata, symbol_next_to_dot))
+				{
+					lr_table_key_pair_type *key = (lr_table_key_pair_type *)malloc(sizeof(lr_table_key_pair_type));
+					key->state = state;
+					key->symbol = symbol_next_to_dot;
+
+					action_table_value *value = (action_table_value *)malloc(sizeof(action_table_value));
+					value->action = SHIFT;
+					value->next_state = hash_table_search(lr_automata->goto_table, key, lr_table_key_pair_comparator, NULL);
+					value->prod_to_reduce = NULL;
+
+					hash_table_insert(lr_automata->action_table, key, value);
+				}
+			}
+		}
+	}
 }
 
 LR_automata_type *
@@ -414,4 +463,22 @@ char *lr_table_key_pair_debug_str(lr_table_key_pair_type *key_pair, va_list arg_
 	string_buffer_append(&debug_str, desc_table[*TYPE_CAST(key_pair->symbol ,int *)]); 
 
 	return debug_str;
+}
+
+bool
+lr_table_key_pair_comparator(void *k1, void *k2, va_list arg_list)
+{
+	lr_table_key_pair_type *key1 = TYPE_CAST(k1, lr_table_key_pair_type *);
+	lr_table_key_pair_type *key2 = TYPE_CAST(k2, lr_table_key_pair_type *);
+
+	if (key1 == key2) return TRUE;
+	if (key1 == NULL || key2 == NULL)
+	{
+		if (key1 == NULL && key2 == NULL)
+			return TRUE;
+		else
+			return FALSE;
+	}
+
+	return context_free_grammar_comparator(key1->state, key2->state, NULL) && int_comparator(key1->symbol, key2->symbol, NULL);
 }

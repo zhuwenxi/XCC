@@ -24,6 +24,20 @@ typedef struct
 	production_token_type *symbol;
 } lr_table_key_pair_type;
 
+typedef enum
+{
+	SHIFT,
+	REDUCE,
+	ACCEPT,
+} action_type;
+
+typedef struct
+{
+	action_type action;
+	context_free_grammar_type *next_state;
+	production_type *prod_to_reduce;
+} action_table_value;
+
 LR_automata_type *LR_automata_create(context_free_grammar_type *grammar);
 
 bool LR_automata_destory(LR_automata_type *lr_automata, ...);
@@ -33,4 +47,6 @@ bool LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list);
 int key_pair_hash(void *key_pair);
 
 char *lr_table_key_pair_debug_str(lr_table_key_pair_type *key_pair, va_list arg_list);
+
+bool lr_table_key_pair_comparator(void *key1, void *key2, va_list arg_list);
 #endif
