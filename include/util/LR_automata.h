@@ -13,6 +13,9 @@ typedef struct
 	array_list_type *items;
 	hash_table_type *goto_table;
 	hash_table_type *action_table;
+	context_free_grammar_type *grammar;
+	// record all non-terminal symbols
+	linked_list_type *non_terminal_symbols;
 } LR_automata_type;
 
 typedef struct

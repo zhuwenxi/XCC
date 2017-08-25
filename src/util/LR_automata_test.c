@@ -58,4 +58,6 @@ LR_automata_expression_grammar_test()
 	context_free_grammar_add(cfg, F, ID, 0);
 
 	LR_automata_type *lr_automata = LR_automata_create(cfg);
+
+	return TRUE;
 }

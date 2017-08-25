@@ -74,8 +74,10 @@ search_production_by_head(context_free_grammar_type *grammar, production_token_t
 }
 
 linked_list_type *
-get_all_grammar_symbol(context_free_grammar_type *grammar)
-{
+get_all_grammar_symbol(LR_automata_type *lr_automata)
+{	
+	assert(lr_automata != NULL);
+	context_free_grammar_type *grammar = lr_automata->grammar;
 	assert(grammar != NULL);
 
 	linked_list_type *symbols = linked_list_create();
@@ -91,6 +93,12 @@ get_all_grammar_symbol(context_free_grammar_type *grammar)
 		if (linked_list_search(symbols, head, int_comparator, NULL) == NULL)
 		{
 			linked_list_insert_back(symbols, head);
+		}
+
+		// update non_terminal_symbols:
+		if (linked_list_search(lr_automata->non_terminal_symbols, head, int_comparator) == NULL)
+		{
+			linked_list_insert_back(lr_automata->non_terminal_symbols, head);
 		}
 
 		linked_list_type *body = prod->body;
@@ -172,8 +180,10 @@ LR_automata_closure(context_free_grammar_type *state, context_free_grammar_type*
 }
 
 context_free_grammar_type *
-LR_automata_goto(context_free_grammar_type *state, production_token_type *symbol, context_free_grammar_type* grammar, LR_automata_type *lr_automata)
+LR_automata_goto(context_free_grammar_type *state, production_token_type *symbol, LR_automata_type *lr_automata)
 {
+	context_free_grammar_type* grammar = lr_automata->grammar;
+
 	// for each symbol following a "DOT" in an item in set
 	context_free_grammar_type *new_state = context_free_grammar_create(grammar->desc_table);
 	linked_list_node_type *prod_node = state->productions->head;
@@ -230,13 +240,13 @@ LR_automata_goto(context_free_grammar_type *state, production_token_type *symbol
 }
 
 void
-construct_canonical_collection(LR_automata_type *lr_automata, context_free_grammar_type *grammar)
+construct_canonical_collection(LR_automata_type *lr_automata)
 {	
+	context_free_grammar_type *grammar = lr_automata->grammar;
 	//
 	// collect grammar symbols
 	//
-	linked_list_type *grammar_symbols = get_all_grammar_symbol(grammar);
-
+	linked_list_type *grammar_symbols = get_all_grammar_symbol(lr_automata);
 	//
 	// Preprocess the gramamr, by adding an extra production "Goal -> [target production]", which represents the initial state of the parser.
 	// In the regexp case, it is "Goal -> Regexp".
@@ -317,7 +327,7 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 			for (grammar_symbol_node = grammar_symbols->head; grammar_symbol_node != NULL; grammar_symbol_node = grammar_symbol_node->next)
 			{
 				production_token_type *grammar_symbol = grammar_symbol_node->data;
-				context_free_grammar_type *next_state = LR_automata_goto(set, grammar_symbol, grammar, lr_automata);
+				context_free_grammar_type *next_state = LR_automata_goto(set, grammar_symbol, lr_automata);
 				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "state:\n%s", get_context_free_grammar_debug_str(set));
 				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "symbol: %s", grammar->desc_table[*TYPE_CAST(grammar_symbol, int *)]);
 				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "next_state:\n%s", get_context_free_grammar_debug_str(next_state));
@@ -338,18 +348,26 @@ construct_canonical_collection(LR_automata_type *lr_automata, context_free_gramm
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "goto table: \n%s\n", get_hash_table_debug_str(lr_automata->goto_table, lr_table_key_pair_debug_str, context_free_grammar_debug_str, NULL));
 }
 
+void
+construct_action_table(LR_automata_type *lr_automata)
+{
+
+}
+
 LR_automata_type *
 LR_automata_create(context_free_grammar_type *grammar)
 {
 	LR_automata_type *lr_automata = (LR_automata_type *)malloc(sizeof(LR_automata_type));
 	lr_automata->items = array_list_create();
+	lr_automata->grammar = grammar;
+	lr_automata->non_terminal_symbols = linked_list_create();
 
 	// Initialize goto & action tables
 	lr_automata->goto_table = hash_table_create(key_pair_hash);
 	lr_automata->action_table = hash_table_create(key_pair_hash);
 	desc_table = grammar->desc_table;
-	
-	construct_canonical_collection(lr_automata, grammar);
+
+	construct_canonical_collection(lr_automata);
 
 	return lr_automata;
 }
