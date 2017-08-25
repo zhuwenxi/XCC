@@ -30,7 +30,14 @@ key_pair_hash(void *kp)
 	linked_list_node_type *prod_node;
 	for (prod_node = key_pair->state->productions->head; prod_node != NULL; prod_node = prod_node->next)
 	{
-		hashcode += *TYPE_CAST(prod_node->data, int *);
+		production_type *prod = TYPE_CAST(prod_node->data, production_type *);
+		hashcode += *TYPE_CAST(prod->head, int *);
+
+		linked_list_node_type *prod_body_node = prod->body->head;
+		for (prod_body_node = prod->body->head; prod_body_node != NULL; prod_body_node = prod_body_node->next)
+		{
+			hashcode += *TYPE_CAST(prod_body_node->data, int *);
+		}
 	}
 
 	return hashcode;
