@@ -331,12 +331,12 @@ _print_as_linked_list(linked_list_type *list, char *(*sub_debug_str)(hash_table_
 {
 	string_buffer debug_str = string_buffer_create();
 
-	va_list arg_list_copy;
-	va_copy(arg_list_copy, arg_list);
-
 	linked_list_node_type *node = list->head;
 	while (node != NULL)
 	{
+		va_list arg_list_copy;
+		va_copy(arg_list_copy, arg_list);
+
 		linked_list_node_type *next_node = node->next;
 
 		char *item_str;
@@ -354,11 +354,12 @@ _print_as_linked_list(linked_list_type *list, char *(*sub_debug_str)(hash_table_
 
 
 		string_buffer_append(&debug_str, ", ");
-
+		va_end(arg_list_copy);
+		
 		node = next_node;
 	}
 
-	va_end(arg_list_copy);
+	
 
 	return debug_str;
 }
