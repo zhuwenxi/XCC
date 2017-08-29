@@ -362,7 +362,7 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 	lr_automata->items = cc;
 
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "cc->length: %d, cc: \n%s\n", cc->length, get_array_list_debug_str(cc, context_free_grammar_debug_str, NULL));
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "goto table: \n%s\n", get_hash_table_debug_str(lr_automata->goto_table, lr_table_key_pair_debug_str, context_free_grammar_debug_str, NULL));
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "GOTO TABLE: \n%s\n", get_hash_table_debug_str(lr_automata->goto_table, lr_table_key_pair_debug_str, context_free_grammar_debug_str, NULL));
 }
 
 void
@@ -379,32 +379,81 @@ construct_action_table(LR_automata_type *lr_automata)
 		{
 			production_type *prod = prod_node->data;
 
-			// if [A-> alpha DOT a beta] is i Ii and GOTO[Ii, a] = Ij, then set ACTION[i, a] to "shift j", here a is a terminal
 			int dot = DOT;
 			linked_list_node_type *dot_node = linked_list_search(prod->body, &dot, int_comparator, NULL);
-			if (dot_node != NULL && dot_node->next != NULL)
-			{
-				production_token_type *symbol_next_to_dot = dot_node->next->data;
-
-				if (is_terminal_symbol(lr_automata, symbol_next_to_dot))
+			if (dot_node != NULL)
+			{	
+				if (dot_node->next != NULL)
 				{
-					lr_table_key_pair_type *key = (lr_table_key_pair_type *)malloc(sizeof(lr_table_key_pair_type));
-					key->state = state;
-					key->symbol = symbol_next_to_dot;
+					// if [A-> alpha DOT a beta] is in Ii and GOTO[Ii, a] = Ij, then set ACTION[i, a] to "shift j", here a is a terminal
+					production_token_type *symbol_next_to_dot = dot_node->next->data;
 
-					action_table_value *value = (action_table_value *)malloc(sizeof(action_table_value));
-					value->action = SHIFT;
-					value->next_state = hash_table_search(lr_automata->goto_table, key, lr_table_key_pair_comparator, NULL);
-					assert(value->next_state);
-					value->prod_to_reduce = NULL;
+					if (is_terminal_symbol(lr_automata, symbol_next_to_dot))
+					{
+						lr_table_key_pair_type *key = (lr_table_key_pair_type *)malloc(sizeof(lr_table_key_pair_type));
+						key->state = state;
+						key->symbol = symbol_next_to_dot;
 
-					hash_table_insert(lr_automata->action_table, key, value);
+						action_table_value *value = (action_table_value *)malloc(sizeof(action_table_value));
+						value->action = SHIFT;
+						value->next_state = hash_table_search(lr_automata->goto_table, key, lr_table_key_pair_comparator, NULL);
+						value->prod_to_reduce = NULL;
+
+						hash_table_insert(lr_automata->action_table, key, value);
+					}
 				}
-			}
+				else
+				{
+					
+					int goal_symbol = GOAL;
+					if (int_comparator(prod->head, &goal_symbol, NULL))
+					{
+						// if [Goal -> A DOT] is in Ii, then set ACTION[i, $] to "accept"
+						lr_table_key_pair_type *key = (lr_table_key_pair_type *)malloc(sizeof(lr_table_key_pair_type));
+						key->state = state;
+						production_token_type *dollar_symbol = create_int(DOLLAR);
+						key->symbol = dollar_symbol;
+
+						action_table_value *value = (action_table_value *)malloc(sizeof(action_table_value));
+						value->action = ACCEPT;
+						value->next_state = NULL;
+						value->prod_to_reduce = NULL;
+
+						hash_table_insert(lr_automata->action_table, key, value);
+					}
+					else
+					{
+						// if [A -> alpah DOT] is in Ii, then set ACTION[i, a] to "reduce A -> Alpha" for all a in FOLLOW(A), here A may not be Goal
+						array_list_type *symbols_follow_A = LR_automata_follow(prod->head, lr_automata->grammar);
+						assert(symbols_follow_A != NULL && symbols_follow_A->length > 0);
+
+						int i;
+						for (i = 0; i < symbols_follow_A->length; i ++)
+						{
+							lr_table_key_pair_type *key = (lr_table_key_pair_type *)malloc(sizeof(lr_table_key_pair_type));
+							key->state = state;
+							key->symbol = array_list_get(symbols_follow_A, i);
+
+							action_table_value *value = (action_table_value *)malloc(sizeof(action_table_value));
+							value->action = REDUCE;
+							value->next_state = NULL;
+							value->prod_to_reduce = production_copy(prod, NULL);
+
+							hash_table_insert(lr_automata->action_table, key, value);
+						}
+						
+
+					}
+				}
+			} 
+
+			
+
+
 		}
 	}
 
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_ACTION_TABLE_LOG_ENABLE, "action_table: %s", get_hash_table_debug_str(lr_automata->action_table, lr_table_key_pair_debug_str, action_table_value_debug_str, NULL));
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_ACTION_TABLE_LOG_ENABLE, "ACTION TABLE:\n%s", get_hash_table_debug_str(lr_automata->action_table, lr_table_key_pair_debug_str, action_table_value_debug_str, NULL));
 }
 
 LR_automata_type *
@@ -495,16 +544,56 @@ action_table_value_debug_str(action_table_value *value, va_list arg_list)
 
 	if (value->action == ACCEPT)
 	{
+		string_buffer_append(&debug_str, "Accept ");
+		string_buffer_append(&debug_str, "\n\n");
 	}
 	else if (value->action == SHIFT)
 	{
-		assert(value->next_state);
+		string_buffer_append(&debug_str, "Shift to ");
 		string_buffer_append(&debug_str, get_context_free_grammar_debug_str(value->next_state));
+		string_buffer_append(&debug_str, "\n\n");
 	}
 	else if (value->action == REDUCE)
 	{
+		string_buffer_append(&debug_str, "Reduce to ");
 		string_buffer_append(&debug_str, production_debug_str(value->prod_to_reduce, desc_table));
+		string_buffer_append(&debug_str, "\n\n");
 	}
 
 	return debug_str;
+}
+
+array_list_type *LR_automata_follow(production_token_type *symbol, context_free_grammar_type *grammar)
+{	
+	assert(symbol && grammar);
+	array_list_type *follow_set = array_list_create();
+	//
+	// Preprocess. Get the non-terminal symbols from the grammar
+	//
+	linked_list_type *non_terminal_symbols = linked_list_create();
+
+	linked_list_node_type *prod_node = NULL;
+	for (prod_node = grammar->productions->head; prod_node != NULL; prod_node = prod_node->next)
+	{
+		production_type *prod = prod_node->data;
+
+		if (linked_list_search(non_terminal_symbols, prod->head, int_comparator, NULL) != NULL)
+		{
+			linked_list_insert_back(non_terminal_symbols, prod->head);
+		}
+	}
+
+	//
+	// Place $ in FOLLOW(GOAL)
+	//
+	if (*TYPE_CAST(symbol, int *) == GOAL)
+	{
+		production_token_type *dollar_symbol = create_int(DOLLAR);
+		array_list_append(follow_set, dollar_symbol);
+	}
+
+
+	linked_list_destroy(non_terminal_symbols, NULL);
+	
+	return follow_set;
 }

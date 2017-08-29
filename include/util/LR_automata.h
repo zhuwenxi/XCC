@@ -44,6 +44,8 @@ bool LR_automata_destory(LR_automata_type *lr_automata, ...);
 
 bool LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list);
 
+array_list_type *LR_automata_follow(production_token_type *symbol, context_free_grammar_type *grammar);
+
 int key_pair_hash(void *key_pair);
 
 char *lr_table_key_pair_debug_str(lr_table_key_pair_type *key_pair, va_list arg_list);
