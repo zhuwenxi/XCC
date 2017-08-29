@@ -238,6 +238,7 @@ LR_automata_goto(context_free_grammar_type *state, production_token_type *symbol
 		lr_table_key_pair_type *key_pair = (lr_table_key_pair_type *)malloc(sizeof(lr_table_key_pair_type));
 		key_pair->state = state;
 		key_pair->symbol = symbol;
+
 		hash_table_insert(lr_automata->goto_table, key_pair, new_state);
 	}
 
@@ -394,6 +395,7 @@ construct_action_table(LR_automata_type *lr_automata)
 					action_table_value *value = (action_table_value *)malloc(sizeof(action_table_value));
 					value->action = SHIFT;
 					value->next_state = hash_table_search(lr_automata->goto_table, key, lr_table_key_pair_comparator, NULL);
+					assert(value->next_state);
 					value->prod_to_reduce = NULL;
 
 					hash_table_insert(lr_automata->action_table, key, value);
@@ -401,6 +403,8 @@ construct_action_table(LR_automata_type *lr_automata)
 			}
 		}
 	}
+
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_ACTION_TABLE_LOG_ENABLE, "action_table: %s", get_hash_table_debug_str(lr_automata->action_table, lr_table_key_pair_debug_str, action_table_value_debug_str, NULL));
 }
 
 LR_automata_type *
@@ -417,6 +421,7 @@ LR_automata_create(context_free_grammar_type *grammar)
 	desc_table = grammar->desc_table;
 
 	construct_canonical_collection(lr_automata);
+	construct_action_table(lr_automata);
 
 	return lr_automata;
 }
@@ -481,4 +486,25 @@ lr_table_key_pair_comparator(void *k1, void *k2, va_list arg_list)
 	}
 
 	return context_free_grammar_comparator(key1->state, key2->state, NULL) && int_comparator(key1->symbol, key2->symbol, NULL);
+}
+
+char *
+action_table_value_debug_str(action_table_value *value, va_list arg_list)
+{
+	string_buffer debug_str = string_buffer_create();
+
+	if (value->action == ACCEPT)
+	{
+	}
+	else if (value->action == SHIFT)
+	{
+		assert(value->next_state);
+		string_buffer_append(&debug_str, get_context_free_grammar_debug_str(value->next_state));
+	}
+	else if (value->action == REDUCE)
+	{
+		string_buffer_append(&debug_str, production_debug_str(value->prod_to_reduce, desc_table));
+	}
+
+	return debug_str;
 }

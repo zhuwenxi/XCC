@@ -41,7 +41,7 @@ str_equal(void *node_data, void *key, va_list arg_list)
 {
 	hash_table_element_type *element = node_data;
 
-	return strcmp(*TYPE_CAST(element->key, char **), *TYPE_CAST(key, char **)) == 0;
+	return strcmp(*TYPE_CAST(element, char **), *TYPE_CAST(key, char **)) == 0;
 }
 
 bool

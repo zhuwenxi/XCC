@@ -34,6 +34,8 @@ hash_table_element_type *hash_table_element_create(void *key, void *value);
 
 bool hash_table_element_deconstructor(hash_table_element_type *element, va_list arg_list);
 
+bool hash_table_element_comparator(void *e1, void *e2, va_list arg_list);
+
 bool hash_table_insert(hash_table_type *table, void *key, void *value);
 
 void *hash_table_searcher(hash_table_type *table, void *key, bool (*comparator)(void *, void *, va_list), va_list arg_list);

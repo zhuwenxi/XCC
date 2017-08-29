@@ -49,4 +49,6 @@ int key_pair_hash(void *key_pair);
 char *lr_table_key_pair_debug_str(lr_table_key_pair_type *key_pair, va_list arg_list);
 
 bool lr_table_key_pair_comparator(void *key1, void *key2, va_list arg_list);
+
+char *action_table_value_debug_str(action_table_value *value, va_list arg_list);
 #endif

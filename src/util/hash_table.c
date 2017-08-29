@@ -213,7 +213,7 @@ _search_element(hash_table_type *table, void *key, bool (*equal)(void *, void *,
 		return NULL;
 	}
 
-	linked_list_node_type *linked_list_node = linked_list_search(bucket, key, equal, arg_list);
+	linked_list_node_type *linked_list_node = linked_list_search(bucket, key, hash_table_element_comparator, equal, arg_list);
 
 	if (linked_list_node == NULL)
 	{
@@ -426,6 +426,18 @@ char *hash_table_element_str(hash_table_element_type *table_element, va_list arg
 
 	return debug_str;
 }
+
+bool
+hash_table_element_comparator(void *e1, void *e2, va_list arg_list)
+{
+	bool (*sub_comparator)(void *, void *, va_list) = va_arg(arg_list, bool (*)(void *, void *, va_list));
+
+	hash_table_element_type *element1;
+	element1 = TYPE_CAST(e1, hash_table_element_type *);
+
+	return sub_comparator(element1->key, e2, arg_list);
+}
+
 
 
 /*
