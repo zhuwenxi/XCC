@@ -211,6 +211,29 @@ array_list_resize(array_list_type *list, int new_size)
 	return TRUE;
 }
 
+bool
+array_list_adjust_length(array_list_type *list, int new_length)
+{
+	assert(new_length > list->length);
+
+	if (list->capacity < new_length)
+	{
+		array_list_resize(list, new_length);
+	}
+
+	int i;
+	for (i = list->length; i < new_length; i ++)
+	{	
+		list->content[i] = array_list_node_create();
+		list->content[i]->data = NULL;
+	}
+
+	list->length = new_length;
+
+	return TRUE;
+	
+}
+
 char *
 get_array_list_debug_str(array_list_type *list, ...)
 {

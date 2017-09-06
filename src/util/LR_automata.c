@@ -469,6 +469,10 @@ LR_automata_create(context_free_grammar_type *grammar)
 	lr_automata->action_table = hash_table_create(key_pair_hash);
 	desc_table = grammar->desc_table;
 
+	// Initialize first & follow sets
+	lr_automata->follow_set = LR_automata_construct_follow_set(grammar);
+	lr_automata->first_set = array_list_create();
+
 	construct_canonical_collection(lr_automata);
 	construct_action_table(lr_automata);
 
@@ -563,10 +567,12 @@ action_table_value_debug_str(action_table_value *value, va_list arg_list)
 	return debug_str;
 }
 
-array_list_type *LR_automata_follow(production_token_type *symbol, context_free_grammar_type *grammar)
+array_list_type *
+LR_automata_follow(production_token_type *symbol, context_free_grammar_type *grammar)
 {	
 	assert(symbol && grammar);
 	array_list_type *follow_set = array_list_create();
+
 	//
 	// Preprocess. Get the non-terminal symbols from the grammar
 	//
@@ -592,8 +598,26 @@ array_list_type *LR_automata_follow(production_token_type *symbol, context_free_
 		array_list_append(follow_set, dollar_symbol);
 	}
 
+	//
+	//
+	//
+
 
 	linked_list_destroy(non_terminal_symbols, NULL);
+
+	return follow_set;
+}
+
+array_list_type *
+LR_automata_construct_follow_set(context_free_grammar_type *grammar)
+{
+	array_list_type *follow_set = array_list_create();
 	
+	linked_list_node_type *prod_node = NULL;
+	for (prod_node = grammar->productions->head; prod_node != NULL; prod_node = prod_node->next)
+	{
+		production_type *prod = prod_node->data;
+	}
+
 	return follow_set;
 }

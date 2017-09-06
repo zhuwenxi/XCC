@@ -69,9 +69,14 @@ array_list_node_type *array_list_searcher(array_list_type *list, void *data, boo
 DECLARE_SEARCH(array_list_type, array_list_node_type, array_list)
 
 /*
- * Resize the inner dynamic array
+ * Resize the internal dynamic array
  */
 bool array_list_resize(array_list_type *list, int new_size);
+
+/*
+ * Adjust array list length
+ */
+bool array_list_adjust_length(array_list_type *list, int new_length);
 
 /*
  * String for debug.

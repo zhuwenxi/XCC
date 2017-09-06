@@ -257,3 +257,41 @@ array_list_search_test()
 
 	return TRUE;
 }
+
+bool
+array_list_adjust_length_test()
+{
+	array_list_type *list = array_list_create();
+
+	int len = 30;
+	int data[len];
+	int i;
+
+	for (i = 0; i < len; i++)
+	{
+		data[i] = i;
+		array_list_append(list, &data[i]);
+		if (!EXPECT_EQUAL(GET_DATA(list->content[i], int), i)) return FALSE;
+	}
+
+	if (!EXPECT_EQUAL(GET_DATA(list->content[0], int), 0))
+	{
+		return FALSE;
+	}
+	else if (!EXPECT_EQUAL((int)list->length, len))
+	{
+		return FALSE;
+	}
+
+	array_list_adjust_length(list, 40);
+	if (!EXPECT_SIZE_EQUAL(list->length, (size_t)40)) return FALSE;
+
+	for (i = 30; i < 40; i ++)
+	{
+		if (!EXPECT_POINTER_EQUAL(array_list_get(list, i), NULL)) return FALSE;
+	}
+
+	array_list_destroy(list, NULL);
+
+	return TRUE;
+}

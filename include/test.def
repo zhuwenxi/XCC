@@ -22,6 +22,7 @@ TESTCASE(ARRAY_LIST_SET_TEST, array_list_set_test, "Test for array_list_set().")
 TESTCASE(ARRAY_LIST_MULTI_DIM_ARRAY_TEST, array_list_multi_dim_test, "Test for multi dim array_list.")
 TESTCASE(ARRAY_LIST_COPY_TEST, array_list_copy_test, "Test for array_list_copy().")
 TESTCASE(ARRAY_LIST_SEARCH_TEST, array_list_search_test, "Test for array_list_search().")
+TESTCASE(ARRAY_LIST_ADJUST_LENGTH_TEST, array_list_adjust_length_test, "Test for array_list_adjust_length().")
 
 /*
  * Test cases for stack.c
@@ -50,6 +51,6 @@ TESTCASE(PRODUCTION_COMPARE_TEST, production_compare_test, "Test for production_
 /*
  * Test cases for LR_automata.c
  */
-TESTCASE(LR_AUTOMATA_CREATE_DESTROY_TEST, LR_automata_create_destroy_test, "Test for LR_automata_create() and LR_automata_destroy()")
+XTESTCASE(LR_AUTOMATA_CREATE_DESTROY_TEST, LR_automata_create_destroy_test, "Test for LR_automata_create() and LR_automata_destroy()")
 XTESTCASE(LR_AUTOMATA_EXPRESSION_GRAMMAR_TEST, LR_automata_expression_grammar_test, "Test for expression grammar")
 

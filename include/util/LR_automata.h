@@ -10,9 +10,17 @@
 
 typedef struct
 {
+	// states
 	array_list_type *items;
+
+	// goto & action table
 	hash_table_type *goto_table;
 	hash_table_type *action_table;
+
+	// follow & first set
+	array_list_type *follow_set;
+	array_list_type *first_set;
+
 	context_free_grammar_type *grammar;
 	// record all non-terminal symbols
 	linked_list_type *non_terminal_symbols;
@@ -44,6 +52,7 @@ bool LR_automata_destory(LR_automata_type *lr_automata, ...);
 
 bool LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list);
 
+array_list_type *LR_automata_construct_follow_set(context_free_grammar_type *grammar);
 array_list_type *LR_automata_follow(production_token_type *symbol, context_free_grammar_type *grammar);
 
 int key_pair_hash(void *key_pair);
