@@ -61,3 +61,22 @@ LR_automata_expression_grammar_test()
 
 	return TRUE;
 }
+
+bool
+LR_automata_expression_grammar_right_recursive_test()
+{
+	context_free_grammar_type *cfg = context_free_grammar_create(token_desc_table);
+
+	context_free_grammar_add(cfg, E, T, E_SINGLE_QUOTATION, 0);
+	context_free_grammar_add(cfg, E_SINGLE_QUOTATION, ADD, T, E_SINGLE_QUOTATION, 0);
+	context_free_grammar_add(cfg, E_SINGLE_QUOTATION, EPSILON, 0);
+	context_free_grammar_add(cfg, T, F, T_SINGLE_QUOTATION, 0);
+	context_free_grammar_add(cfg, T_SINGLE_QUOTATION, MUL, F, T_SINGLE_QUOTATION, 0);
+	context_free_grammar_add(cfg, T_SINGLE_QUOTATION, EPSILON, 0);
+	context_free_grammar_add(cfg, F, LEFT_PARENTHESIS, E, RIGHT_PARENTHESIS, 0);
+	context_free_grammar_add(cfg, F, ID, 0);
+
+	LR_automata_type *lr_automata = LR_automata_create(cfg);
+
+	return TRUE;
+}
