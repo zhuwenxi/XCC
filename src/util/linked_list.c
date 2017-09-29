@@ -520,6 +520,43 @@ linked_list_switch_node(linked_list_type *list, linked_list_node_type *node1, li
 	return TRUE;
 }
 
+bool
+linked_list_merge(linked_list_type *list1, linked_list_type *list2, bool (*comparator)(void *, void *, va_list), ...)
+{
+	assert(list1);
+
+	if (list2 == NULL) return FALSE;
+
+	bool ret = FALSE;
+	va_list arg_list;
+	va_start(arg_list, comparator);
+
+	linked_list_node_type *node;
+	for (node = list2->head; node != NULL; node = node->next)
+	{	
+		va_list arg_list_copy;
+		va_copy(arg_list_copy, arg_list);
+
+		void *data = node->data;
+
+		if (linked_list_searcher(list1, data, comparator, arg_list_copy) == NULL)
+		{
+			void *(*copier)(void *, va_list) = va_arg(arg_list_copy, void *(*)(void *, va_list));
+			assert(copier != NULL);
+
+			linked_list_insert_back(list1, copier(data, arg_list_copy));
+
+			ret = TRUE;
+		}
+
+		va_end(arg_list_copy);
+	}
+
+	va_end(arg_list);
+
+	return ret;
+}
+
 
 
 

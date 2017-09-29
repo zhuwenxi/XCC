@@ -61,6 +61,9 @@ bool linked_list_insert_before(linked_list_type *list, linked_list_node_type *in
 // insert at the tail of the list
 bool linked_list_insert_back(linked_list_type *list, void *data);
 
+// merge two linked_list
+bool linked_list_merge(linked_list_type *list1, linked_list_type *list2, bool (*comparator)(void *, void *, va_list), ...);
+
 /*
  * Search node in list.
  */

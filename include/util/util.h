@@ -177,4 +177,12 @@ int_to_str(void *p, va_list arg_list)
 	return buffer;
 }
 
+#define DBCODE(is_debug, code) \
+	if (is_debug) \
+	{\
+		do {\
+			code\
+		} while(0);\
+	}
+
 #endif

@@ -53,7 +53,11 @@ bool LR_automata_destory(LR_automata_type *lr_automata, ...);
 bool LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list);
 
 array_list_type *LR_automata_construct_follow_set(context_free_grammar_type *grammar);
-array_list_type *LR_automata_follow(production_token_type *symbol, context_free_grammar_type *grammar);
+array_list_type *LR_automata_construct_first_set(context_free_grammar_type *grammar);
+bool LR_automata_set_update(array_list_type *follow_set, production_token_type *symbol, linked_list_type *update_set);
+
+linked_list_type *LR_automata_follow(production_token_type *symbol, context_free_grammar_type *grammar);
+linked_list_type *LR_automata_first(production_token_type *symbol, context_free_grammar_type *grammar);
 
 int key_pair_hash(void *key_pair);
 
@@ -62,4 +66,7 @@ char *lr_table_key_pair_debug_str(lr_table_key_pair_type *key_pair, va_list arg_
 bool lr_table_key_pair_comparator(void *key1, void *key2, va_list arg_list);
 
 char *action_table_value_debug_str(action_table_value *value, va_list arg_list);
+
+static char *get_set_debug_str(array_list_type *set, char *desc_table[]);
+static char *get_sub_set_debug_str(linked_list_type *set, char *desc_table[]);
 #endif

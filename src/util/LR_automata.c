@@ -33,6 +33,7 @@ key_pair_hash(void *kp)
 	int hashcode = 0;
 
 	hashcode += *TYPE_CAST(key_pair->symbol, int *);
+
 	linked_list_node_type *prod_node;
 	for (prod_node = key_pair->state->productions->head; prod_node != NULL; prod_node = prod_node->next)
 	{
@@ -125,7 +126,7 @@ get_all_grammar_symbol(LR_automata_type *lr_automata)
 }
 
 linked_list_type *
-LR_automata_first(linked_list_type *symbols, context_free_grammar_type *grammar)
+LR_automata_first(production_token_type *symbols, context_free_grammar_type *grammar)
 {
 	return NULL;
 }
@@ -424,15 +425,15 @@ construct_action_table(LR_automata_type *lr_automata)
 					else
 					{
 						// if [A -> alpah DOT] is in Ii, then set ACTION[i, a] to "reduce A -> Alpha" for all a in FOLLOW(A), here A may not be Goal
-						array_list_type *symbols_follow_A = LR_automata_follow(prod->head, lr_automata->grammar);
-						assert(symbols_follow_A != NULL && symbols_follow_A->length > 0);
+						linked_list_type *symbols_follow_A = LR_automata_follow(prod->head, lr_automata->grammar);
+						assert(symbols_follow_A != NULL && symbols_follow_A->head != NULL);
 
-						int i;
-						for (i = 0; i < symbols_follow_A->length; i ++)
+						linked_list_node_type *symbol_node;
+						for (symbol_node = symbols_follow_A->head; symbol_node != NULL; symbol_node = symbol_node->next)
 						{
 							lr_table_key_pair_type *key = (lr_table_key_pair_type *)malloc(sizeof(lr_table_key_pair_type));
 							key->state = state;
-							key->symbol = array_list_get(symbols_follow_A, i);
+							key->symbol = symbol_node->data;
 
 							action_table_value *value = (action_table_value *)malloc(sizeof(action_table_value));
 							value->action = REDUCE;
@@ -470,8 +471,8 @@ LR_automata_create(context_free_grammar_type *grammar)
 	desc_table = grammar->desc_table;
 
 	// Initialize first & follow sets
+	lr_automata->first_set = LR_automata_construct_first_set(grammar);
 	lr_automata->follow_set = LR_automata_construct_follow_set(grammar);
-	lr_automata->first_set = array_list_create();
 
 	construct_canonical_collection(lr_automata);
 	construct_action_table(lr_automata);
@@ -567,57 +568,297 @@ action_table_value_debug_str(action_table_value *value, va_list arg_list)
 	return debug_str;
 }
 
-array_list_type *
+linked_list_type *
 LR_automata_follow(production_token_type *symbol, context_free_grammar_type *grammar)
 {	
-	assert(symbol && grammar);
-	array_list_type *follow_set = array_list_create();
-
-	//
-	// Preprocess. Get the non-terminal symbols from the grammar
-	//
-	linked_list_type *non_terminal_symbols = linked_list_create();
-
-	linked_list_node_type *prod_node = NULL;
-	for (prod_node = grammar->productions->head; prod_node != NULL; prod_node = prod_node->next)
-	{
-		production_type *prod = prod_node->data;
-
-		if (linked_list_search(non_terminal_symbols, prod->head, int_comparator, NULL) != NULL)
-		{
-			linked_list_insert_back(non_terminal_symbols, prod->head);
-		}
-	}
-
-	//
-	// Place $ in FOLLOW(GOAL)
-	//
-	if (*TYPE_CAST(symbol, int *) == GOAL)
-	{
-		production_token_type *dollar_symbol = create_int(DOLLAR);
-		array_list_append(follow_set, dollar_symbol);
-	}
-
-	//
-	//
-	//
-
-
-	linked_list_destroy(non_terminal_symbols, NULL);
-
-	return follow_set;
+	return NULL;
 }
 
 array_list_type *
 LR_automata_construct_follow_set(context_free_grammar_type *grammar)
 {
 	array_list_type *follow_set = array_list_create();
-	
+	bool follow_set_has_changed = FALSE;
+
+	// collect all non-terminal symbols
+	linked_list_type *non_terminal_symbols = linked_list_create();
 	linked_list_node_type *prod_node = NULL;
 	for (prod_node = grammar->productions->head; prod_node != NULL; prod_node = prod_node->next)
 	{
 		production_type *prod = prod_node->data;
+		if (linked_list_search(non_terminal_symbols, prod->head, int_comparator) == NULL)
+		{
+			linked_list_insert_back(non_terminal_symbols, prod->head);
+		}
 	}
+
+	// Place $ in FOLLOW(GOAL)
+	int goal_symbol = GOAL;
+	int *dollar_symbol = create_int(DOLLAR);
+
+	linked_list_type *update_set = linked_list_create();
+	linked_list_insert_back(update_set, dollar_symbol);
+
+	LR_automata_set_update(follow_set, &goal_symbol, update_set);
+	LOG(TRUE, "follow set: \n%s", get_set_debug_str(follow_set, grammar->desc_table));
+
+	linked_list_destroy(update_set, NULL);
+
+
+	do {
+		
+		linked_list_node_type *prod_node = NULL;
+		for (prod_node = grammar->productions->head; prod_node != NULL; prod_node = prod_node->next)
+		{
+			production_type *prod = prod_node->data;
+
+			linked_list_type *trailer = linked_list_create();
+
+			linked_list_node_type *prod_token_node;
+			for (prod_token_node = prod->body->tail; prod_token_node != NULL; prod_token_node = prod_token_node->next)
+			{
+				production_token_type *prod_token = prod_token_node->data;
+
+				if (linked_list_search(non_terminal_symbols, prod_token, int_comparator, NULL) != NULL)
+				{
+					LR_automata_set_update(follow_set, prod_token, trailer);
+
+					linked_list_type *first_set_of_prod_token = LR_automata_first(prod_token, grammar);
+					production_token_type epsilon_symbol = EPSILON;
+
+					if (linked_list_search(first_set_of_prod_token, &epsilon_symbol, int_comparator))
+					{
+						// add everthing but epsilon to trailer
+						LOG(TRUE, "merge");
+						linked_list_merge(trailer, first_set_of_prod_token, int_comparator, int_copier, NULL);
+					}
+					else
+					{
+						LOG(TRUE, "truncate");
+						trailer = first_set_of_prod_token;
+					}
+
+				}
+				else
+				{
+					trailer = LR_automata_first(prod_token, grammar);
+				}
+			}
+
+			linked_list_destroy(trailer, NULL);
+
+		}
+	} while (follow_set_has_changed == TRUE);
+	
+	
 
 	return follow_set;
 }
+
+array_list_type *
+LR_automata_construct_first_set(context_free_grammar_type *grammar)
+{	
+	array_list_type *first_set = array_list_create();
+	bool first_set_has_changed = FALSE;
+
+	int epsilon = EPSILON;
+
+	// collect all non-terminal symbols
+	linked_list_type *non_terminal_symbols = linked_list_create();
+	linked_list_node_type *prod_node = NULL;
+	for (prod_node = grammar->productions->head; prod_node != NULL; prod_node = prod_node->next)
+	{
+		production_type *prod = prod_node->data;
+		if (linked_list_search(non_terminal_symbols, prod->head, int_comparator) == NULL)
+		{
+			linked_list_insert_back(non_terminal_symbols, prod->head);
+		}
+	}
+
+	//
+	// FIRST(alpha) <- alpha, if alpha is terminal symbol.
+	//
+
+	// Record symbols we already met before, to avoid redundant visits.
+	linked_list_type *symbol_list = linked_list_create();
+	for (prod_node = grammar->productions->head; prod_node != NULL; prod_node = prod_node->next)
+	{
+		production_type *prod = prod_node->data;
+		production_token_type *head = prod->head;
+		if (linked_list_search(symbol_list, head, int_comparator, NULL) == NULL)
+		{
+			// record this symbol, mark it "visited".
+			linked_list_insert_back(symbol_list, head);
+
+			if (linked_list_search(non_terminal_symbols, head, int_comparator, NULL) == NULL)
+			{
+				// if it's a terminal symbol, FIRST(alpha) <- alpha
+				linked_list_type *set_of_alpha = linked_list_create();
+				linked_list_insert_back(set_of_alpha, head);
+				array_list_set(first_set, *TYPE_CAST(head, int *), set_of_alpha);
+			}
+			else
+			{
+				// if it's a non-terminal symbol, nothing we should do but initialize it as a empty linked list.
+				array_list_set(first_set, *TYPE_CAST(head, int *), linked_list_create());
+			}
+		}
+
+		linked_list_node_type *body_node;
+		for (body_node = prod->body->head; body_node != NULL; body_node = body_node->next)
+		{
+			production_token_type *body_token = body_node->data;
+			if (linked_list_search(symbol_list, body_token, int_comparator, NULL) == NULL)
+			{
+				linked_list_insert_back(symbol_list, body_token);
+
+				if (linked_list_search(non_terminal_symbols, body_token, int_comparator, NULL) == NULL)
+				{
+					linked_list_type *set_of_alpha = linked_list_create();
+					linked_list_insert_back(set_of_alpha, body_token);
+					array_list_set(first_set, *TYPE_CAST(body_token, int *), set_of_alpha);
+				}
+			}
+			else
+			{
+				array_list_set(first_set, *TYPE_CAST(body_token, int *), linked_list_create());
+			}
+		}
+	}
+	linked_list_destroy(symbol_list, NULL);
+
+	do {
+		first_set_has_changed = FALSE;
+
+		linked_list_node_type *prod_node;
+		for (prod_node = grammar->productions->head; prod_node != NULL; prod_node = prod_node->next)
+		{
+			production_type *prod = prod_node->data;
+			assert(prod);
+
+			linked_list_type *first_set_of_current_symbol = linked_list_create();
+
+			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "compute first set for %s", grammar->desc_table[*TYPE_CAST(prod->head, int *)]);
+
+			linked_list_node_type *body_node;
+			for (body_node = prod->body->head; body_node != NULL; body_node = body_node->next)
+			{
+
+				linked_list_type *first_set_of_b1 = array_list_get(first_set, *TYPE_CAST(body_node->data, int *));
+				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "first set of %s is: %s", grammar->desc_table[*TYPE_CAST(body_node->data, int *)], get_sub_set_debug_str(first_set_of_b1, grammar->desc_table));
+
+				linked_list_type *first_set_of_b1_without_epsilon = linked_list_create();
+
+				linked_list_node_type *node;
+				for (node = first_set_of_b1->head; node != NULL; node = node->next)
+				{
+					if (int_comparator(node->data, &epsilon, NULL))
+					{
+						linked_list_insert_back(first_set_of_b1_without_epsilon, node->data);
+					}
+				}
+
+				linked_list_merge(first_set_of_current_symbol, first_set_of_b1_without_epsilon, int_comparator, int_copier, NULL);
+
+				if (linked_list_search(first_set_of_b1, &epsilon, int_comparator, NULL) == NULL) break;
+			}
+
+			bool has_change = LR_automata_set_update(first_set, prod->head, first_set_of_current_symbol);
+			if (has_change)
+			{
+				first_set_has_changed = TRUE;
+			}
+			
+		}
+
+		LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "first set:\n%s\n", get_set_debug_str(first_set, grammar->desc_table));
+
+	} while (first_set_has_changed);
+
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "first set:\n%s\n", get_set_debug_str(first_set, grammar->desc_table));
+
+	return first_set;
+}
+
+bool
+LR_automata_set_update(array_list_type *set, production_token_type *symbol, linked_list_type *update_set)
+{
+	int symbol_value = *TYPE_CAST(symbol, int *);
+
+	// set is not large enough to hold the follow(symbol)
+	if (set->length < symbol_value + 1)
+	{
+		array_list_adjust_length(set, symbol_value + 1);
+	}
+
+	linked_list_type *follow_set_of_symbol = array_list_get(set, symbol_value);
+
+	// no item in follwow(symbol)
+	if (follow_set_of_symbol == NULL)
+	{
+		follow_set_of_symbol = linked_list_create();
+		array_list_set(set, symbol_value, follow_set_of_symbol);
+	}
+
+	return linked_list_merge(follow_set_of_symbol, update_set, int_comparator, int_copier, NULL);
+}
+
+static char*
+get_set_debug_str(array_list_type *set, char *desc_table[])
+{
+	assert(set);
+
+	string_buffer debug_str = string_buffer_create();
+
+	string_buffer_append(&debug_str, "{ ");
+	int i;
+	for (i = 0; i < set->length; i ++)
+	{
+		linked_list_type *set_of_one_symbol = array_list_get(set, i);
+		if (set_of_one_symbol == NULL) continue;
+
+		string_buffer_append(&debug_str, desc_table[i]);
+		string_buffer_append(&debug_str, ": ");
+
+		linked_list_node_type *node;
+		string_buffer_append(&debug_str, "[ ");
+		for (node = set_of_one_symbol->head; node != NULL; node = node->next)
+		{
+			production_type *symbol = node->data;
+			string_buffer_append(&debug_str, desc_table[*TYPE_CAST(symbol, int *)]);
+			
+			if (node != set_of_one_symbol->tail)
+			{
+				string_buffer_append(&debug_str, ", ");
+			}
+
+		}
+		string_buffer_append(&debug_str, " ], ");
+	}
+
+	string_buffer_append(&debug_str, " }");
+
+	return debug_str;
+}
+
+static char *
+get_sub_set_debug_str(linked_list_type *set, char *desc_table[])
+{
+	assert(set);
+
+	string_buffer ret = string_buffer_create();
+	string_buffer_append(&ret, "{ ");
+
+	linked_list_node_type *node;
+	for (node = set->head; node != NULL; node = node->next)
+	{
+		production_token_type *token = node->data;
+		string_buffer_append(&ret, desc_table[*TYPE_CAST(token, int *)]);
+		if (node != set->tail)
+			string_buffer_append(&ret, ", ");
+	}
+
+	string_buffer_append(&ret, " } ");
+	return ret;
+}
+

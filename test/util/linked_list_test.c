@@ -523,5 +523,56 @@ linked_list_switch_node_test()
 	return TRUE;
 }
 
+bool
+linked_list_merge_test()
+{
+	linked_list_type *list1 = linked_list_create();
+	linked_list_type *list2 = linked_list_create();
+
+	int element[] = {2, 3, 5, 7, 11};
+	int element_num = 5;
+	int i;
+
+	int *int_p[5];
+	for (i = 0; i < element_num; i++)
+	{
+		int_p[i] = (int *)malloc(sizeof(int));	
+		*(int_p[i]) = element[i];
+	}
+
+	for (i = 0; i < element_num; i ++)
+	{
+		linked_list_insert_back(list1, int_p[i]);
+	}
+
+	int element2[] = {2, 3, 7, 13, 17};
+	int *int_p2[5];
+	for (i = 0; i < element_num; i++)
+	{
+		int_p2[i] = (int *)malloc(sizeof(int));	
+		*(int_p2[i]) = element2[i];
+	}
+
+	for (i = 0; i < element_num; i ++)
+	{
+		linked_list_insert_back(list2, int_p2[i]);
+	}
+
+	linked_list_merge(list1, list2, int_comparator, int_copier, NULL);
+
+	int new_seq[] = {2, 3, 5, 7, 11, 13, 17};
+	linked_list_node_type *node = list1->head;
+	for (i = 0; i < 7; i ++)
+	{
+		if (!EXPECT_EQUAL(*TYPE_CAST(node->data, int *), new_seq[i])) return FALSE;
+		node = node->next;
+	}
+
+	linked_list_destroy(list1, int_destroyer, NULL);
+	linked_list_destroy(list2, int_destroyer, NULL);
+
+	return TRUE;
+}
+
 
 

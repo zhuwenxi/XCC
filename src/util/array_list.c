@@ -167,7 +167,12 @@ array_list_set(array_list_type *list, int index, void *data)
 
 	index = _negtive_index_to_positive(list, index);
 
-	assert(index >= 0 && index < list->length);
+	assert(index >= 0);
+
+	if (index + 1> list->length)
+	{	
+		array_list_adjust_length(list, index + 1);
+	}
 
 	list->content[index]->data = data;
 }
