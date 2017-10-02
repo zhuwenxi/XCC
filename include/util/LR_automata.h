@@ -52,12 +52,12 @@ bool LR_automata_destory(LR_automata_type *lr_automata, ...);
 
 bool LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list);
 
-array_list_type *LR_automata_construct_follow_set(context_free_grammar_type *grammar);
+array_list_type *LR_automata_construct_follow_set(array_list_type *first_set, context_free_grammar_type *grammar);
 array_list_type *LR_automata_construct_first_set(context_free_grammar_type *grammar);
 bool LR_automata_set_update(array_list_type *follow_set, production_token_type *symbol, linked_list_type *update_set);
 
-linked_list_type *LR_automata_follow(production_token_type *symbol, context_free_grammar_type *grammar);
-linked_list_type *LR_automata_first(production_token_type *symbol, context_free_grammar_type *grammar);
+linked_list_type *LR_automata_follow(array_list_type *follow_set, production_token_type *symbol);
+linked_list_type *LR_automata_first(array_list_type *first_set, production_token_type *symbol);
 
 int key_pair_hash(void *key_pair);
 
