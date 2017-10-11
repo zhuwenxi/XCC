@@ -181,7 +181,7 @@ LR_automata_closure(context_free_grammar_type *state, context_free_grammar_type*
 }
 
 context_free_grammar_type *
-LR_automata_goto(context_free_grammar_type *state, production_token_type *symbol, LR_automata_type *lr_automata)
+LR_automata_transfer(context_free_grammar_type *state, production_token_type *symbol, LR_automata_type *lr_automata)
 {
 	context_free_grammar_type* grammar = lr_automata->grammar;
 
@@ -344,7 +344,7 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 			for (grammar_symbol_node = grammar_symbols->head; grammar_symbol_node != NULL; grammar_symbol_node = grammar_symbol_node->next)
 			{
 				production_token_type *grammar_symbol = grammar_symbol_node->data;
-				context_free_grammar_type *next_state = LR_automata_goto(set, grammar_symbol, lr_automata);
+				context_free_grammar_type *next_state = LR_automata_transfer(set, grammar_symbol, lr_automata);
 				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE && LR_AUTOMATA_GOTO_TABLE_LOG_ENABLE, "state:\n%s", get_context_free_grammar_debug_str(set));
 				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE && LR_AUTOMATA_GOTO_TABLE_LOG_ENABLE, "symbol: %s", grammar->desc_table[*TYPE_CAST(grammar_symbol, int *)]);
 				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE && LR_AUTOMATA_GOTO_TABLE_LOG_ENABLE, "next_state:\n%s", get_context_free_grammar_debug_str(next_state));
