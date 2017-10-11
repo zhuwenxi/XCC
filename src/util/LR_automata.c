@@ -21,7 +21,8 @@ typedef enum
 bool
 is_terminal_symbol(LR_automata_type *lr_automata, production_token_type *symbol)
 {
-	return !linked_list_search(lr_automata->non_terminal_symbols, symbol, int_comparator, NULL);
+	int epsilon = EPSILON;
+	return !linked_list_search(lr_automata->non_terminal_symbols, symbol, int_comparator, NULL) && int_comparator(symbol, &epsilon, NULL) == FALSE;
 }
 
 int
@@ -80,9 +81,13 @@ search_production_by_head(context_free_grammar_type *grammar, production_token_t
 	return ret_list;
 }
 
+/*
+ * Get all grammar symbol from the grammar, except for the "epsilon" symbol.
+ */
 linked_list_type *
 get_all_grammar_symbol(LR_automata_type *lr_automata)
 {	
+	int epsilon = EPSILON;
 	assert(lr_automata != NULL);
 	context_free_grammar_type *grammar = lr_automata->grammar;
 	assert(grammar != NULL);
@@ -97,7 +102,7 @@ get_all_grammar_symbol(LR_automata_type *lr_automata)
 		assert(prod != NULL);
 
 		production_token_type *head = prod->head;
-		if (linked_list_search(symbols, head, int_comparator, NULL) == NULL)
+		if (linked_list_search(symbols, head, int_comparator, NULL) == NULL && int_comparator(head, &epsilon, NULL) == FALSE)
 		{
 			linked_list_insert_back(symbols, head);
 		}
@@ -115,7 +120,7 @@ get_all_grammar_symbol(LR_automata_type *lr_automata)
 			production_token_type *body_token = body_token_node->data;
 			assert(body_token != NULL);
 
-			if (linked_list_search(symbols, body_token, int_comparator, NULL) == NULL)
+			if (linked_list_search(symbols, body_token, int_comparator, NULL) == NULL && int_comparator(body_token, &epsilon, NULL) == FALSE)
 			{
 				linked_list_insert_back(symbols, body_token);
 			}
@@ -361,13 +366,14 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 
 	lr_automata->items = cc;
 
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "cc->length: %d, cc: \n%s\n", cc->length, get_array_list_debug_str(cc, context_free_grammar_debug_str, NULL));
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "state count: %d, cc: \n%s\n", cc->length, get_array_list_debug_str(cc, context_free_grammar_debug_str, NULL));
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "GOTO TABLE: \n%s\n", get_hash_table_debug_str(lr_automata->goto_table, lr_table_key_pair_debug_str, context_free_grammar_debug_str, NULL));
 }
 
 void
 construct_action_table(LR_automata_type *lr_automata)
 {
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_ACTION_TABLE_LOG_ENABLE, "=========================================== start to construct ACTION table ===========================================");
 	array_list_type *states = lr_automata->items;
 	int i;
 	for (i = 0; i < states->length; i ++)
@@ -394,12 +400,18 @@ construct_action_table(LR_automata_type *lr_automata)
 						key->state = state;
 						key->symbol = symbol_next_to_dot;
 
+						LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_ACTION_TABLE_LOG_ENABLE, "SHIFT, state: %s, symbol: %s", get_context_free_grammar_debug_str(key->state), state->desc_table[*TYPE_CAST(key->symbol, int *)]);
+
 						action_table_value *value = (action_table_value *)malloc(sizeof(action_table_value));
 						value->action = SHIFT;
 						value->next_state = hash_table_search(lr_automata->goto_table, key, lr_table_key_pair_comparator, NULL);
+						assert(value->next_state);
 						value->prod_to_reduce = NULL;
 
 						hash_table_insert(lr_automata->action_table, key, value);
+
+						LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_ACTION_TABLE_LOG_ENABLE, "SHIFT done");
+
 					}
 				}
 				else
@@ -453,6 +465,7 @@ construct_action_table(LR_automata_type *lr_automata)
 		}
 	}
 
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_ACTION_TABLE_LOG_ENABLE, "============================================ ACTION table constructed ===========================================");
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_ACTION_TABLE_LOG_ENABLE, "ACTION TABLE:\n%s", get_hash_table_debug_str(lr_automata->action_table, lr_table_key_pair_debug_str, action_table_value_debug_str, NULL));
 }
 
@@ -538,6 +551,8 @@ lr_table_key_pair_comparator(void *k1, void *k2, va_list arg_list)
 			return FALSE;
 	}
 
+	
+	assert(key1->state && key2->state && key1->symbol && key2->symbol);
 	return context_free_grammar_comparator(key1->state, key2->state, NULL) && int_comparator(key1->symbol, key2->symbol, NULL);
 }
 
