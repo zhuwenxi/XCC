@@ -218,11 +218,15 @@ linked_list_searcher(linked_list_type *list, void *data, bool (*comparator)(void
 
 	while (node)
 	{
+		va_list arg_list_copy;
+		va_copy(arg_list_copy, arg_list);
 		// find the element
-		if (comparator(node->data, data, arg_list)) 	
+		if (comparator(node->data, data, arg_list_copy)) 	
 		{
 			return node;
 		}
+
+		va_end(arg_list_copy);
 
 		node = node->next;
 	}
