@@ -508,6 +508,12 @@ LR_automata_destory(LR_automata_type *lr_automata, ...)
 	return TRUE;
 }
 
+void
+LR_automata_parse(LR_automata_type *lr_automata, char *text)
+{
+	
+}
+
 bool
 LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list)
 {

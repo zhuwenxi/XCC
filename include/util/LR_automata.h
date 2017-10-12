@@ -59,6 +59,8 @@ bool LR_automata_set_update(array_list_type *follow_set, production_token_type *
 linked_list_type *LR_automata_follow(array_list_type *follow_set, production_token_type *symbol);
 linked_list_type *LR_automata_first(array_list_type *first_set, production_token_type *symbol);
 
+void LR_automata_parse(LR_automata_type *lr_automata, char *text);
+
 int key_pair_hash(void *key_pair);
 
 char *lr_table_key_pair_debug_str(lr_table_key_pair_type *key_pair, va_list arg_list);
