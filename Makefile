@@ -33,7 +33,8 @@ TEST_SOURCE_FILE = test_all.c \
 	$(UTIL_DIR)/stack_test.c \
 	$(UTIL_DIR)/hash_table_test.c \
 	$(UTIL_DIR)/context_free_grammar_test.c \
-	$(UTIL_DIR)/LR_automata_test.c
+	$(UTIL_DIR)/LR_automata_test.c \
+	$(UTIL_DIR)/Ast_test.c
 TEST_OBJ_FILE = $(patsubst %.c, %.o, $(TEST_SOURCE_FILE))
 TEST_OBJ_FULL_PATH = $(addprefix $(BUILD_DIR)/, $(TEST_OBJ_FILE))
 TEST_BIN = $(BUILD_DIR)/test_all
