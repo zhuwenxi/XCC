@@ -1,5 +1,6 @@
 #include "LR_automata.h"
 #include "LR_automata_test.h"
+#include "logger.h"
 
 typedef enum 
 {
@@ -20,6 +21,31 @@ static char *token_desc_table[] =
 #undef PRODUCTION_TOKEN
 	"PRODUCTION_TOKEN_LIMIT"
 };
+
+static production_token_type 
+get_token_type(char c)
+{
+	if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
+	{
+		return CHAR;
+	}
+	else if (c == '|')
+	{
+		return VERTICAL_BAR;
+	}
+	else if (c == '(')
+	{
+		return LEFT_PARENTHESIS;
+	}
+	else if (c == ')')
+	{
+		return RIGHT_PARENTHESIS;
+	}
+	else
+	{
+		LOG(TRUE, "Oops, unknown token!!");
+	}
+}
 
 bool
 LR_automata_create_destroy_test()

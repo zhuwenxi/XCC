@@ -508,10 +508,10 @@ LR_automata_destory(LR_automata_type *lr_automata, ...)
 	return TRUE;
 }
 
-void
-LR_automata_parse(LR_automata_type *lr_automata, char *text)
+Ast_type *
+LR_automata_parse(LR_automata_type *lr_automata, char *text, production_token_type (*get_token_type)(char *))
 {
-	
+	return NULL;
 }
 
 bool

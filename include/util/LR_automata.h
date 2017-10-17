@@ -5,6 +5,7 @@
 #include "hash_table.h"
 #include "context_free_grammar.h"
 #include "stddefs.h"
+#include "Ast.h"
 
 #include <stdarg.h>
 
@@ -59,7 +60,7 @@ bool LR_automata_set_update(array_list_type *follow_set, production_token_type *
 linked_list_type *LR_automata_follow(array_list_type *follow_set, production_token_type *symbol);
 linked_list_type *LR_automata_first(array_list_type *first_set, production_token_type *symbol);
 
-void LR_automata_parse(LR_automata_type *lr_automata, char *text);
+Ast_type *LR_automata_parse(LR_automata_type *lr_automata, char *text, production_token_type (*get_token_type)(char *));
 
 int key_pair_hash(void *key_pair);
 

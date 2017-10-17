@@ -33,7 +33,7 @@ Ast_construction_test()
 	Ast_append_sub_node(sub_node2, sub_node3);
 	Ast_append_sub_node(sub_node2, sub_node4);
 
-	LOG(TRUE, "ast: %s", get_Ast_debug_str(ast, NULL));
+	// LOG(TRUE, "ast: %s", get_Ast_debug_str(ast, NULL));
 
 	Ast_deconstructor(ast, NULL);
 

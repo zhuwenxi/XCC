@@ -102,6 +102,8 @@ Ast_operator_node_deconstructor(Ast_operator_node_type *node, va_list arg_list)
 	free(node->operator);
 	array_list_destroy(node->operand_nodes, Ast_node_deconstructor, NULL);
 
+	free(node);
+
 	return TRUE;
 }
 
