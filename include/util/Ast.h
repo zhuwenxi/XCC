@@ -15,13 +15,8 @@ typedef struct
 typedef struct
 {
 	Ast_operator_type *operator;
-	array_list_type *children;
+	array_list_type *operand_nodes;
 } Ast_operator_node_type;
-
-// typedef struct
-// {
-// 	Ast_operand_type *operand;
-// } Ast_operand_node_type;
 
 typedef struct
 {
@@ -46,7 +41,7 @@ Ast_type *Ast_create();
 bool Ast_deconstructor(Ast_type *ast, va_list arg_list);
 DECLARE_DESTROY(Ast);
 
-Ast_node_type *Ast_node_create();
+Ast_node_type *Ast_node_create(bool is_operator_node, char *desc, int symbol);
 
 bool Ast_node_deconstructor(Ast_node_type *node, va_list arg_list);
 DECLARE_DESTROY(Ast_node);
@@ -61,7 +56,7 @@ Ast_operand_type *Ast_operand_create();
 bool Ast_operand_deconstructor(Ast_operand_type *operand, va_list arg_list);
 DECLARE_DESTROY(Ast_operand);
 
-#define Ast_operator_type Ast_operand_type
+#define Ast_operator_create Ast_operand_create
 #define Ast_operator_deconstructor Ast_operand_deconstructor
 DECLARE_DESTROY(Ast_operator);
 
@@ -69,12 +64,8 @@ DECLARE_DESTROY(Ast_operator);
 /*
  * Ast operations:
  */
-
-void Ast_node_set_operator_node(Ast_node_type *node, int i, Ast_operator_node_type *operator_node);
-void Ast_operator_node_append_operator_node(Ast_node_type *node, Ast_operator_node_type *operator_node);
-
-void Ast_node_set_operand(Ast_node_type *node, int i, Ast_operand_type operand);
-void Ast_node_append_operand(Ast_node_type *node, Ast_operand_type operand);
+void Ast_set_sub_node(Ast_node_type *node, int i, Ast_node_type *sub_node);
+void Ast_append_sub_node(Ast_node_type *node, Ast_node_type *sub_node);
 
 char *Ast_node_debug_str(Ast_node_type *node, va_list arg_list);
 char *get_Ast_node_debug_str(Ast_node_type *node, ...);
