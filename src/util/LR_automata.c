@@ -5,6 +5,7 @@
 #include "opts.h"
 #include "logger.h"
 #include "string_buffer.h"
+#include "stack.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -30,7 +31,7 @@ key_pair_hash(void *kp)
 {
 	assert(kp != NULL);
 
-	lr_table_key_pair_type *key_pair = (lr_table_key_pair_type *)kp;
+	LR_table_key_pair_type *key_pair = (LR_table_key_pair_type *)kp;
 	int hashcode = 0;
 
 	hashcode += *TYPE_CAST(key_pair->symbol, int *);
@@ -235,7 +236,7 @@ LR_automata_transfer(context_free_grammar_type *state, production_token_type *sy
 		new_state = LR_automata_closure(new_state, grammar);
 
 		// update goto table
-		lr_table_key_pair_type *key_pair = (lr_table_key_pair_type *)malloc(sizeof(lr_table_key_pair_type));
+		LR_table_key_pair_type *key_pair = (LR_table_key_pair_type *)malloc(sizeof(LR_table_key_pair_type));
 		key_pair->state = state;
 		key_pair->symbol = symbol;
 
@@ -396,13 +397,13 @@ construct_action_table(LR_automata_type *lr_automata)
 
 					if (is_terminal_symbol(lr_automata, symbol_next_to_dot))
 					{
-						lr_table_key_pair_type *key = (lr_table_key_pair_type *)malloc(sizeof(lr_table_key_pair_type));
+						LR_table_key_pair_type *key = (LR_table_key_pair_type *)malloc(sizeof(LR_table_key_pair_type));
 						key->state = state;
 						key->symbol = symbol_next_to_dot;
 
 						LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_ACTION_TABLE_LOG_ENABLE, "SHIFT, state: %s, symbol: %s", get_context_free_grammar_debug_str(key->state), state->desc_table[*TYPE_CAST(key->symbol, int *)]);
 
-						action_table_value *value = (action_table_value *)malloc(sizeof(action_table_value));
+						action_table_value_type *value = (action_table_value_type *)malloc(sizeof(action_table_value_type));
 						value->action = SHIFT;
 						value->next_state = hash_table_search(lr_automata->goto_table, key, lr_table_key_pair_comparator, NULL);
 						assert(value->next_state);
@@ -421,12 +422,12 @@ construct_action_table(LR_automata_type *lr_automata)
 					if (int_comparator(prod->head, &goal_symbol, NULL))
 					{
 						// if [Goal -> A DOT] is in Ii, then set ACTION[i, $] to "accept"
-						lr_table_key_pair_type *key = (lr_table_key_pair_type *)malloc(sizeof(lr_table_key_pair_type));
+						LR_table_key_pair_type *key = (LR_table_key_pair_type *)malloc(sizeof(LR_table_key_pair_type));
 						key->state = state;
 						production_token_type *dollar_symbol = create_int(DOLLAR);
 						key->symbol = dollar_symbol;
 
-						action_table_value *value = (action_table_value *)malloc(sizeof(action_table_value));
+						action_table_value_type *value = (action_table_value_type *)malloc(sizeof(action_table_value_type));
 						value->action = ACCEPT;
 						value->next_state = NULL;
 						value->prod_to_reduce = NULL;
@@ -442,11 +443,11 @@ construct_action_table(LR_automata_type *lr_automata)
 						linked_list_node_type *symbol_node;
 						for (symbol_node = symbols_follow_A->head; symbol_node != NULL; symbol_node = symbol_node->next)
 						{
-							lr_table_key_pair_type *key = (lr_table_key_pair_type *)malloc(sizeof(lr_table_key_pair_type));
+							LR_table_key_pair_type *key = (LR_table_key_pair_type *)malloc(sizeof(LR_table_key_pair_type));
 							key->state = state;
 							key->symbol = symbol_node->data;
 
-							action_table_value *value = (action_table_value *)malloc(sizeof(action_table_value));
+							action_table_value_type *value = (action_table_value_type *)malloc(sizeof(action_table_value_type));
 							value->action = REDUCE;
 							value->next_state = NULL;
 							value->prod_to_reduce = production_copy(prod, NULL);
@@ -509,9 +510,137 @@ LR_automata_destory(LR_automata_type *lr_automata, ...)
 }
 
 Ast_type *
-LR_automata_parse(LR_automata_type *lr_automata, char *text, production_token_type (*get_token_type)(char *))
+LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *buffer)
 {
+	assert(buffer);
+
+	// Initially, parser has s0 on its stack
+	stack_type *stack = stack_create();
+	stack_push(stack, array_list_get(lr_automata->items, 0));
+
+	int input_index = 0;
+	LR_automata_input_type *lookup_symbol = LR_automata_input_buffer_read(buffer);
+	production_token_type *lookup_symbol_type = &lookup_symbol->type;
+
+
+	while (TRUE && lookup_symbol != NULL)
+	{	
+
+		context_free_grammar_type *state = stack_pop(stack);
+		action_table_value_type *action_value = LR_automata_action(lr_automata, state, lookup_symbol_type);
+
+		if (action_value->action == SHIFT)
+		{
+			context_free_grammar_type *next_state = action_value->next_state;
+			stack_push(stack, next_state);
+
+			lookup_symbol = LR_automata_input_buffer_read(buffer);
+			lookup_symbol_type = lookup_symbol ? &(lookup_symbol->type) : NULL;
+		}
+		else if (action_value->action == REDUCE)
+		{
+			int reduced_production_size = 0;
+
+			/*
+			 * Calculate the reduced production size, which could decide our stack pop number.
+			 */
+			linked_list_node_type *node = NULL;
+			for (node = action_value->prod_to_reduce->body->head; node != NULL; node = node->next)
+			{
+				production_token_type *body_token = node->data;
+				int dot_symbol = DOT;
+				if (!int_comparator(body_token, &dot_symbol, NULL))
+				{
+					reduced_production_size ++;
+				}
+			}
+
+			/*
+			 * Pop "reduced_production_size" elements.
+			 */
+			int i;
+			for (i = 0; i < reduced_production_size; i ++)
+			{
+				stack_pop(stack);
+			}
+		}
+		else if (action_value->action == ACCEPT)
+		{
+
+		}
+		else
+		{
+			// Oops, error here!
+		}
+
+		// if (LR_automata_)
+		// stack_push(stack, NULL);
+	}
+
 	return NULL;
+}
+
+action_table_value_type *
+LR_automata_action(LR_automata_type *lr_automata, context_free_grammar_type *state, production_token_type *symbol)
+{
+	hash_table_type *action_table = lr_automata->action_table;
+
+	LR_table_key_pair_type *key = (LR_table_key_pair_type *)malloc(sizeof(LR_table_key_pair_type));
+	key->state = state;
+	key->symbol = symbol;
+
+	return hash_table_search(action_table, key, lr_table_key_pair_comparator, NULL);
+}
+
+LR_automata_input_buffer_type *
+LR_automata_input_buffer_create()
+{
+	LR_automata_input_buffer_type *buffer = (LR_automata_input_buffer_type *)malloc(sizeof(LR_automata_input_buffer_type));
+
+	buffer->list = array_list_create();
+	buffer->cursor = 0;
+	buffer->get_token_type = NULL;
+
+	return buffer;
+}
+
+void
+LR_automata_input_buffer_init(LR_automata_input_buffer_type *buffer, char *input, production_token_type (*get_token_type)(char))
+{
+	if (input == NULL) return;
+
+	buffer->get_token_type = get_token_type;
+
+	int input_size = strlen(input);
+	
+	int i;
+	for (i = 0; i < input_size; i ++)
+	{
+		LR_automata_input_type *element = (LR_automata_input_type *)malloc(sizeof(LR_automata_input_type));
+		element->c = input[i];
+		element->type = buffer->get_token_type(input[i]);
+
+		array_list_append(buffer->list, element);
+	}
+}
+
+LR_automata_input_type *
+LR_automata_input_buffer_read(LR_automata_input_buffer_type *buffer)
+{
+	if (buffer->cursor < buffer->list->length - 1)
+	{
+		return array_list_get(buffer->list, ++ buffer->cursor);
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+bool
+LR_automata_input_buffer_deconstructor(LR_automata_input_buffer_type *buffer, va_list arg_list)
+{
+	return TRUE;
 }
 
 bool
@@ -529,7 +658,7 @@ LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list)
 	return TRUE;
 }
 
-char *lr_table_key_pair_debug_str(lr_table_key_pair_type *key_pair, va_list arg_list)
+char *lr_table_key_pair_debug_str(LR_table_key_pair_type *key_pair, va_list arg_list)
 {
 	assert(key_pair != NULL);
 
@@ -545,8 +674,8 @@ char *lr_table_key_pair_debug_str(lr_table_key_pair_type *key_pair, va_list arg_
 bool
 lr_table_key_pair_comparator(void *k1, void *k2, va_list arg_list)
 {
-	lr_table_key_pair_type *key1 = TYPE_CAST(k1, lr_table_key_pair_type *);
-	lr_table_key_pair_type *key2 = TYPE_CAST(k2, lr_table_key_pair_type *);
+	LR_table_key_pair_type *key1 = TYPE_CAST(k1, LR_table_key_pair_type *);
+	LR_table_key_pair_type *key2 = TYPE_CAST(k2, LR_table_key_pair_type *);
 
 	if (key1 == key2) return TRUE;
 	if (key1 == NULL || key2 == NULL)
@@ -563,7 +692,7 @@ lr_table_key_pair_comparator(void *k1, void *k2, va_list arg_list)
 }
 
 char *
-action_table_value_debug_str(action_table_value *value, va_list arg_list)
+action_table_value_debug_str(action_table_value_type *value, va_list arg_list)
 {
 	string_buffer debug_str = string_buffer_create();
 

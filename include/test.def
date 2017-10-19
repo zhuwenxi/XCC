@@ -55,9 +55,10 @@ XTESTCASE(PRODUCTION_COMPARE_TEST, production_compare_test, "Test for production
 XTESTCASE(LR_AUTOMATA_CREATE_DESTROY_TEST, LR_automata_create_destroy_test, "Test for LR_automata_create() and LR_automata_destroy()")
 XTESTCASE(LR_AUTOMATA_EXPRESSION_GRAMMAR_TEST, LR_automata_expression_grammar_test, "Test for expression grammar")
 XTESTCASE(LR_AUTOMATA_EXPRESSION_GRAMMAR_RIGHT_RECURSIVE_TEST, LR_automata_expression_grammar_right_recursive_test, "Test for right-recursive expression grammar")
+TESTCASE(LR_AUTOMATA_PARSE_TEST, LR_automata_parse_test, "Test for LR_automata_parse()")
 
 /*
  * Test cases for Ast
  */
 XTESTCASE(AST_CREATE_DESTROY_TEST, Ast_create_destroy_test, "Test for AST create and desctory")
-TESTCASE(AST_CONSTRUCTION_TEST, Ast_construction_test, "Test for AST construction")
+XTESTCASE(AST_CONSTRUCTION_TEST, Ast_construction_test, "Test for AST construction")

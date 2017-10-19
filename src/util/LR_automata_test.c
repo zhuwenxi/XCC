@@ -106,3 +106,38 @@ LR_automata_expression_grammar_right_recursive_test()
 
 	return TRUE;
 }
+
+bool
+LR_automata_parse_test()
+{
+	//
+	// Initialize LR automata:
+	//
+
+	context_free_grammar_type *cfg = context_free_grammar_create(token_desc_table);
+
+	context_free_grammar_add(cfg, E, E, ADD, T, 0);
+	context_free_grammar_add(cfg, E, T, 0);
+	context_free_grammar_add(cfg, E, T, MUL, F, 0);
+	context_free_grammar_add(cfg, T, F, 0);
+	context_free_grammar_add(cfg, F, LEFT_PARENTHESIS, E, RIGHT_PARENTHESIS, 0);
+	context_free_grammar_add(cfg, F, ID, 0);
+
+	LR_automata_type *lr_automata = LR_automata_create(cfg);
+
+
+
+	//
+	// Prepare input buffer:
+	//
+
+	LR_automata_input_buffer_type *buffer = LR_automata_input_buffer_create();
+	LR_automata_input_buffer_init(buffer, "a*(b+c)", get_token_type);
+
+	//
+	// Parsing:
+	//
+	LR_automata_parse(lr_automata, buffer);
+
+	return TRUE;
+}
