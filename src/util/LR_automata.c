@@ -510,25 +510,39 @@ LR_automata_destory(LR_automata_type *lr_automata, ...)
 }
 
 Ast_type *
-LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *buffer)
+LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *buffer, void (*callback)(Ast_type *ast, production_type *prod_to_reduce))
 {
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "=============================== Start LR_automata_parse() ===============================");
+	
 	assert(buffer);
 
-	// Initially, parser has s0 on its stack
+	// Create a empty AST:
+	Ast_type *ast = Ast_create();
+
+	// Initially, parser has s0 on its state stack
 	stack_type *stack = stack_create();
 	stack_push(stack, array_list_get(lr_automata->items, 0));
 
-	int input_index = 0;
+	// stack to hold AST nodes. This stack has exactly the same elements as state stack.
+	stack_type *ast_node_stack = stack_create();
+
 	LR_automata_input_type *lookup_symbol = LR_automata_input_buffer_read(buffer);
 	production_token_type *lookup_symbol_type = &lookup_symbol->type;
+	assert(lookup_symbol);
+	LOG(TRUE, "lookup_symbol: %c", lookup_symbol->c);
 
 
 	while (TRUE && lookup_symbol != NULL)
 	{	
 
-		context_free_grammar_type *state = stack_pop(stack);
-		action_table_value_type *action_value = LR_automata_action(lr_automata, state, lookup_symbol_type);
+		context_free_grammar_type *state = stack_peek(stack);
+		LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "state: %s, symbol: %s", get_context_free_grammar_debug_str(state), lr_automata->grammar->desc_table[*TYPE_CAST(lookup_symbol_type ,int *)]);
 
+		action_table_value_type *action_value = LR_automata_action(lr_automata, state, lookup_symbol_type);
+		
+
+		assert(action_value != NULL);
+		
 		if (action_value->action == SHIFT)
 		{
 			context_free_grammar_type *next_state = action_value->next_state;
@@ -536,9 +550,14 @@ LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *
 
 			lookup_symbol = LR_automata_input_buffer_read(buffer);
 			lookup_symbol_type = lookup_symbol ? &(lookup_symbol->type) : NULL;
+
+			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "SHIFT to: %s", get_context_free_grammar_debug_str(next_state));
+
 		}
 		else if (action_value->action == REDUCE)
 		{
+			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "REDUCE %s", production_debug_str(action_value->prod_to_reduce, lr_automata->grammar->desc_table));
+			
 			int reduced_production_size = 0;
 
 			/*
@@ -554,6 +573,7 @@ LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *
 					reduced_production_size ++;
 				}
 			}
+			LOG(TRUE, "reduce size: %d, stack size: %d", reduced_production_size, stack->length);
 
 			/*
 			 * Pop "reduced_production_size" elements.
@@ -563,19 +583,27 @@ LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *
 			{
 				stack_pop(stack);
 			}
+
+			// Call "callback" to construct the AST.
+			if (callback != NULL)
+			{
+				callback(ast, action_value->prod_to_reduce);
+			}
+
+			stack_push(stack, LR_automata_goto(lr_automata, stack_peek(stack), action_value->prod_to_reduce->head));
 		}
 		else if (action_value->action == ACCEPT)
 		{
-
+			LOG(TRUE, "Success!");
+			break;
 		}
 		else
 		{
 			// Oops, error here!
 		}
-
-		// if (LR_automata_)
-		// stack_push(stack, NULL);
 	}
+
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "=============================== End LR_automata_parse() ===============================");
 
 	return NULL;
 }
@@ -592,13 +620,25 @@ LR_automata_action(LR_automata_type *lr_automata, context_free_grammar_type *sta
 	return hash_table_search(action_table, key, lr_table_key_pair_comparator, NULL);
 }
 
+context_free_grammar_type *
+LR_automata_goto(LR_automata_type *lr_automata, context_free_grammar_type *state, production_token_type *symbol)
+{
+	hash_table_type *goto_table = lr_automata->goto_table;
+
+	LR_table_key_pair_type *key = (LR_table_key_pair_type *)malloc(sizeof(LR_table_key_pair_type));
+	key->state = state;
+	key->symbol = symbol;
+
+	return hash_table_search(goto_table, key, lr_table_key_pair_comparator, NULL);
+}
+
 LR_automata_input_buffer_type *
 LR_automata_input_buffer_create()
 {
 	LR_automata_input_buffer_type *buffer = (LR_automata_input_buffer_type *)malloc(sizeof(LR_automata_input_buffer_type));
 
 	buffer->list = array_list_create();
-	buffer->cursor = 0;
+	buffer->cursor = -1;
 	buffer->get_token_type = NULL;
 
 	return buffer;
@@ -622,14 +662,21 @@ LR_automata_input_buffer_init(LR_automata_input_buffer_type *buffer, char *input
 
 		array_list_append(buffer->list, element);
 	}
+
+	LR_automata_input_type *element = (LR_automata_input_type *)malloc(sizeof(LR_automata_input_type));
+	element->c = '$';
+	element->type = DOLLAR;
+
+	array_list_append(buffer->list, element);
 }
 
 LR_automata_input_type *
 LR_automata_input_buffer_read(LR_automata_input_buffer_type *buffer)
 {
-	if (buffer->cursor < buffer->list->length - 1)
+	if (buffer->cursor < 0 || buffer->cursor < buffer->list->length - 1)
 	{
-		return array_list_get(buffer->list, ++ buffer->cursor);
+		++ (buffer->cursor);
+		return array_list_get(buffer->list, buffer->cursor);
 	}
 	else
 	{

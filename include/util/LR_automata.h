@@ -98,10 +98,10 @@ bool LR_automata_set_update(array_list_type *follow_set, production_token_type *
 linked_list_type *LR_automata_follow(array_list_type *follow_set, production_token_type *symbol);
 linked_list_type *LR_automata_first(array_list_type *first_set, production_token_type *symbol);
 
-Ast_type *LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *buffer);
+Ast_type *LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *buffer, void (*callback)(Ast_type *ast, production_type *prod_to_reduce));
 
 action_table_value_type *LR_automata_action(LR_automata_type *lr_automata, context_free_grammar_type *state, production_token_type *symbol);
-// array_list_type *LR_autoamta_goto(LR_automata_type *lr_automata, array_list_type *state, production_token_type *symbol);
+context_free_grammar_type *LR_automata_goto(LR_automata_type *lr_automata, context_free_grammar_type *state, production_token_type *symbol);
 
 LR_automata_input_buffer_type *LR_automata_input_buffer_create();
 void LR_automata_input_buffer_init(LR_automata_input_buffer_type *buffer, char *input, production_token_type (*get_token_type)(char));

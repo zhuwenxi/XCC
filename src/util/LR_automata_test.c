@@ -1,6 +1,11 @@
 #include "LR_automata.h"
 #include "LR_automata_test.h"
+#include "context_free_grammar.h"
 #include "logger.h"
+#include "Ast.h"
+
+
+#include <string.h>
 
 typedef enum 
 {
@@ -27,11 +32,15 @@ get_token_type(char c)
 {
 	if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
 	{
-		return CHAR;
+		return ID;
 	}
-	else if (c == '|')
+	else if (c == '*')
 	{
-		return VERTICAL_BAR;
+		return MUL;
+	}
+	else if (c == '+')
+	{
+		return ADD;
 	}
 	else if (c == '(')
 	{
@@ -43,7 +52,7 @@ get_token_type(char c)
 	}
 	else
 	{
-		LOG(TRUE, "Oops, unknown token!!");
+		LOG(TRUE, "Oops, unknown token: %c!!", c);
 	}
 }
 
@@ -107,6 +116,39 @@ LR_automata_expression_grammar_right_recursive_test()
 	return TRUE;
 }
 
+static void
+construct_ast_for_expression_grammar(Ast_type *ast, production_type *prod_to_reduce)
+{
+	char *debug_str = production_debug_str(prod_to_reduce, token_desc_table);
+
+	if (strcmp(debug_str, "F -> id DOT"))
+	{
+		
+	}
+	else if (strcmp(debug_str, "E -> E + T DOT"))
+	{
+
+	}
+	else if (strcmp(debug_str, "E -> T * F DOT"))
+	{
+
+	}
+	else if (strcmp(debug_str, "T -> F DOT"))
+	{
+
+	}
+	else if (strcmp(debug_str, "F -> ( E ) DOT"))
+	{
+
+	}
+	else
+	{
+		LOG(TRUE, "Unknown production: %s !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", debug_str);
+	}
+
+	free(debug_str);
+}
+
 bool
 LR_automata_parse_test()
 {
@@ -137,7 +179,7 @@ LR_automata_parse_test()
 	//
 	// Parsing:
 	//
-	LR_automata_parse(lr_automata, buffer);
+	LR_automata_parse(lr_automata, buffer, construct_ast_for_expression_grammar);
 
 	return TRUE;
 }
