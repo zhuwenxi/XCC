@@ -33,3 +33,18 @@ string_buffer_append(string_buffer *buff, char *text)
 	
 	strcat(*buff, text);
 }
+
+void
+string_buffer_revert(string_buffer buff)
+{
+	int len = strlen(buff);
+
+	int i;
+	for (i = 0; i < len && i < len - 1 - i; i ++)
+	{
+		char tmp = buff[i];
+		buff[i] = buff[len - 1 - i];
+		buff[len - 1 - i] = tmp;
+	}
+}
+

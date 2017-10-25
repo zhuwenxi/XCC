@@ -10,6 +10,8 @@
 // AST:
 //
 
+int ast_node_id = 0;
+
 Ast_type *
 Ast_create()
 {
@@ -38,23 +40,24 @@ Ast_deconstructor(Ast_type *ast, va_list arg_list)
 //
 
 Ast_node_type *
-Ast_node_create(bool is_operator_node, char *desc, int symbol)
+Ast_node_create(bool is_operator_node, char *desc, char symbol)
 {
 	Ast_node_type *node = (Ast_node_type *)malloc(sizeof(Ast_node_type));
 
 	node->is_operator_node = is_operator_node;
+	node->id = ast_node_id ++;
 
 	if (is_operator_node)
 	{
 		node->type.operator_node = Ast_operator_node_create();
 		node->type.operator_node->operator->desc = desc;
-		node->type.operator_node->operator->symbol = symbol;
+		node->type.operator_node->operator->type = symbol;
 	}
 	else
 	{
 		node->type.operand = Ast_operand_create();
 		node->type.operand->desc = desc;
-		node->type.operand->symbol = symbol;
+		node->type.operand->type = symbol;
 	}
 
 	return node;
@@ -120,7 +123,7 @@ Ast_operand_create()
 	Ast_operand_type *operand = (Ast_operand_type *)malloc(sizeof(Ast_operand_type));
 
 	operand->desc = NULL;
-	operand->symbol = -1;
+	operand->type = 0;
 
 	return operand;
 }
@@ -192,6 +195,17 @@ get_Ast_node_debug_str(Ast_node_type *node, ...)
 	return Ast_node_debug_str(node, NULL);
 }
 
+static char *
+create_node_label(char *id, char *label)
+{
+	string_buffer label_line = string_buffer_create();
+	string_buffer_append(&label_line, id);
+	string_buffer_append(&label_line, " [label=\"");
+	string_buffer_append(&label_line, label);
+	string_buffer_append(&label_line, "\"]");
+	return label_line;
+}
+
 /*
  * output a dot graph string for AST's nodes.
  */
@@ -214,12 +228,19 @@ Ast_node_debug_str(Ast_node_type *node, va_list arg_list)
 			assert(sub_node);
 
 			string_buffer sub_node_debug_str = string_buffer_create();
+			char buffer[256];
 
 			if (sub_node->is_operator_node)
 			{
-				string_buffer_append(&sub_node_debug_str, "\"");
-				string_buffer_append(&sub_node_debug_str, sub_node->type.operator_node->operator->desc);
-				string_buffer_append(&sub_node_debug_str, "\"");
+				// string_buffer_append(&sub_node_debug_str, "\"");
+				string_buffer tmp = itoa(sub_node->id);
+				string_buffer_append(&sub_node_debug_str, tmp);
+				// string_buffer_append(&sub_node_debug_str, sub_node->type.operator_node->operator->desc);
+				string_buffer tmp2 = create_node_label(tmp, sub_node->type.operator_node->operator->desc);
+				string_buffer_append(&sub_node_debug_str, tmp2);
+				string_buffer_destroy(tmp);
+				string_buffer_destroy(tmp2);
+				// string_buffer_append(&sub_node_debug_str, "\"");
 				string_buffer_append(&sub_node_debug_str, "; ");
 
 				string_buffer sub_operator_debug_str = Ast_node_debug_str(sub_node, NULL);
@@ -229,15 +250,27 @@ Ast_node_debug_str(Ast_node_type *node, va_list arg_list)
 			}
 			else
 			{
-				string_buffer_append(&sub_node_debug_str, "\"");
-				string_buffer_append(&sub_node_debug_str, sub_node->type.operand->desc);
-				string_buffer_append(&sub_node_debug_str, "\"");
+				// string_buffer_append(&sub_node_debug_str, "\"");
+				string_buffer tmp = itoa(sub_node->id);
+				string_buffer_append(&sub_node_debug_str, tmp);
+				string_buffer tmp2 = create_node_label(tmp, sub_node->type.operand->desc);
+				string_buffer_append(&sub_node_debug_str, tmp2);
+				string_buffer_destroy(tmp);
+				string_buffer_destroy(tmp2);
+				// string_buffer_append(&sub_node_debug_str, sub_node->type.operand->desc);
+				// string_buffer_append(&sub_node_debug_str, "\"");
 				string_buffer_append(&sub_node_debug_str, "; ");
 			}
 
-			string_buffer_append(&debug_str, "\"");
-			string_buffer_append(&debug_str, current_node_desc);
-			string_buffer_append(&debug_str, "\"");
+			// string_buffer_append(&debug_str, "\"");
+			string_buffer tmp = itoa(node->id);
+			string_buffer_append(&debug_str, tmp);
+			string_buffer tmp2 = create_node_label(tmp, current_node_desc);
+			string_buffer_append(&debug_str, tmp2);
+			string_buffer_destroy(tmp);
+			string_buffer_destroy(tmp2);
+			// string_buffer_append(&debug_str, current_node_desc);
+			// string_buffer_append(&debug_str, "\"");
 			string_buffer_append(&debug_str, " -> ");
 			string_buffer_append(&debug_str, sub_node_debug_str);
 			// string_buffer_append(&debug_str, "; ");
@@ -248,7 +281,6 @@ Ast_node_debug_str(Ast_node_type *node, va_list arg_list)
 	else
 	{
 		assert(node->type.operand);
-		// if this node is pure oprand, just ignore it.
 		string_buffer_append(&debug_str, node->type.operand->desc);
 	}
 	

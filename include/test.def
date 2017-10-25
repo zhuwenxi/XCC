@@ -62,3 +62,8 @@ TESTCASE(LR_AUTOMATA_PARSE_TEST, LR_automata_parse_test, "Test for LR_automata_p
  */
 XTESTCASE(AST_CREATE_DESTROY_TEST, Ast_create_destroy_test, "Test for AST create and desctory")
 XTESTCASE(AST_CONSTRUCTION_TEST, Ast_construction_test, "Test for AST construction")
+
+/*
+ * Test cases for util.h
+ */
+XTESTCASE(UTIL_ITOA_TEST, itoa_test, "Test for itoa()")

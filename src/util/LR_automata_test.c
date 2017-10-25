@@ -3,9 +3,11 @@
 #include "context_free_grammar.h"
 #include "logger.h"
 #include "Ast.h"
+#include "stack.h"
 
 
 #include <string.h>
+#include <assert.h>
 
 typedef enum 
 {
@@ -52,7 +54,7 @@ get_token_type(char c)
 	}
 	else
 	{
-		LOG(TRUE, "Oops, unknown token: %c!!", c);
+		LOG(TRUE, "Oops, unknown token: %c!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", c);
 	}
 }
 
@@ -117,33 +119,92 @@ LR_automata_expression_grammar_right_recursive_test()
 }
 
 static void
-construct_ast_for_expression_grammar(Ast_type *ast, production_type *prod_to_reduce)
+construct_ast_for_expression_grammar(stack_type *ast_node_stack, production_type *prod_to_reduce)
 {
 	char *debug_str = production_debug_str(prod_to_reduce, token_desc_table);
 
-	if (strcmp(debug_str, "F -> id DOT"))
+	if (strcmp(debug_str, "F -> id Dot ") == 0)
 	{
-		
-	}
-	else if (strcmp(debug_str, "E -> E + T DOT"))
-	{
+		LR_automata_input_type *stack_elem = stack_pop(ast_node_stack);
+		assert(stack_elem);
 
-	}
-	else if (strcmp(debug_str, "E -> T * F DOT"))
-	{
+		string_buffer desc = string_buffer_create();
+		char tmp[2] = {stack_elem->c, '\0'};
+		string_buffer_append(&desc, tmp);
 
+		// create a operand node: "id"
+		Ast_node_type *node = Ast_node_create(FALSE, desc, stack_elem->type);
+		assert(node->is_operator_node == FALSE);
+		stack_push(ast_node_stack, node);
 	}
-	else if (strcmp(debug_str, "T -> F DOT"))
+	else if (strcmp(debug_str, "E -> E + T Dot ") == 0)
 	{
+		Ast_node_type *node_T = stack_pop(ast_node_stack);
 
+		// "+" symbol:
+		Ast_node_type *node_add = stack_pop(ast_node_stack);
+
+		Ast_node_type *node_E = stack_pop(ast_node_stack);
+
+		string_buffer desc = string_buffer_create();
+		char tmp[2] = {'+', '\0'};
+		string_buffer_append(&desc, tmp);
+
+		Ast_node_type *node = Ast_node_create(TRUE, desc, ADD);
+		Ast_append_sub_node(node, node_E);
+		Ast_append_sub_node(node, node_T);
+
+		stack_push(ast_node_stack, node);
 	}
-	else if (strcmp(debug_str, "F -> ( E ) DOT"))
+	else if (strcmp(debug_str, "T -> T * F Dot ") == 0)
 	{
+		Ast_node_type *node_F = stack_pop(ast_node_stack);
 
+		// "*" symbol:
+		Ast_node_type *node_star = stack_pop(ast_node_stack);
+
+		Ast_node_type *node_T = stack_pop(ast_node_stack);
+
+		string_buffer desc = string_buffer_create();
+		char tmp[2] = {'*', '\0'};
+		string_buffer_append(&desc, tmp);
+
+		Ast_node_type *node = Ast_node_create(TRUE, desc, MUL);
+		Ast_append_sub_node(node, node_T);
+		Ast_append_sub_node(node, node_F);
+
+		stack_push(ast_node_stack, node);
+	}
+	else if (strcmp(debug_str, "T -> F Dot ") == 0)
+	{
+		// Nothing to do. :)
+	}
+	else if (strcmp(debug_str, "F -> ( E ) Dot ") == 0)
+	{
+		// "(" symbol
+		stack_pop(ast_node_stack);
+
+		Ast_node_type *node_E = stack_pop(ast_node_stack);
+
+		// ")" symbol
+		stack_pop(ast_node_stack);
+
+		string_buffer desc = string_buffer_create();
+		char tmp[3] = {'(', ')', '\0'};
+		string_buffer_append(&desc, tmp);
+
+		Ast_node_type *node = Ast_node_create(TRUE, desc, LEFT_PARENTHESIS);
+		Ast_append_sub_node(node, node_E);
+
+		stack_push(ast_node_stack, node);
+	}
+	else if (strcmp(debug_str, "E -> T Dot ") == 0)
+	{
+		// Nothing to do. :)
 	}
 	else
 	{
-		LOG(TRUE, "Unknown production: %s !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", debug_str);
+		LOG(TRUE, "Unknown production:%s!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!, len: %d", debug_str, strlen(debug_str));
 	}
 
 	free(debug_str);
@@ -160,7 +221,7 @@ LR_automata_parse_test()
 
 	context_free_grammar_add(cfg, E, E, ADD, T, 0);
 	context_free_grammar_add(cfg, E, T, 0);
-	context_free_grammar_add(cfg, E, T, MUL, F, 0);
+	context_free_grammar_add(cfg, T, T, MUL, F, 0);
 	context_free_grammar_add(cfg, T, F, 0);
 	context_free_grammar_add(cfg, F, LEFT_PARENTHESIS, E, RIGHT_PARENTHESIS, 0);
 	context_free_grammar_add(cfg, F, ID, 0);
@@ -180,6 +241,18 @@ LR_automata_parse_test()
 	// Parsing:
 	//
 	LR_automata_parse(lr_automata, buffer, construct_ast_for_expression_grammar);
+
+	//
+	// Prepare input buffer2:
+	//
+
+	LR_automata_input_buffer_type *buffer2 = LR_automata_input_buffer_create();
+	LR_automata_input_buffer_init(buffer2, "a+b*(c+d)", get_token_type);
+
+	//
+	// Parsing:
+	//
+	LR_automata_parse(lr_automata, buffer2, construct_ast_for_expression_grammar);
 
 	return TRUE;
 }

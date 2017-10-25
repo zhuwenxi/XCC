@@ -9,7 +9,7 @@
 typedef struct
 {
 	char *desc;
-	production_token_type symbol;
+	production_token_type type;
 } Ast_operator_type, Ast_operand_type;
 
 typedef struct
@@ -25,7 +25,10 @@ typedef struct
 		Ast_operand_type *operand;
 	} type;
 	bool is_operator_node;
+	int id;
 } Ast_node_type;
+
+extern int ast_node_id;
 
 typedef struct
 {
@@ -41,7 +44,7 @@ Ast_type *Ast_create();
 bool Ast_deconstructor(Ast_type *ast, va_list arg_list);
 DECLARE_DESTROY(Ast);
 
-Ast_node_type *Ast_node_create(bool is_operator_node, char *desc, int symbol);
+Ast_node_type *Ast_node_create(bool is_operator_node, char *desc, char symbol);
 
 bool Ast_node_deconstructor(Ast_node_type *node, va_list arg_list);
 DECLARE_DESTROY(Ast_node);

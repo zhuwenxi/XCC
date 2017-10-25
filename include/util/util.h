@@ -4,8 +4,10 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <assert.h>
 
 #include "string_buffer.h"
+#include "stddefs.h"
 
 typedef void void_type;
 
@@ -175,6 +177,29 @@ int_to_str(void *p, va_list arg_list)
 	string_buffer_append(&buffer, str);
 
 	return buffer;
+}
+
+static inline char *
+itoa(int number)
+{
+	string_buffer str = string_buffer_create();
+	int quotient = 0;
+	int remainder = 0;
+
+	do {
+		remainder = number % 10;
+		quotient = number / 10;
+
+		assert(remainder < 10);
+		char tmp[2] = {'0' + remainder, '\0'};
+		string_buffer_append(&str, tmp);
+
+		number = quotient;
+	} while (quotient != 0);
+
+	string_buffer_revert(str);
+	
+	return str;
 }
 
 #define DBCODE(is_debug, code) \

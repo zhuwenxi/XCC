@@ -510,7 +510,7 @@ LR_automata_destory(LR_automata_type *lr_automata, ...)
 }
 
 Ast_type *
-LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *buffer, void (*callback)(Ast_type *ast, production_type *prod_to_reduce))
+LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *buffer, void (*callback)(stack_type *ast_node_stack, production_type *prod_to_reduce))
 {
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "=============================== Start LR_automata_parse() ===============================");
 	
@@ -529,14 +529,13 @@ LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *
 	LR_automata_input_type *lookup_symbol = LR_automata_input_buffer_read(buffer);
 	production_token_type *lookup_symbol_type = &lookup_symbol->type;
 	assert(lookup_symbol);
-	LOG(TRUE, "lookup_symbol: %c", lookup_symbol->c);
 
 
 	while (TRUE && lookup_symbol != NULL)
 	{	
 
 		context_free_grammar_type *state = stack_peek(stack);
-		LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "state: %s, symbol: %s", get_context_free_grammar_debug_str(state), lr_automata->grammar->desc_table[*TYPE_CAST(lookup_symbol_type ,int *)]);
+		LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "state: %s, symbol: %s (%c)", get_context_free_grammar_debug_str(state), lr_automata->grammar->desc_table[*TYPE_CAST(lookup_symbol_type ,int *)], lookup_symbol->c);
 
 		action_table_value_type *action_value = LR_automata_action(lr_automata, state, lookup_symbol_type);
 		
@@ -547,16 +546,18 @@ LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *
 		{
 			context_free_grammar_type *next_state = action_value->next_state;
 			stack_push(stack, next_state);
+			stack_push(ast_node_stack, lookup_symbol);
 
 			lookup_symbol = LR_automata_input_buffer_read(buffer);
 			lookup_symbol_type = lookup_symbol ? &(lookup_symbol->type) : NULL;
 
-			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "SHIFT to: %s", get_context_free_grammar_debug_str(next_state));
+			
+			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "SHIFT to: %s\n", get_context_free_grammar_debug_str(next_state));
 
 		}
 		else if (action_value->action == REDUCE)
 		{
-			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "REDUCE %s", production_debug_str(action_value->prod_to_reduce, lr_automata->grammar->desc_table));
+			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "REDUCE %s\n", production_debug_str(action_value->prod_to_reduce, lr_automata->grammar->desc_table));
 			
 			int reduced_production_size = 0;
 
@@ -573,7 +574,6 @@ LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *
 					reduced_production_size ++;
 				}
 			}
-			LOG(TRUE, "reduce size: %d, stack size: %d", reduced_production_size, stack->length);
 
 			/*
 			 * Pop "reduced_production_size" elements.
@@ -587,7 +587,7 @@ LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *
 			// Call "callback" to construct the AST.
 			if (callback != NULL)
 			{
-				callback(ast, action_value->prod_to_reduce);
+				callback(ast_node_stack, action_value->prod_to_reduce);
 			}
 
 			stack_push(stack, LR_automata_goto(lr_automata, stack_peek(stack), action_value->prod_to_reduce->head));
@@ -602,6 +602,10 @@ LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *
 			// Oops, error here!
 		}
 	}
+
+	assert(ast_node_stack->length == 1);
+	ast->root = stack_pop(ast_node_stack);
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "AST: %s", get_Ast_debug_str(ast, NULL));
 
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "=============================== End LR_automata_parse() ===============================");
 
