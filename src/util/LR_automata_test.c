@@ -254,5 +254,17 @@ LR_automata_parse_test()
 	//
 	LR_automata_parse(lr_automata, buffer2, construct_ast_for_expression_grammar);
 
+	//
+	// Prepare input buffer2:
+	//
+
+	LR_automata_input_buffer_type *buffer3 = LR_automata_input_buffer_create();
+	LR_automata_input_buffer_init(buffer3, "a+a*(b+b)", get_token_type);
+
+	//
+	// Parsing:
+	//
+	LR_automata_parse(lr_automata, buffer3, construct_ast_for_expression_grammar);
+
 	return TRUE;
 }

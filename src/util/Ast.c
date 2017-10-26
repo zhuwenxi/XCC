@@ -177,7 +177,7 @@ Ast_debug_str(Ast_type *ast, va_list arg_list)
 {
 	string_buffer debug_str = string_buffer_create();
 
-	string_buffer_append(&debug_str, "digraph AST { ");
+	string_buffer_append(&debug_str, "digraph { ");
 	if (ast->root)
 	{
 		string_buffer root_node_debug_str = get_Ast_node_debug_str(ast->root);
@@ -199,7 +199,7 @@ static char *
 create_node_label(char *id, char *label)
 {
 	string_buffer label_line = string_buffer_create();
-	string_buffer_append(&label_line, id);
+	// string_buffer_append(&label_line, id);
 	string_buffer_append(&label_line, " [label=\"");
 	string_buffer_append(&label_line, label);
 	string_buffer_append(&label_line, "\"]");
@@ -232,48 +232,49 @@ Ast_node_debug_str(Ast_node_type *node, va_list arg_list)
 
 			if (sub_node->is_operator_node)
 			{
-				// string_buffer_append(&sub_node_debug_str, "\"");
+				string_buffer_append(&sub_node_debug_str, "{");
 				string_buffer tmp = itoa(sub_node->id);
 				string_buffer_append(&sub_node_debug_str, tmp);
-				// string_buffer_append(&sub_node_debug_str, sub_node->type.operator_node->operator->desc);
 				string_buffer tmp2 = create_node_label(tmp, sub_node->type.operator_node->operator->desc);
 				string_buffer_append(&sub_node_debug_str, tmp2);
 				string_buffer_destroy(tmp);
 				string_buffer_destroy(tmp2);
-				// string_buffer_append(&sub_node_debug_str, "\"");
+				string_buffer_append(&sub_node_debug_str, "}");
 				string_buffer_append(&sub_node_debug_str, "; ");
 
 				string_buffer sub_operator_debug_str = Ast_node_debug_str(sub_node, NULL);
 				string_buffer_append(&sub_node_debug_str, sub_operator_debug_str);
 
+				
+				// string_buffer_append(&sub_node_debug_str, "; ");
+
 				string_buffer_destroy(sub_operator_debug_str);
 			}
 			else
 			{
-				// string_buffer_append(&sub_node_debug_str, "\"");
+				string_buffer_append(&sub_node_debug_str, "{");
 				string_buffer tmp = itoa(sub_node->id);
 				string_buffer_append(&sub_node_debug_str, tmp);
+				
 				string_buffer tmp2 = create_node_label(tmp, sub_node->type.operand->desc);
 				string_buffer_append(&sub_node_debug_str, tmp2);
+				string_buffer_append(&sub_node_debug_str, "}");
+				string_buffer_append(&sub_node_debug_str, "; ");
+				
 				string_buffer_destroy(tmp);
 				string_buffer_destroy(tmp2);
-				// string_buffer_append(&sub_node_debug_str, sub_node->type.operand->desc);
-				// string_buffer_append(&sub_node_debug_str, "\"");
-				string_buffer_append(&sub_node_debug_str, "; ");
 			}
 
-			// string_buffer_append(&debug_str, "\"");
+			string_buffer_append(&debug_str, "{");
 			string_buffer tmp = itoa(node->id);
 			string_buffer_append(&debug_str, tmp);
 			string_buffer tmp2 = create_node_label(tmp, current_node_desc);
 			string_buffer_append(&debug_str, tmp2);
+			string_buffer_append(&debug_str, "}");
 			string_buffer_destroy(tmp);
 			string_buffer_destroy(tmp2);
-			// string_buffer_append(&debug_str, current_node_desc);
-			// string_buffer_append(&debug_str, "\"");
 			string_buffer_append(&debug_str, " -> ");
 			string_buffer_append(&debug_str, sub_node_debug_str);
-			// string_buffer_append(&debug_str, "; ");
 
 			string_buffer_destroy(sub_node_debug_str);
 		}
