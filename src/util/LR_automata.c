@@ -594,7 +594,6 @@ LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *
 		}
 		else if (action_value->action == ACCEPT)
 		{
-			LOG(TRUE, "Success!");
 			break;
 		}
 		else
