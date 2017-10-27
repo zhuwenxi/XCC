@@ -983,6 +983,10 @@ LR_automata_construct_first_set(context_free_grammar_type *grammar)
 				linked_list_type *first_set_of_b1 = array_list_get(first_set, *TYPE_CAST(body_node->data, int *));
 				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "first set of %s is: %s", grammar->desc_table[*TYPE_CAST(body_node->data, int *)], get_sub_set_debug_str(first_set_of_b1, grammar->desc_table));
 
+				//
+				// every item in FIRST(Y[i]), except for "epsilon":
+				//
+
 				linked_list_type *first_set_of_b1_without_epsilon = linked_list_create();
 
 				linked_list_node_type *node;
@@ -996,12 +1000,17 @@ LR_automata_construct_first_set(context_free_grammar_type *grammar)
 
 				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "exclude epsilon: %s", get_sub_set_debug_str(first_set_of_b1_without_epsilon, grammar->desc_table));
 
+				//
+				// put every item in FIRST(Y[i]), except for "epsilon", into FIRST(A):
+				//
+
 				linked_list_merge(first_set_of_current_symbol, first_set_of_b1_without_epsilon, int_comparator, int_copier, NULL);
 
 				if (linked_list_search(first_set_of_b1, &epsilon, int_comparator, NULL) == NULL) break;
 
 				if (body_node == prod->body->tail && linked_list_search(first_set_of_b1, &epsilon, int_comparator, NULL))
-				{
+				{	
+					// if "epsilon" in all Y[0] ~ Y[k], place "epsilon" in FIRST(A)
 					linked_list_insert_back(first_set_of_current_symbol, create_int(epsilon));
 				}
 			}
