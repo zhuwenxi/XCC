@@ -77,10 +77,17 @@ linked_list_deconstructor(linked_list_type *list, va_list arg_list)
 	{
 		linked_list_node_type *next_node = node->next;
 
-		va_list tmp;
-		va_copy(tmp, arg_list);
-		linked_list_node_destroy(node, tmp);
-		va_end(tmp);
+		if (arg_list == NULL)
+		{
+			linked_list_node_destroy(node, NULL);
+		}
+		else
+		{
+			va_list tmp;
+			va_copy(tmp, arg_list);
+			linked_list_node_destroy(node, tmp);
+			va_end(tmp);
+		}
 
 		node = next_node;
 	}
@@ -105,12 +112,15 @@ linked_list_node_create()
 bool 
 linked_list_node_destroy(linked_list_node_type *node, va_list arg_list)
 {
-	bool (*sub_deconstructor)(void *, va_list);
-	sub_deconstructor = va_arg(arg_list, bool (*)(void *, va_list));
-
-	if (sub_deconstructor != NULL)
+	if (arg_list != NULL)
 	{
-		sub_deconstructor(node->data, arg_list);
+		bool (*sub_deconstructor)(void *, va_list);
+		sub_deconstructor = va_arg(arg_list, bool (*)(void *, va_list));
+
+		if (sub_deconstructor != NULL)
+		{
+			sub_deconstructor(node->data, arg_list);
+		}
 	}
 
 	free(node);

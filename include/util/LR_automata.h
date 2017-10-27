@@ -88,7 +88,7 @@ typedef struct
 
 LR_automata_type *LR_automata_create(context_free_grammar_type *grammar);
 
-bool LR_automata_destory(LR_automata_type *lr_automata, ...);
+bool LR_automata_destroy(LR_automata_type *lr_automata, ...);
 
 bool LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list);
 

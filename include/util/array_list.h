@@ -43,7 +43,7 @@ bool array_list_deconstructor(array_list_type *list, va_list arg_list);
 array_list_node_type *array_list_node_create();
 
 /*
- * Destory array list node.
+ * Destroy array list node.
  */
 bool array_list_node_destroy(array_list_node_type *node, va_list arg_list);
 

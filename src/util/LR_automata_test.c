@@ -107,6 +107,7 @@ LR_automata_create_destroy_test()
 
 	// create LR automata
 	LR_automata_type *lr_automata = LR_automata_create(cfg);
+	LR_automata_destroy(lr_automata, NULL);
 
 	return TRUE;
 }
@@ -124,6 +125,7 @@ LR_automata_expression_grammar_test()
 	context_free_grammar_add(cfg, F, ID, 0);
 
 	LR_automata_type *lr_automata = LR_automata_create(cfg);
+	LR_automata_destroy(lr_automata);
 
 	return TRUE;
 }

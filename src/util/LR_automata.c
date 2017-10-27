@@ -283,7 +283,7 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 	
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "the context-free grammar pass to LR automata: \n%s", get_context_free_grammar_debug_str(grammar));
 
-	lr_automata->first_set = LR_automata_construct_first_set(grammar);
+	/*lr_automata->first_set = LR_automata_construct_first_set(grammar);
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "FIRST(): %s", get_set_debug_str(lr_automata->first_set, grammar->desc_table));
 
 	lr_automata->follow_set = LR_automata_construct_follow_set(lr_automata->first_set, grammar);
@@ -368,7 +368,9 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 	lr_automata->items = cc;
 
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "state count: %d, cc: \n%s\n", cc->length, get_array_list_debug_str(cc, context_free_grammar_debug_str, NULL));
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "GOTO TABLE: \n%s\n", get_hash_table_debug_str(lr_automata->goto_table, lr_table_key_pair_debug_str, context_free_grammar_debug_str, NULL));
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "GOTO TABLE: \n%s\n", get_hash_table_debug_str(lr_automata->goto_table, lr_table_key_pair_debug_str, context_free_grammar_debug_str, NULL));*/
+
+	linked_list_destroy(grammar_symbols, NULL);
 }
 
 void
@@ -488,13 +490,13 @@ LR_automata_create(context_free_grammar_type *grammar)
 	lr_automata->follow_set = NULL;
 
 	construct_canonical_collection(lr_automata);
-	construct_action_table(lr_automata);
+	// construct_action_table(lr_automata);
 
 	return lr_automata;
 }
 
 bool 
-LR_automata_destory(LR_automata_type *lr_automata, ...)
+LR_automata_destroy(LR_automata_type *lr_automata, ...)
 {
 	if (lr_automata == NULL)
 	{
@@ -691,6 +693,9 @@ LR_automata_input_buffer_read(LR_automata_input_buffer_type *buffer)
 bool
 LR_automata_input_buffer_deconstructor(LR_automata_input_buffer_type *buffer, va_list arg_list)
 {
+	//
+	// TO DO:
+	//
 	return TRUE;
 }
 
@@ -703,6 +708,16 @@ LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list)
 	}
 
 	array_list_deconstructor(lr_automata->items, arg_list);
+
+	hash_table_deconstructor(lr_automata->goto_table, NULL);
+	hash_table_deconstructor(lr_automata->action_table, NULL);
+
+	array_list_deconstructor(lr_automata->follow_set, NULL);
+	array_list_deconstructor(lr_automata->first_set, NULL);
+
+	context_free_grammar_deconstructor(lr_automata->grammar, NULL);
+
+	linked_list_deconstructor(lr_automata->non_terminal_symbols, NULL);
 
 	free(lr_automata);
 

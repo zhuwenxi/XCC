@@ -72,11 +72,18 @@ array_list_deconstructor(array_list_type *list, va_list arg_list)
 		void *node = list->content[i];
 		if (node != NULL)
 		{
-			va_list tmp;
-			va_copy(tmp, arg_list);
-			array_list_node_destroy(node, tmp);
-			list->content[i] = NULL;
-			va_end(tmp);
+			if (arg_list == NULL)
+			{
+				array_list_node_destroy(node, NULL);
+			}
+			else
+			{
+				va_list tmp;
+				va_copy(tmp, arg_list);
+				array_list_node_destroy(node, tmp);
+				list->content[i] = NULL;
+				va_end(tmp);
+			}
 		}
 	}
 
@@ -100,14 +107,18 @@ bool
 array_list_node_destroy(array_list_node_type *node, va_list arg_list)
 {
 	// get sub-deconstructor from "arg_list"
-	bool (*sub_deconstructor)(void *, va_list);
-	sub_deconstructor = va_arg(arg_list, bool (*)(void *, va_list));
 
-	if (sub_deconstructor != NULL)
+	if (arg_list != NULL)
 	{
-		sub_deconstructor(node->data, arg_list);
-	}
+		bool (*sub_deconstructor)(void *, va_list);
+		sub_deconstructor = va_arg(arg_list, bool (*)(void *, va_list));
 
+		if (sub_deconstructor != NULL)
+		{
+			sub_deconstructor(node->data, arg_list);
+		}
+	}
+	
 	free(node);
 
 	return TRUE;
