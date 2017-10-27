@@ -535,7 +535,7 @@ LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *
 	{	
 
 		context_free_grammar_type *state = stack_peek(stack);
-		LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "state: %s, symbol: %s (%c)", get_context_free_grammar_debug_str(state), lr_automata->grammar->desc_table[*TYPE_CAST(lookup_symbol_type ,int *)], lookup_symbol->c);
+		LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "state: %s, symbol: %s \"%c\"", get_context_free_grammar_debug_str(state), lr_automata->grammar->desc_table[*TYPE_CAST(lookup_symbol_type ,int *)], lookup_symbol->c);
 
 		action_table_value_type *action_value = LR_automata_action(lr_automata, state, lookup_symbol_type);
 		
@@ -588,6 +588,7 @@ LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *
 			if (callback != NULL)
 			{
 				callback(ast_node_stack, action_value->prod_to_reduce);
+				// LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "after REDUCE, stack: %s", get_stack_debug_str(ast_node_stack, Ast_node_debug_str));
 			}
 
 			stack_push(stack, LR_automata_goto(lr_automata, stack_peek(stack), action_value->prod_to_reduce->head));
