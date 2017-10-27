@@ -246,7 +246,6 @@ construct_ast_for_regexp_grammar(stack_type *ast_node_stack, production_type *pr
 
 	if (strcmp(debug_str, "Regexp -> Regexp | Concat Dot ") == 0)
 	{
-		LOG(TRUE, "here");
 		Ast_node_type *node_Concat = stack_pop(ast_node_stack);
 
 		// "|" symbol:
