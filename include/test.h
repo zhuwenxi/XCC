@@ -30,7 +30,7 @@
 	((a) == (b) ? printf("[%s:%d] Oops! Expect %ld and %ld to be not equal.\n", __FILE__, __LINE__, a, b), FALSE : TRUE)
 // strcmp(a, b) == 0
 #define EXPECT_STRING_EQUAL(a, b) \
-	(strcmp(a, b) != 0 printf("[%s:%d] Oops! Expect \"%s\" and \"%s\" to be equal.\n", __FILE__, __LINE__, a, b), FALSE : TRUE)
+	(strcmp(a, b) != 0 ? printf("[%s:%d] Oops! Expect \"%s\" and \"%s\" to be equal.\n", __FILE__, __LINE__, a, b), FALSE : TRUE)
 
 // condition == TRUE
 #define EXPECT_TRUE(condition) \
