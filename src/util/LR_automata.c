@@ -273,7 +273,9 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 	production_token_type *initial_production_body = create_int(first_production_head);
 	linked_list_insert_back(initial_production->body, initial_production_body);
 
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "initial production: %s", production_debug_str(initial_production, grammar->desc_table));
+	char *prod_debug_str = production_debug_str(initial_production, grammar->desc_table);
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "initial production: %s", prod_debug_str);
+	free(prod_debug_str);
 
 	// add the generated initial production to the given context-free grammar, as the new "first productoin".
 	// in the regexp case, it is adding the production "Goal -> Regexp" to the first place of grammar
@@ -281,7 +283,9 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 	intial_production_node->data = initial_production;
 	linked_list_insert_before(grammar->productions, grammar->productions->head, intial_production_node);
 	
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "the context-free grammar pass to LR automata: \n%s", get_context_free_grammar_debug_str(grammar));
+	char *cfg_debug_str = get_context_free_grammar_debug_str(grammar);
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "the context-free grammar pass to LR automata: \n%s", cfg_debug_str);
+	free(cfg_debug_str);
 
 	/*lr_automata->first_set = LR_automata_construct_first_set(grammar);
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "FIRST(): %s", get_set_debug_str(lr_automata->first_set, grammar->desc_table));
