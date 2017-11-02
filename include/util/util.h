@@ -8,6 +8,7 @@
 
 #include "string_buffer.h"
 #include "stddefs.h"
+#include "logger.h"
 
 typedef void void_type;
 
@@ -111,6 +112,7 @@ t##_destroy( t##_type *instance, ...) \
 static inline int *
 create_int(int i)
 {
+	LOG(TRUE, "create_int");
 	int *ptr_i = (int *)malloc(sizeof(int));
 	*ptr_i = i;
 
@@ -120,6 +122,7 @@ create_int(int i)
 static inline void
 int_deconstructor(int *p, va_list arg_list)
 {
+	LOG(TRUE, "int_deconstructor");
 	free(p);
 }
 
@@ -131,6 +134,12 @@ int_copier(void *origin_int, va_list arg_list)
 	int *int_copy = create_int(*TYPE_CAST(origin_int, int *));
 
 	return int_copy;
+}
+
+static inline void *
+address_assign(void *origin, va_list arg_list)
+{
+	return origin;
 }
 
 static inline bool

@@ -287,18 +287,18 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "the context-free grammar pass to LR automata: \n%s", cfg_debug_str);
 	free(cfg_debug_str);
 
-	/*lr_automata->first_set = LR_automata_construct_first_set(grammar);
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "FIRST(): %s", get_set_debug_str(lr_automata->first_set, grammar->desc_table));
+	lr_automata->first_set = LR_automata_construct_first_set(grammar);
+	// LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "FIRST(): %s", get_set_debug_str(lr_automata->first_set, grammar->desc_table));
 
-	lr_automata->follow_set = LR_automata_construct_follow_set(lr_automata->first_set, grammar);
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "FOLLOW(): %s", get_set_debug_str(lr_automata->follow_set, grammar->desc_table));
+	// lr_automata->follow_set = LR_automata_construct_follow_set(lr_automata->first_set, grammar);
+	// LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "FOLLOW(): %s", get_set_debug_str(lr_automata->follow_set, grammar->desc_table));
 
 	//
 	// Construct the canonical collection of LR items
 	//
 
 	// the canonical collection "cc"
-	array_list_type *cc = array_list_create();
+	/*array_list_type *cc = array_list_create();
 
 	// the initial set "cc0"
 	context_free_grammar_type *cc0 = context_free_grammar_create(grammar->desc_table);
@@ -716,8 +716,8 @@ LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list)
 	hash_table_deconstructor(lr_automata->goto_table, NULL);
 	hash_table_deconstructor(lr_automata->action_table, NULL);
 
-	array_list_deconstructor(lr_automata->follow_set, NULL);
-	array_list_deconstructor(lr_automata->first_set, NULL);
+	array_list_destroy(lr_automata->follow_set, linked_list_deconstructor, NULL);
+	array_list_destroy(lr_automata->first_set, linked_list_deconstructor, NULL);
 
 	context_free_grammar_deconstructor(lr_automata->grammar, NULL);
 
@@ -909,7 +909,7 @@ LR_automata_first(array_list_type *first_set, production_token_type *symbol)
 
 array_list_type *
 LR_automata_construct_first_set(context_free_grammar_type *grammar)
-{	
+{
 	array_list_type *first_set = array_list_create();
 	bool first_set_has_changed = FALSE;
 
@@ -978,7 +978,10 @@ LR_automata_construct_first_set(context_free_grammar_type *grammar)
 			
 		}
 	}
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "initialized first set:\n%s\n", get_set_debug_str(first_set, grammar->desc_table));
+
+	char *init_first_set_debug_str = get_set_debug_str(first_set, grammar->desc_table);
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "initialized first set:\n%s\n", init_first_set_debug_str);
+	free(init_first_set_debug_str);
 
 	linked_list_destroy(symbol_list, NULL);
 
@@ -993,14 +996,18 @@ LR_automata_construct_first_set(context_free_grammar_type *grammar)
 
 			linked_list_type *first_set_of_current_symbol = linked_list_create();
 
-			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "from the production %s", production_debug_str(prod, grammar->desc_table));
+			char *prod_debug_str = production_debug_str(prod, grammar->desc_table);
+			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "from the production %s", prod_debug_str);
+			free(prod_debug_str);
 
 			linked_list_node_type *body_node;
 			for (body_node = prod->body->head; body_node != NULL; body_node = body_node->next)
 			{
 
 				linked_list_type *first_set_of_b1 = array_list_get(first_set, *TYPE_CAST(body_node->data, int *));
-				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "first set of %s is: %s", grammar->desc_table[*TYPE_CAST(body_node->data, int *)], get_sub_set_debug_str(first_set_of_b1, grammar->desc_table));
+				char *sub_set_debug_str = get_sub_set_debug_str(first_set_of_b1, grammar->desc_table);
+				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "first set of %s is: %s", grammar->desc_table[*TYPE_CAST(body_node->data, int *)], sub_set_debug_str);
+				free(sub_set_debug_str);
 
 				//
 				// every item in FIRST(Y[i]), except for "epsilon":
@@ -1017,20 +1024,23 @@ LR_automata_construct_first_set(context_free_grammar_type *grammar)
 					}
 				}
 
-				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "exclude epsilon: %s", get_sub_set_debug_str(first_set_of_b1_without_epsilon, grammar->desc_table));
+				sub_set_debug_str = get_sub_set_debug_str(first_set_of_b1_without_epsilon, grammar->desc_table);
+				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "exclude epsilon: %s", sub_set_debug_str);
+				free(sub_set_debug_str);
 
 				//
 				// put every item in FIRST(Y[i]), except for "epsilon", into FIRST(A):
 				//
 
-				linked_list_merge(first_set_of_current_symbol, first_set_of_b1_without_epsilon, int_comparator, int_copier, NULL);
+				linked_list_merge(first_set_of_current_symbol, first_set_of_b1_without_epsilon, int_comparator, address_assign, NULL);
+				linked_list_destroy(first_set_of_b1_without_epsilon, NULL);
 
 				if (linked_list_search(first_set_of_b1, &epsilon, int_comparator, NULL) == NULL) break;
 
 				if (body_node == prod->body->tail && linked_list_search(first_set_of_b1, &epsilon, int_comparator, NULL))
 				{	
 					// if "epsilon" in all Y[0] ~ Y[k], place "epsilon" in FIRST(A)
-					linked_list_insert_back(first_set_of_current_symbol, create_int(epsilon));
+					linked_list_insert_back(first_set_of_current_symbol, &epsilon);
 				}
 			}
 
@@ -1039,14 +1049,22 @@ LR_automata_construct_first_set(context_free_grammar_type *grammar)
 			{
 				first_set_has_changed = TRUE;
 			}
+
+			linked_list_destroy(first_set_of_current_symbol, NULL);
 			
 		}
 
-		LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "first set, this round:\n%s\n", get_set_debug_str(first_set, grammar->desc_table));
+		char *first_set_this_round_debug_str = get_set_debug_str(first_set, grammar->desc_table);
+		LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "first set, this round:\n%s\n", first_set_this_round_debug_str);
+		free(first_set_this_round_debug_str);
 
 	} while (first_set_has_changed);
 
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "first set:\n%s\n", get_set_debug_str(first_set, grammar->desc_table));
+	linked_list_destroy(non_terminal_symbols, NULL);
+
+	char *first_set_debug_str = get_set_debug_str(first_set, grammar->desc_table);
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FIRST_SET_LOG_ENABLE, "first set:\n%s\n", first_set_debug_str);
+	free(first_set_debug_str);
 
 	return first_set;
 }
@@ -1071,7 +1089,7 @@ LR_automata_set_update(array_list_type *set, production_token_type *symbol, link
 		array_list_set(set, symbol_value, follow_set_of_symbol);
 	}
 
-	return linked_list_merge(follow_set_of_symbol, update_set, int_comparator, int_copier, NULL);
+	return linked_list_merge(follow_set_of_symbol, update_set, int_comparator, address_assign, NULL);
 }
 
 static char*

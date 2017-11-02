@@ -60,6 +60,8 @@ endif
 # FLAGS += -fPIC
 FLAGS += -Iinclude/util
 
+FLAGS += -fPIC
+
 # compiler
 CC = gcc $(FLAGS)
 
