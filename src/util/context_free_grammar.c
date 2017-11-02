@@ -202,6 +202,8 @@ production_copier(production_type *prod, va_list arg_list)
 {
 	production_type *prod_copy = production_create();
 	prod_copy->head = create_int(*TYPE_CAST(prod->head, int *));
+
+	linked_list_destroy(prod_copy->body, int_deconstructor, NULL);
 	prod_copy->body = linked_list_copy(prod->body, int_copier, NULL);
 
 	return prod_copy;

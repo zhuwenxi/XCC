@@ -364,6 +364,7 @@ linked_list_copier(linked_list_type *list, va_list arg_list)
 
 	// initialize a new linked_list "list_copy"
 	linked_list_type *list_copy = linked_list_create();
+
 	list_copy->head = NULL;
 	list_copy->tail = NULL;
 

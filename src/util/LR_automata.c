@@ -171,12 +171,21 @@ LR_automata_closure(context_free_grammar_type *state, context_free_grammar_type*
 							linked_list_insert_before(searched_production_copy->body, searched_production_copy->body->head, inserted_dot_node);
 
 							if (linked_list_search(state->productions, searched_production_copy, production_comparator, NULL) == NULL)
+							{
 								context_free_grammar_add_production(state, searched_production_copy);
+							}
+							else
+							{
+								production_deconstructor(searched_production_copy, NULL);
+							}
 
 							searched_production_node = searched_production_node->next;
+
 						}
 						
 					}
+
+					linked_list_destroy(searched_productions, NULL);
 				}
 			}
 
@@ -304,7 +313,7 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 	//
 
 	// the canonical collection "cc"
-	/*array_list_type *cc = array_list_create();
+	array_list_type *cc = array_list_create();
 
 	// the initial set "cc0"
 	context_free_grammar_type *cc0 = context_free_grammar_create(grammar->desc_table);
@@ -315,7 +324,10 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 	dot_node->data = create_int(DOT);
 	linked_list_insert_before(goal_production->body, goal_production->body->head, dot_node);
 	linked_list_insert_back(cc0->productions, goal_production);
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "cc0: %s", get_context_free_grammar_debug_str(cc0));
+
+	char *cc0_debug_str = get_context_free_grammar_debug_str(cc0);
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "cc0: %s", cc0_debug_str);
+	free(cc0_debug_str);
 
 	// add "cc0" to "cc"
 	cc0 = LR_automata_closure(cc0, grammar);
@@ -331,6 +343,8 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 		string_buffer_append(&symbol_str, " ");
 	}
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "symbols: %s", symbol_str);
+	string_buffer_destroy(symbol_str);
+
 	assert(grammar_symbols != NULL);
 
 	linked_list_node_type *non_terminal_symbol_node;
@@ -342,6 +356,8 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 		string_buffer_append(&non_terminal_symbols_str, " ");
 	}
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "non_terminal_symbols: %s", non_terminal_symbols_str);
+	string_buffer_destroy(non_terminal_symbols_str);
+
 
 	int last_iter_cc_size = 0;
 
@@ -361,13 +377,24 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 			{
 				production_token_type *grammar_symbol = grammar_symbol_node->data;
 				context_free_grammar_type *next_state = LR_automata_transfer(set, grammar_symbol, lr_automata);
-				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE && LR_AUTOMATA_GOTO_TABLE_LOG_ENABLE, "state:\n%s", get_context_free_grammar_debug_str(set));
+
+				char *state_debug_str = get_context_free_grammar_debug_str(set);
+				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE && LR_AUTOMATA_GOTO_TABLE_LOG_ENABLE, "state:\n%s", state_debug_str);
+				free(state_debug_str);
+
 				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE && LR_AUTOMATA_GOTO_TABLE_LOG_ENABLE, "symbol: %s", grammar->desc_table[*TYPE_CAST(grammar_symbol, int *)]);
-				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE && LR_AUTOMATA_GOTO_TABLE_LOG_ENABLE, "next_state:\n%s", get_context_free_grammar_debug_str(next_state));
+				
+				char *next_state_debug_str = get_context_free_grammar_debug_str(next_state);
+				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE && LR_AUTOMATA_GOTO_TABLE_LOG_ENABLE, "next_state:\n%s", next_state_debug_str);
+				free(next_state_debug_str);
 				
 				if (next_state != NULL && array_list_search(cc, next_state, context_free_grammar_comparator, NULL) == NULL)
 				{
 					array_list_append(cc, next_state);
+				}
+				else
+				{
+					// context_free_grammar_destroy(next_state, NULL);
 				}
 			}
 		}
@@ -377,8 +404,13 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 
 	lr_automata->items = cc;
 
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "state count: %d, cc: \n%s\n", cc->length, get_array_list_debug_str(cc, context_free_grammar_debug_str, NULL));
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "GOTO TABLE: \n%s\n", get_hash_table_debug_str(lr_automata->goto_table, lr_table_key_pair_debug_str, context_free_grammar_debug_str, NULL));*/
+	char *cc_debug_str = get_array_list_debug_str(cc, context_free_grammar_debug_str, NULL);
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "state count: %d, cc: \n%s\n", cc->length, cc_debug_str);
+	free(cc_debug_str);
+
+	char *goto_table_debug_str = get_hash_table_debug_str(lr_automata->goto_table, lr_table_key_pair_debug_str, context_free_grammar_debug_str, NULL);
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "GOTO TABLE: \n%s\n", goto_table_debug_str);
+	free(goto_table_debug_str);
 
 	linked_list_destroy(grammar_symbols, NULL);
 }
@@ -486,7 +518,7 @@ LR_automata_type *
 LR_automata_create(context_free_grammar_type *grammar)
 {
 	LR_automata_type *lr_automata = (LR_automata_type *)malloc(sizeof(LR_automata_type));
-	lr_automata->items = array_list_create();
+	lr_automata->items = NULL;
 	lr_automata->grammar = grammar;
 	lr_automata->non_terminal_symbols = linked_list_create();
 
@@ -717,7 +749,7 @@ LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list)
 		return FALSE;
 	}
 
-	array_list_deconstructor(lr_automata->items, arg_list);
+	array_list_destroy(lr_automata->items, context_free_grammar_deconstructor, NULL);
 
 	hash_table_deconstructor(lr_automata->goto_table, NULL);
 	hash_table_deconstructor(lr_automata->action_table, NULL);
