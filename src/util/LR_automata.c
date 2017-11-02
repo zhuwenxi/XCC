@@ -19,6 +19,9 @@ typedef enum
 #undef PRODUCTION_TOKEN
 } production_token_id;
 
+production_token_type LR_automata_goal_symbol = GOAL;
+production_token_type LR_automata_dollar_symbol = DOLLAR;
+
 bool
 is_terminal_symbol(LR_automata_type *lr_automata, production_token_type *symbol)
 {
@@ -295,7 +298,7 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 	lr_automata->follow_set = LR_automata_construct_follow_set(lr_automata->first_set, grammar);
 	char *follow_set_debug_str = get_set_debug_str(lr_automata->follow_set, grammar->desc_table);
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "FOLLOW(): %s", follow_set_debug_str);
-
+	free(follow_set_debug_str);
 	//
 	// Construct the canonical collection of LR items
 	//
@@ -816,18 +819,18 @@ LR_automata_construct_follow_set(array_list_type *first_set, context_free_gramma
 	}
 
 	// Place $ in FOLLOW(GOAL)
-	int goal_symbol = GOAL;
-	int *dollar_symbol = create_int(DOLLAR);
+	int *goal_symbol = &LR_automata_goal_symbol;
+	int *dollar_symbol = &LR_automata_dollar_symbol;
 
 	linked_list_type *update_set = linked_list_create();
 	linked_list_insert_back(update_set, dollar_symbol);
 
-	LR_automata_set_update(follow_set, &goal_symbol, update_set);
-	
-
+	LR_automata_set_update(follow_set, goal_symbol, update_set);
 	linked_list_destroy(update_set, NULL);
 
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "initial FOLLOW set: %s", get_set_debug_str(follow_set, grammar->desc_table));
+	char *initial_follow_set_debug_str = get_set_debug_str(follow_set, grammar->desc_table);
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "initial FOLLOW set: %s", initial_follow_set_debug_str);
+	free(initial_follow_set_debug_str);
 
 	do {
 		
@@ -835,11 +838,18 @@ LR_automata_construct_follow_set(array_list_type *first_set, context_free_gramma
 		for (prod_node = grammar->productions->head; prod_node != NULL; prod_node = prod_node->next)
 		{
 			production_type *prod = prod_node->data;
-			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "process %s", production_debug_str(prod, grammar->desc_table));
+
+			char *process_debug_str = production_debug_str(prod, grammar->desc_table);
+			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "process %s", process_debug_str);
+			free(process_debug_str);
 
 			linked_list_type *trailer = linked_list_create();
-			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "FOLLOW(%s): %s", grammar->desc_table[*TYPE_CAST(prod->head, int *)], get_sub_set_debug_str(LR_automata_follow(follow_set, prod->head), grammar->desc_table));
-			linked_list_merge(trailer, LR_automata_follow(follow_set, prod->head), int_comparator, int_copier, NULL);
+
+			char *sub_follow_set_debug_str = get_sub_set_debug_str(LR_automata_follow(follow_set, prod->head), grammar->desc_table);
+			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "FOLLOW(%s): %s", grammar->desc_table[*TYPE_CAST(prod->head, int *)], sub_follow_set_debug_str);
+			free(sub_follow_set_debug_str);
+
+			linked_list_merge(trailer, LR_automata_follow(follow_set, prod->head), int_comparator, address_assign, NULL);
 
 			linked_list_node_type *prod_token_node;
 			for (prod_token_node = prod->body->tail; prod_token_node != NULL; prod_token_node = prod_token_node->prev)
@@ -849,15 +859,20 @@ LR_automata_construct_follow_set(array_list_type *first_set, context_free_gramma
 				if (linked_list_search(non_terminal_symbols, prod_token, int_comparator, NULL) != NULL)
 				{
 					bool has_changed = LR_automata_set_update(follow_set, prod_token, trailer);
-					LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "update FOLLOW(%s): %s", grammar->desc_table[*TYPE_CAST(prod_token, int *)], get_set_debug_str(follow_set, grammar->desc_table));
+
+					char *update_sub_follow_set_str = get_set_debug_str(follow_set, grammar->desc_table);
+					LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "update FOLLOW(%s): %s", grammar->desc_table[*TYPE_CAST(prod_token, int *)], update_sub_follow_set_str);
+					free(update_sub_follow_set_str);
 
 					follow_set_has_changed = has_changed ? TRUE : has_changed;
 
 					linked_list_type *first_set_of_prod_token = LR_automata_first(first_set, prod_token);
 					production_token_type epsilon_symbol = EPSILON;
 
-					LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "FIRST(%s): %s", grammar->desc_table[*TYPE_CAST(prod_token, int *)], get_sub_set_debug_str(first_set_of_prod_token, grammar->desc_table));
-					// LOG(TRUE, "%s", get_sub_set_debug_str(first_set_of_prod_token, grammar->desc_table));
+					char *first_set_debug_str = get_sub_set_debug_str(first_set_of_prod_token, grammar->desc_table);
+					LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "FIRST(%s): %s", grammar->desc_table[*TYPE_CAST(prod_token, int *)], first_set_debug_str);
+					free(first_set_debug_str);
+
 					if (linked_list_search(first_set_of_prod_token, &epsilon_symbol, int_comparator, NULL))
 					{
 						// add everthing but epsilon to trailer
@@ -867,18 +882,25 @@ LR_automata_construct_follow_set(array_list_type *first_set, context_free_gramma
 						{
 							if (!int_comparator(n->data, &epsilon_symbol, NULL))
 							{
-								linked_list_insert_back(first_set_but_epsilon, int_copier(n->data, NULL));
+								linked_list_insert_back(first_set_but_epsilon, n->data);
 							}
 						}
 
-						linked_list_merge(trailer, first_set_but_epsilon, int_comparator, int_copier, NULL);
-						LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "merge, trailer: %s", get_sub_set_debug_str(trailer, grammar->desc_table));
+						linked_list_merge(trailer, first_set_but_epsilon, int_comparator, address_assign, NULL);
+						linked_list_destroy(first_set_but_epsilon, NULL);
 
+						char *trailer_after_merge_debug_str = get_sub_set_debug_str(trailer, grammar->desc_table);
+						LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "merge, trailer: %s", trailer_after_merge_debug_str);
+						free(trailer_after_merge_debug_str);
 					}
 					else
 					{
-						trailer = linked_list_copy(first_set_of_prod_token, int_copier, NULL);
-						LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "truncate, trailer: %s", get_sub_set_debug_str(trailer, grammar->desc_table));
+						linked_list_destroy(trailer, NULL);
+						trailer = linked_list_copy(first_set_of_prod_token, address_assign, NULL);
+
+						char *trailer_after_truncate_debug_str = get_sub_set_debug_str(trailer, grammar->desc_table);
+						LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "truncate, trailer: %s", trailer_after_truncate_debug_str);
+						free(trailer_after_truncate_debug_str);
 					}
 
 				}
@@ -886,8 +908,11 @@ LR_automata_construct_follow_set(array_list_type *first_set, context_free_gramma
 				{
 					linked_list_destroy(trailer, NULL);
 					trailer = linked_list_create();
-					linked_list_merge(trailer, LR_automata_first(first_set, prod_token), int_comparator, int_copier, NULL);
-					LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "non-terminal, trailer: %s", get_sub_set_debug_str(trailer, grammar->desc_table));
+					linked_list_merge(trailer, LR_automata_first(first_set, prod_token), int_comparator, address_assign, NULL);
+
+					char *non_term_debug_str = get_sub_set_debug_str(trailer, grammar->desc_table);
+					LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "non-terminal, trailer: %s", non_term_debug_str);
+					free(non_term_debug_str);
 				}
 			}
 
@@ -897,8 +922,11 @@ LR_automata_construct_follow_set(array_list_type *first_set, context_free_gramma
 		}
 	} while (follow_set_has_changed == TRUE);
 	
-	
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "follow set: \n  %s", get_set_debug_str(follow_set, grammar->desc_table));
+	linked_list_destroy(non_terminal_symbols, NULL);
+
+	char *follow_set_debug_str = get_set_debug_str(follow_set, grammar->desc_table);
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_FOLLOW_SET_LOG_ENABLE, "follow set: \n  %s", follow_set_debug_str);
+	free(follow_set_debug_str);
 
 	return follow_set;
 }
