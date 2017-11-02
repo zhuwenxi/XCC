@@ -288,10 +288,13 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 	free(cfg_debug_str);
 
 	lr_automata->first_set = LR_automata_construct_first_set(grammar);
-	// LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "FIRST(): %s", get_set_debug_str(lr_automata->first_set, grammar->desc_table));
+	char *first_set_debug_str = get_set_debug_str(lr_automata->first_set, grammar->desc_table);
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "FIRST(): %s", first_set_debug_str);
+	free(first_set_debug_str);
 
-	// lr_automata->follow_set = LR_automata_construct_follow_set(lr_automata->first_set, grammar);
-	// LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "FOLLOW(): %s", get_set_debug_str(lr_automata->follow_set, grammar->desc_table));
+	lr_automata->follow_set = LR_automata_construct_follow_set(lr_automata->first_set, grammar);
+	char *follow_set_debug_str = get_set_debug_str(lr_automata->follow_set, grammar->desc_table);
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "FOLLOW(): %s", follow_set_debug_str);
 
 	//
 	// Construct the canonical collection of LR items

@@ -112,7 +112,6 @@ t##_destroy( t##_type *instance, ...) \
 static inline int *
 create_int(int i)
 {
-	LOG(TRUE, "create_int");
 	int *ptr_i = (int *)malloc(sizeof(int));
 	*ptr_i = i;
 
@@ -122,7 +121,6 @@ create_int(int i)
 static inline void
 int_deconstructor(int *p, va_list arg_list)
 {
-	LOG(TRUE, "int_deconstructor");
 	free(p);
 }
 
