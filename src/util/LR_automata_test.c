@@ -125,7 +125,7 @@ LR_automata_expression_grammar_test()
 	context_free_grammar_add(cfg, F, ID, 0);
 
 	LR_automata_type *lr_automata = LR_automata_create(cfg);
-	LR_automata_destroy(lr_automata);
+	LR_automata_destroy(lr_automata, NULL);
 
 	return TRUE;
 }
@@ -145,6 +145,7 @@ LR_automata_expression_grammar_right_recursive_test()
 	context_free_grammar_add(cfg, F, ID, 0);
 
 	LR_automata_type *lr_automata = LR_automata_create(cfg);
+	LR_automata_destroy(lr_automata, NULL);
 
 	return TRUE;
 }
@@ -165,8 +166,11 @@ construct_ast_for_expression_grammar(stack_type *ast_node_stack, production_type
 
 		// create a operand node: "id"
 		Ast_node_type *node = Ast_node_create(FALSE, desc, stack_elem->type);
+
 		assert(node->is_operator_node == FALSE);
 		stack_push(ast_node_stack, node);
+
+		string_buffer_destroy(desc);
 	}
 	else if (strcmp(debug_str, "E -> E + T Dot ") == 0)
 	{
@@ -186,6 +190,8 @@ construct_ast_for_expression_grammar(stack_type *ast_node_stack, production_type
 		Ast_append_sub_node(node, node_T);
 
 		stack_push(ast_node_stack, node);
+
+		string_buffer_destroy(desc);
 	}
 	else if (strcmp(debug_str, "T -> T * F Dot ") == 0)
 	{
@@ -205,6 +211,8 @@ construct_ast_for_expression_grammar(stack_type *ast_node_stack, production_type
 		Ast_append_sub_node(node, node_F);
 
 		stack_push(ast_node_stack, node);
+
+		string_buffer_destroy(desc);
 	}
 	else if (strcmp(debug_str, "T -> F Dot ") == 0)
 	{
@@ -228,6 +236,8 @@ construct_ast_for_expression_grammar(stack_type *ast_node_stack, production_type
 		Ast_append_sub_node(node, node_E);
 
 		stack_push(ast_node_stack, node);
+
+		string_buffer_destroy(desc);
 	}
 	else if (strcmp(debug_str, "E -> T Dot ") == 0)
 	{
@@ -265,6 +275,7 @@ construct_ast_for_regexp_grammar(stack_type *ast_node_stack, production_type *pr
 
 		stack_push(ast_node_stack, node);
 
+		string_buffer_destroy(desc);
 	}
 	else if (strcmp(debug_str, "Regexp -> Concat Dot ") == 0)
 	{
@@ -284,6 +295,8 @@ construct_ast_for_regexp_grammar(stack_type *ast_node_stack, production_type *pr
 		Ast_append_sub_node(node, node_Repeat);
 
 		stack_push(ast_node_stack, node);
+
+		string_buffer_destroy(desc);
 	}
 	else if (strcmp(debug_str, "Concat -> Repeat Dot ") == 0)
 	{
@@ -304,6 +317,8 @@ construct_ast_for_regexp_grammar(stack_type *ast_node_stack, production_type *pr
 		Ast_append_sub_node(node, node_Unit);
 
 		stack_push(ast_node_stack, node);
+
+		string_buffer_destroy(desc);
 	}
 	else if (strcmp(debug_str, "Repeat -> Unit Dot ") == 0)
 	{
@@ -326,6 +341,8 @@ construct_ast_for_regexp_grammar(stack_type *ast_node_stack, production_type *pr
 		Ast_append_sub_node(node, node_Regexp);
 
 		stack_push(ast_node_stack, node);
+
+		string_buffer_destroy(desc);
 	}
 	else if (strcmp(debug_str, "Unit -> Char Dot ") == 0)
 	{
@@ -340,11 +357,15 @@ construct_ast_for_regexp_grammar(stack_type *ast_node_stack, production_type *pr
 		Ast_node_type *node = Ast_node_create(FALSE, desc, stack_elem->type);
 		assert(node->is_operator_node == FALSE);
 		stack_push(ast_node_stack, node);
+
+		string_buffer_destroy(desc);
 	}
 	else
 	{
 		LOG(TRUE, "Unknown production:%s!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!, len: %d", debug_str, strlen(debug_str));
 	}
+
+	free(debug_str);
 }
 
 bool
@@ -377,8 +398,8 @@ LR_automata_parse_test()
 	//
 	// Parsing:
 	//
-	LR_automata_parse(lr_automata, buffer, construct_ast_for_expression_grammar);
-
+	Ast_type *ast = LR_automata_parse(lr_automata, buffer, construct_ast_for_expression_grammar);
+	Ast_destroy(ast, NULL);
 	//
 	// Prepare input buffer2:
 	//
@@ -389,8 +410,8 @@ LR_automata_parse_test()
 	//
 	// Parsing:
 	//
-	LR_automata_parse(lr_automata, buffer2, construct_ast_for_expression_grammar);
-
+	ast = LR_automata_parse(lr_automata, buffer2, construct_ast_for_expression_grammar);
+	Ast_destroy(ast, NULL);
 	//
 	// Prepare input buffer2:
 	//
@@ -401,7 +422,14 @@ LR_automata_parse_test()
 	//
 	// Parsing:
 	//
-	LR_automata_parse(lr_automata, buffer3, construct_ast_for_expression_grammar);
+	ast = LR_automata_parse(lr_automata, buffer3, construct_ast_for_expression_grammar);
+	Ast_destroy(ast, NULL);
+	
+	LR_automata_input_buffer_destroy(buffer, NULL);
+	LR_automata_input_buffer_destroy(buffer2, NULL);
+	LR_automata_input_buffer_destroy(buffer3, NULL);
+
+	LR_automata_destroy(lr_automata, NULL);
 
 	return TRUE;
 }
@@ -439,7 +467,12 @@ LR_automata_parse_regexp_test()
 	//
 	// Parsing:
 	//
-	LR_automata_parse(lr_automata, buffer, construct_ast_for_regexp_grammar);
+	Ast_type *ast = LR_automata_parse(lr_automata, buffer, construct_ast_for_regexp_grammar);
+	Ast_destroy(ast, NULL);
+	
+	LR_automata_input_buffer_destroy(buffer, NULL);
+
+	LR_automata_destroy(lr_automata, NULL);
 
 	return TRUE;
 }

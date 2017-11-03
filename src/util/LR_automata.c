@@ -26,6 +26,16 @@ bool
 table_key_deconstructor(LR_table_key_pair_type *key1, va_list arg_list)
 {
 	free(key1);
+
+	return TRUE;
+}
+
+bool
+action_table_value_deconstructor(action_table_value_type *value, va_list arg_list)
+{
+	free(value);
+
+	return TRUE;
 }
 
 bool
@@ -482,7 +492,9 @@ construct_action_table(LR_automata_type *lr_automata)
 						key->state = state;
 						key->symbol = symbol_next_to_dot;
 
-						LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_ACTION_TABLE_LOG_ENABLE, "SHIFT, state: %s, symbol: %s", get_context_free_grammar_debug_str(key->state), state->desc_table[*TYPE_CAST(key->symbol, int *)]);
+						char *state_debug_str = get_context_free_grammar_debug_str(key->state);
+						LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_ACTION_TABLE_LOG_ENABLE, "SHIFT, state: %s, symbol: %s", state_debug_str, state->desc_table[*TYPE_CAST(key->symbol, int *)]);
+						free(state_debug_str);
 
 						action_table_value_type *value = (action_table_value_type *)malloc(sizeof(action_table_value_type));
 						value->action = SHIFT;
@@ -505,8 +517,8 @@ construct_action_table(LR_automata_type *lr_automata)
 						// if [Goal -> A DOT] is in Ii, then set ACTION[i, $] to "accept"
 						LR_table_key_pair_type *key = (LR_table_key_pair_type *)malloc(sizeof(LR_table_key_pair_type));
 						key->state = state;
-						production_token_type *dollar_symbol = create_int(DOLLAR);
-						key->symbol = dollar_symbol;
+						production_token_type dollar_symbol = LR_automata_dollar_symbol;
+						key->symbol = &LR_automata_dollar_symbol;
 
 						action_table_value_type *value = (action_table_value_type *)malloc(sizeof(action_table_value_type));
 						value->action = ACCEPT;
@@ -531,7 +543,8 @@ construct_action_table(LR_automata_type *lr_automata)
 							action_table_value_type *value = (action_table_value_type *)malloc(sizeof(action_table_value_type));
 							value->action = REDUCE;
 							value->next_state = NULL;
-							value->prod_to_reduce = production_copy(prod, NULL);
+							value->prod_to_reduce = prod;
+							// value->prod_to_reduce = production_copy(prod, NULL);
 
 							hash_table_insert(lr_automata->action_table, key, value);
 						}
@@ -540,15 +553,13 @@ construct_action_table(LR_automata_type *lr_automata)
 					}
 				}
 			} 
-
-			
-
-
 		}
 	}
 
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_ACTION_TABLE_LOG_ENABLE, "============================================ ACTION table constructed ===========================================");
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_ACTION_TABLE_LOG_ENABLE, "ACTION TABLE:\n%s", get_hash_table_debug_str(lr_automata->action_table, lr_table_key_pair_debug_str, action_table_value_debug_str, NULL));
+	char *action_table_debug_str = get_hash_table_debug_str(lr_automata->action_table, lr_table_key_pair_debug_str, action_table_value_debug_str, NULL);
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_ACTION_TABLE_LOG_ENABLE, "ACTION TABLE:\n%s", action_table_debug_str);
+	free(action_table_debug_str);
 }
 
 LR_automata_type *
@@ -569,7 +580,7 @@ LR_automata_create(context_free_grammar_type *grammar)
 	lr_automata->follow_set = NULL;
 
 	construct_canonical_collection(lr_automata);
-	// construct_action_table(lr_automata);
+	construct_action_table(lr_automata);
 
 	return lr_automata;
 }
@@ -611,12 +622,14 @@ LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *
 	production_token_type *lookup_symbol_type = &lookup_symbol->type;
 	assert(lookup_symbol);
 
-
 	while (TRUE && lookup_symbol != NULL)
 	{	
 
 		context_free_grammar_type *state = stack_peek(stack);
-		LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "state: %s, symbol: %s \"%c\"", get_context_free_grammar_debug_str(state), lr_automata->grammar->desc_table[*TYPE_CAST(lookup_symbol_type ,int *)], lookup_symbol->c);
+
+		char *state_debug_str = get_context_free_grammar_debug_str(state);
+		LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "state: %s, symbol: %s \"%c\"", state_debug_str, lr_automata->grammar->desc_table[*TYPE_CAST(lookup_symbol_type ,int *)], lookup_symbol->c);
+		free(state_debug_str);
 
 		action_table_value_type *action_value = LR_automata_action(lr_automata, state, lookup_symbol_type);
 		
@@ -632,13 +645,15 @@ LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *
 			lookup_symbol = LR_automata_input_buffer_read(buffer);
 			lookup_symbol_type = lookup_symbol ? &(lookup_symbol->type) : NULL;
 
-			
-			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "SHIFT to: %s\n", get_context_free_grammar_debug_str(next_state));
-
+			char *next_state_debug_str = get_context_free_grammar_debug_str(next_state);
+			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "SHIFT to: %s\n", next_state_debug_str);
+			free(next_state_debug_str);
 		}
 		else if (action_value->action == REDUCE)
 		{
-			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "REDUCE %s\n", production_debug_str(action_value->prod_to_reduce, lr_automata->grammar->desc_table));
+			char *reduce_debug_str = production_debug_str(action_value->prod_to_reduce, lr_automata->grammar->desc_table);
+			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "REDUCE %s\n", reduce_debug_str);
+			free(reduce_debug_str);
 			
 			int reduced_production_size = 0;
 
@@ -669,13 +684,13 @@ LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *
 			if (callback != NULL)
 			{
 				callback(ast_node_stack, action_value->prod_to_reduce);
-				// LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "after REDUCE, stack: %s", get_stack_debug_str(ast_node_stack, Ast_node_debug_str));
 			}
 
 			stack_push(stack, LR_automata_goto(lr_automata, stack_peek(stack), action_value->prod_to_reduce->head));
 		}
 		else if (action_value->action == ACCEPT)
 		{
+			LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "ACCEPT");
 			break;
 		}
 		else
@@ -686,11 +701,17 @@ LR_automata_parse(LR_automata_type *lr_automata, LR_automata_input_buffer_type *
 
 	assert(ast_node_stack->length == 1);
 	ast->root = stack_pop(ast_node_stack);
-	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "AST: %s", get_Ast_debug_str(ast, NULL));
+
+	stack_destroy(stack, NULL);
+	stack_destroy(ast_node_stack, NULL);
+
+	char *ast_debug_str = get_Ast_debug_str(ast, NULL);
+	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "AST: %s", ast_debug_str);
+	free(ast_debug_str);
 
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_PARSE_LOG_ENABLE, "=============================== End LR_automata_parse() ===============================");
 
-	return NULL;
+	return ast;
 }
 
 action_table_value_type *
@@ -702,7 +723,9 @@ LR_automata_action(LR_automata_type *lr_automata, context_free_grammar_type *sta
 	key->state = state;
 	key->symbol = symbol;
 
-	return hash_table_search(action_table, key, lr_table_key_pair_comparator, NULL);
+	action_table_value_type *ret = hash_table_search(action_table, key, lr_table_key_pair_comparator, NULL);
+	free(key);
+	return ret;
 }
 
 context_free_grammar_type *
@@ -714,7 +737,9 @@ LR_automata_goto(LR_automata_type *lr_automata, context_free_grammar_type *state
 	key->state = state;
 	key->symbol = symbol;
 
-	return hash_table_search(goto_table, key, lr_table_key_pair_comparator, NULL);
+	context_free_grammar_type *ret = hash_table_search(goto_table, key, lr_table_key_pair_comparator, NULL);
+	free(key);
+	return ret;
 }
 
 LR_automata_input_buffer_type *
@@ -770,11 +795,17 @@ LR_automata_input_buffer_read(LR_automata_input_buffer_type *buffer)
 }
 
 bool
+LR_automata_input_deconstructor(LR_automata_input_type *input, va_list arg_list)
+{
+	free(input);
+	return TRUE;
+}
+
+bool
 LR_automata_input_buffer_deconstructor(LR_automata_input_buffer_type *buffer, va_list arg_list)
 {
-	//
-	// TO DO:
-	//
+	array_list_destroy(buffer->list, LR_automata_input_deconstructor, NULL);
+	free(buffer);
 	return TRUE;
 }
 
@@ -789,7 +820,7 @@ LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list)
 	array_list_destroy(lr_automata->items, context_free_grammar_deconstructor, NULL);
 
 	hash_table_destroy(lr_automata->goto_table, table_key_deconstructor, NULL);
-	hash_table_deconstructor(lr_automata->action_table, NULL);
+	hash_table_destroy(lr_automata->action_table, table_key_deconstructor, action_table_value_deconstructor, NULL);
 
 	array_list_destroy(lr_automata->follow_set, linked_list_deconstructor, NULL);
 	array_list_destroy(lr_automata->first_set, linked_list_deconstructor, NULL);
@@ -851,15 +882,23 @@ action_table_value_debug_str(action_table_value_type *value, va_list arg_list)
 	}
 	else if (value->action == SHIFT)
 	{
+		char *tmp = get_context_free_grammar_debug_str(value->next_state);
+
 		string_buffer_append(&debug_str, "Shift to ");
-		string_buffer_append(&debug_str, get_context_free_grammar_debug_str(value->next_state));
+		string_buffer_append(&debug_str, tmp);
 		string_buffer_append(&debug_str, "\n\n");
+
+		free(tmp);
 	}
 	else if (value->action == REDUCE)
 	{
+		char *tmp = production_debug_str(value->prod_to_reduce, desc_table);
+
 		string_buffer_append(&debug_str, "Reduce to ");
-		string_buffer_append(&debug_str, production_debug_str(value->prod_to_reduce, desc_table));
+		string_buffer_append(&debug_str, tmp);
 		string_buffer_append(&debug_str, "\n\n");
+
+		free(tmp);
 	}
 
 	return debug_str;

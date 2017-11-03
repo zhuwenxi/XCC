@@ -1,70 +1,70 @@
 /*
  * Test cases for linked_list.c
  */
-XTESTCASE(LINKED_LIST_CREATE_DESTROY_TEST, linked_list_create_destroy_test, "Test for linked_list_create() and linked_list_destroy().")
-XTESTCASE(LINKED_LIST_INSERT_TEST, linked_list_insert_test, "Test for linked_list_insert().")
-XTESTCASE(LINKED_LIST_INSERT_BACK_TEST, linked_list_insert_back_test, "Test for linked_list_insert_back().")
-XTESTCASE(LINKED_LIST_INSERT_BEFORE_TEST, linked_list_insert_before_test, "Test for linked_list_insert_before().")
-XTESTCASE(LINKED_LIST_SEARCH_TEST, linked_list_search_test, "Test for linked_list_search().")
-XTESTCASE(LINKED_LIST_DELETE_TEST, linked_list_delete_test, "Test for linked_list_delete().")
-XTESTCASE(LINKED_LIST_MULTI_DIM_TEST, linked_list_multi_dim_test, "Test for multi-dim linked_list.")
-XTESTCASE(LINKED_LIST_COPY_TEST, linked_list_copy_test, "Test for linked_list_copy().")
-XTESTCASE(LINKED_LIST_COMPARE_TEST, linked_list_compare_test, "Test for linked_list_compare().")
-XTESTCASE(LINKED_LIST_SWITCH_NODE_TEST, linked_list_switch_node_test, "Test for linked_list_switch_node().")
-XTESTCASE(LINKED_LIST_MERGE_TEST, linked_list_merge_test, "Test for linked_list_merge().")
+TESTCASE(LINKED_LIST_CREATE_DESTROY_TEST, linked_list_create_destroy_test, "Test for linked_list_create() and linked_list_destroy().")
+TESTCASE(LINKED_LIST_INSERT_TEST, linked_list_insert_test, "Test for linked_list_insert().")
+TESTCASE(LINKED_LIST_INSERT_BACK_TEST, linked_list_insert_back_test, "Test for linked_list_insert_back().")
+TESTCASE(LINKED_LIST_INSERT_BEFORE_TEST, linked_list_insert_before_test, "Test for linked_list_insert_before().")
+TESTCASE(LINKED_LIST_SEARCH_TEST, linked_list_search_test, "Test for linked_list_search().")
+TESTCASE(LINKED_LIST_DELETE_TEST, linked_list_delete_test, "Test for linked_list_delete().")
+TESTCASE(LINKED_LIST_MULTI_DIM_TEST, linked_list_multi_dim_test, "Test for multi-dim linked_list.")
+TESTCASE(LINKED_LIST_COPY_TEST, linked_list_copy_test, "Test for linked_list_copy().")
+TESTCASE(LINKED_LIST_COMPARE_TEST, linked_list_compare_test, "Test for linked_list_compare().")
+TESTCASE(LINKED_LIST_SWITCH_NODE_TEST, linked_list_switch_node_test, "Test for linked_list_switch_node().")
+TESTCASE(LINKED_LIST_MERGE_TEST, linked_list_merge_test, "Test for linked_list_merge().")
 
 /*
  * Test cases for array_list.c
  */
-XTESTCASE(ARRAY_LIST_CREATE_DESTROY_TEST, array_list_create_destroy_test, "Test for array_list_create() and array_list_destroy().")
-XTESTCASE(ARRAY_LIST_APPEND_TEST, array_list_append_test, "Test for array_list_append().")
-XTESTCASE(ARRAY_LIST_GET_TEST, array_list_get_test, "Test for array_list_get().")
-XTESTCASE(ARRAY_LIST_SET_TEST, array_list_set_test, "Test for array_list_set().")
-XTESTCASE(ARRAY_LIST_MULTI_DIM_ARRAY_TEST, array_list_multi_dim_test, "Test for multi dim array_list.")
-XTESTCASE(ARRAY_LIST_COPY_TEST, array_list_copy_test, "Test for array_list_copy().")
-XTESTCASE(ARRAY_LIST_SEARCH_TEST, array_list_search_test, "Test for array_list_search().")
-XTESTCASE(ARRAY_LIST_ADJUST_LENGTH_TEST, array_list_adjust_length_test, "Test for array_list_adjust_length().")
+TESTCASE(ARRAY_LIST_CREATE_DESTROY_TEST, array_list_create_destroy_test, "Test for array_list_create() and array_list_destroy().")
+TESTCASE(ARRAY_LIST_APPEND_TEST, array_list_append_test, "Test for array_list_append().")
+TESTCASE(ARRAY_LIST_GET_TEST, array_list_get_test, "Test for array_list_get().")
+TESTCASE(ARRAY_LIST_SET_TEST, array_list_set_test, "Test for array_list_set().")
+TESTCASE(ARRAY_LIST_MULTI_DIM_ARRAY_TEST, array_list_multi_dim_test, "Test for multi dim array_list.")
+TESTCASE(ARRAY_LIST_COPY_TEST, array_list_copy_test, "Test for array_list_copy().")
+TESTCASE(ARRAY_LIST_SEARCH_TEST, array_list_search_test, "Test for array_list_search().")
+TESTCASE(ARRAY_LIST_ADJUST_LENGTH_TEST, array_list_adjust_length_test, "Test for array_list_adjust_length().")
 
 /*
  * Test cases for stack.c
  */
-XTESTCASE(STACK_CREATE_DESTROY_TEST, stack_create_destroy_test, "Test for stack_create_destroy().")
-XTESTCASE(STACK_EMPTY_TEST, stack_empty_test, "Test for stack_empty().")
-XTESTCASE(STACK_PUSH_POP_TEST, stack_push_pop_test, "Test for stack_push_pop().")
-XTESTCASE(STACK_PEEK_TEST, stack_peek_test, "Test for stack_peek().")
+TESTCASE(STACK_CREATE_DESTROY_TEST, stack_create_destroy_test, "Test for stack_create_destroy().")
+TESTCASE(STACK_EMPTY_TEST, stack_empty_test, "Test for stack_empty().")
+TESTCASE(STACK_PUSH_POP_TEST, stack_push_pop_test, "Test for stack_push_pop().")
+TESTCASE(STACK_PEEK_TEST, stack_peek_test, "Test for stack_peek().")
 
 /*
  * Test cases for hash_table.c
  */
-XTESTCASE(HASH_TABLE_CREATE_DESTROY_TEST, hash_table_create_destroy_test, "Test for hash_table_create() and hash_table_destroy()")
-XTESTCASE(HASH_TABLE_INSERT_TEST, hash_table_insert_test, "Test for hash_table_insert()")
-XTESTCASE(HASH_TABLE_SEARCH_TEST, hash_table_search_test, "Test for hash_table_search()")
-XTESTCASE(HASH_TABLE_DELETE_TEST, hash_table_delete_test, "Test for hash_table_delete()")
+TESTCASE(HASH_TABLE_CREATE_DESTROY_TEST, hash_table_create_destroy_test, "Test for hash_table_create() and hash_table_destroy()")
+TESTCASE(HASH_TABLE_INSERT_TEST, hash_table_insert_test, "Test for hash_table_insert()")
+TESTCASE(HASH_TABLE_SEARCH_TEST, hash_table_search_test, "Test for hash_table_search()")
+TESTCASE(HASH_TABLE_DELETE_TEST, hash_table_delete_test, "Test for hash_table_delete()")
 
 /*
  * Test cases for context_free_grammar.c
  */
-XTESTCASE(CONTEXT_FREE_GRAMMAR_CREATE_DESTROY_TEST, context_free_grammar_create_destroy_test, "Test for context_free_grammar_create() and context_free_grammar_destroy()")
-XTESTCASE(CONTEXT_FREE_GRAMMAR_ADD_PRODUCTION_TEST, context_free_grammar_add_production_test, "Test for context_free_grammar_add()")
-XTESTCASE(CONTEXT_FREE_GRAMMAR_DEBUG_STR_TEST, context_free_grammar_debug_str_test, "Test for get_context_free_grammar_debug_str()")
-XTESTCASE(PRODUCTION_COMPARE_TEST, production_compare_test, "Test for production_compare()")
+TESTCASE(CONTEXT_FREE_GRAMMAR_CREATE_DESTROY_TEST, context_free_grammar_create_destroy_test, "Test for context_free_grammar_create() and context_free_grammar_destroy()")
+TESTCASE(CONTEXT_FREE_GRAMMAR_ADD_PRODUCTION_TEST, context_free_grammar_add_production_test, "Test for context_free_grammar_add()")
+TESTCASE(CONTEXT_FREE_GRAMMAR_DEBUG_STR_TEST, context_free_grammar_debug_str_test, "Test for get_context_free_grammar_debug_str()")
+TESTCASE(PRODUCTION_COMPARE_TEST, production_compare_test, "Test for production_compare()")
 
 /*
  * Test cases for LR_automata.c
  */
 TESTCASE(LR_AUTOMATA_CREATE_DESTROY_TEST, LR_automata_create_destroy_test, "Test for LR_automata_create() and LR_automata_destroy()")
-XTESTCASE(LR_AUTOMATA_EXPRESSION_GRAMMAR_TEST, LR_automata_expression_grammar_test, "Test for expression grammar")
-XTESTCASE(LR_AUTOMATA_EXPRESSION_GRAMMAR_RIGHT_RECURSIVE_TEST, LR_automata_expression_grammar_right_recursive_test, "Test for right-recursive expression grammar")
-XTESTCASE(LR_AUTOMATA_PARSE_TEST, LR_automata_parse_test, "Test for LR_automata_parse()")
-XTESTCASE(LR_AUTOMATA_PARSE_REGEXP_TEST, LR_automata_parse_regexp_test, "Test for LR_automata_parse() for regexp grammar")
+TESTCASE(LR_AUTOMATA_EXPRESSION_GRAMMAR_TEST, LR_automata_expression_grammar_test, "Test for expression grammar")
+TESTCASE(LR_AUTOMATA_EXPRESSION_GRAMMAR_RIGHT_RECURSIVE_TEST, LR_automata_expression_grammar_right_recursive_test, "Test for right-recursive expression grammar")
+TESTCASE(LR_AUTOMATA_PARSE_TEST, LR_automata_parse_test, "Test for LR_automata_parse()")
+TESTCASE(LR_AUTOMATA_PARSE_REGEXP_TEST, LR_automata_parse_regexp_test, "Test for LR_automata_parse() for regexp grammar")
 
 /*
  * Test cases for Ast
  */
-XTESTCASE(AST_CREATE_DESTROY_TEST, Ast_create_destroy_test, "Test for AST create and desctory")
-XTESTCASE(AST_CONSTRUCTION_TEST, Ast_construction_test, "Test for AST construction")
+TESTCASE(AST_CREATE_DESTROY_TEST, Ast_create_destroy_test, "Test for AST create and desctory")
+TESTCASE(AST_CONSTRUCTION_TEST, Ast_construction_test, "Test for AST construction")
 
 /*
  * Test cases for util.h
  */
-XTESTCASE(UTIL_ITOA_TEST, itoa_test, "Test for itoa()")
+TESTCASE(UTIL_ITOA_TEST, itoa_test, "Test for itoa()")

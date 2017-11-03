@@ -47,16 +47,19 @@ Ast_node_create(bool is_operator_node, char *desc, char symbol)
 	node->is_operator_node = is_operator_node;
 	node->id = ast_node_id ++;
 
+	char *node_desc = string_buffer_create();
+	string_buffer_append(&node_desc, desc);
+
 	if (is_operator_node)
 	{
 		node->type.operator_node = Ast_operator_node_create();
-		node->type.operator_node->operator->desc = desc;
+		node->type.operator_node->operator->desc = node_desc;
 		node->type.operator_node->operator->type = symbol;
 	}
 	else
 	{
 		node->type.operand = Ast_operand_create();
-		node->type.operand->desc = desc;
+		node->type.operand->desc = node_desc;
 		node->type.operand->type = symbol;
 	}
 
@@ -69,11 +72,11 @@ Ast_node_deconstructor(Ast_node_type *node, va_list arg_list)
 	bool node_destroyed = FALSE;
 	if (node->is_operator_node)
 	{
-		node_destroyed = Ast_operator_node_destroy(node->type.operator_node);
+		node_destroyed = Ast_operator_node_destroy(node->type.operator_node, NULL);
 	}
 	else
 	{
-		node_destroyed = Ast_operand_destroy(node->type.operand);
+		node_destroyed = Ast_operand_destroy(node->type.operand, NULL);
 	}
 	
 	free(node);
@@ -102,7 +105,7 @@ Ast_operator_node_create()
 bool
 Ast_operator_node_deconstructor(Ast_operator_node_type *node, va_list arg_list)
 {
-	free(node->operator);
+	Ast_operand_destroy(node->operator, NULL);
 	array_list_destroy(node->operand_nodes, Ast_node_deconstructor, NULL);
 
 	free(node);
@@ -131,6 +134,7 @@ Ast_operand_create()
 bool
 Ast_operand_deconstructor(Ast_operand_type *operand, va_list arg_list)
 {
+	free(operand->desc);
 	free(operand);
 
 	return TRUE;

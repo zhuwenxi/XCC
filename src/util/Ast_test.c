@@ -9,7 +9,7 @@ Ast_create_destroy_test()
 	Ast_node_type *node = Ast_node_create(FALSE, "a", 1);
 	ast->root = node;
 	
-	Ast_deconstructor(ast, NULL);
+	Ast_destroy(ast, NULL);
 
 	return TRUE;
 }

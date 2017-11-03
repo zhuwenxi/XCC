@@ -6,6 +6,16 @@ bool
 itoa_test()
 {
 	int i = 123;
-	if (!EXPECT_STRING_EQUAL(itoa(i), "123")) return FALSE;
-	return TRUE;
+	char *res = itoa(i);
+	if (!EXPECT_STRING_EQUAL(res, "123"))
+	{
+		free(res);
+		return FALSE;
+	}
+	else
+	{
+		free(res);
+		return TRUE;
+	}
+	
 }
