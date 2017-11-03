@@ -23,6 +23,12 @@ production_token_type LR_automata_goal_symbol = GOAL;
 production_token_type LR_automata_dollar_symbol = DOLLAR;
 
 bool
+table_key_deconstructor(LR_table_key_pair_type *key1, va_list arg_list)
+{
+	free(key1);
+}
+
+bool
 is_terminal_symbol(LR_automata_type *lr_automata, production_token_type *symbol)
 {
 	int epsilon = EPSILON;
@@ -201,61 +207,94 @@ LR_automata_closure(context_free_grammar_type *state, context_free_grammar_type*
 context_free_grammar_type *
 LR_automata_transfer(context_free_grammar_type *state, production_token_type *symbol, LR_automata_type *lr_automata)
 {
-	context_free_grammar_type* grammar = lr_automata->grammar;
+	LR_table_key_pair_type *key_pair = (LR_table_key_pair_type *)malloc(sizeof(LR_table_key_pair_type));
+	key_pair->state = state;
+	key_pair->symbol = symbol;
 
-	// for each symbol following a "DOT" in an item in set
-	context_free_grammar_type *new_state = context_free_grammar_create(grammar->desc_table);
-	linked_list_node_type *prod_node = state->productions->head;
-	
-	while (prod_node != NULL)
+	// LOG(TRUE, "state: %s, symbol: %s", context_free_grammar_debug_str(state, NULL), lr_automata->grammar->desc_table[*TYPE_CAST(symbol, int *)]);
+
+	context_free_grammar_type *new_state = hash_table_search(lr_automata->goto_table, key_pair, lr_table_key_pair_comparator, NULL);
+
+	if (new_state == NULL)
 	{
-		// search "DOT" in the production's body
-		production_type *prod = prod_node->data;
-		production_token_type *dot = create_int(DOT);
-		linked_list_node_type *dot_node = linked_list_search(prod->body, dot, int_equal, NULL);
-				
-		if (dot_node != NULL && dot_node->next != NULL)
-		{
-			production_type *prod_copy = production_copy(prod, NULL);
-			dot_node = linked_list_search(prod_copy->body, dot, int_equal, NULL);
-			linked_list_node_type *next_node = dot_node->next;
+		context_free_grammar_type* grammar = lr_automata->grammar;
 
-			if (int_comparator(next_node->data, symbol, NULL))
+		// for each symbol following a "DOT" in an item in set
+		new_state = context_free_grammar_create(grammar->desc_table);
+		linked_list_node_type *prod_node = state->productions->head;
+	
+		while (prod_node != NULL)
+		{
+			// search "DOT" in the production's body
+			production_type *prod = prod_node->data;
+			production_token_type dot = DOT;
+			linked_list_node_type *dot_node = linked_list_search(prod->body, &dot, int_equal, NULL);
+				
+			if (dot_node != NULL && dot_node->next != NULL)
 			{
-				linked_list_switch_node(prod_copy->body, dot_node, next_node);
-				void *res = linked_list_search(new_state->productions, prod_copy, production_comparator, NULL);
-				if (res == NULL)
+				production_type *prod_copy = production_copy(prod, NULL);
+				dot_node = linked_list_search(prod_copy->body, &dot, int_equal, NULL);
+				linked_list_node_type *next_node = dot_node->next;
+
+				if (int_comparator(next_node->data, symbol, NULL))
 				{
-					context_free_grammar_add_production(new_state, prod_copy);
+					linked_list_switch_node(prod_copy->body, dot_node, next_node);
+					void *res = linked_list_search(new_state->productions, prod_copy, production_comparator, NULL);
+					if (res == NULL)
+					{
+						context_free_grammar_add_production(new_state, prod_copy);
+					}
+					else
+					{
+						context_free_grammar_destroy(new_state, NULL);
+					}
 				}
 				else
 				{
-					context_free_grammar_destroy(new_state, NULL);
+					production_deconstructor(prod_copy, NULL);
 				}
 			}
+
+			prod_node = prod_node->next;
 		}
 
-		prod_node = prod_node->next;
-	}
+		if (new_state->productions->head == NULL)
+		{
+			context_free_grammar_destroy(new_state, NULL);
+			new_state = NULL;
 
-	if (new_state->productions->head == NULL)
-	{
-		context_free_grammar_destroy(new_state, NULL);
-		new_state = NULL;
+			free(key_pair);
+		}
+		else
+		{
+			new_state = LR_automata_closure(new_state, grammar);
+
+			// update goto table
+			// LR_table_key_pair_type *key_pair = (LR_table_key_pair_type *)malloc(sizeof(LR_table_key_pair_type));
+			// key_pair->state = state;
+			// key_pair->symbol = symbol;
+
+			array_list_node_type *state_in_cc = array_list_search(lr_automata->items, new_state, context_free_grammar_comparator, NULL);
+			if (state_in_cc == NULL)
+			{
+				hash_table_insert(lr_automata->goto_table, key_pair, new_state);
+			}
+			else
+			{
+				hash_table_insert(lr_automata->goto_table, key_pair, state_in_cc->data);
+				
+				context_free_grammar_deconstructor(new_state, NULL);
+
+				return state_in_cc->data;
+			}
+			
+		}
 	}
 	else
 	{
-		new_state = LR_automata_closure(new_state, grammar);
-
-		// update goto table
-		LR_table_key_pair_type *key_pair = (LR_table_key_pair_type *)malloc(sizeof(LR_table_key_pair_type));
-		key_pair->state = state;
-		key_pair->symbol = symbol;
-
-		hash_table_insert(lr_automata->goto_table, key_pair, new_state);
+		free(key_pair);
 	}
 
-	
 	return new_state;
 }
 
@@ -361,6 +400,8 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 
 	int last_iter_cc_size = 0;
 
+	lr_automata->items = cc;
+
 	// while new sets are still being added to "cc"
 	while (cc->length > last_iter_cc_size)
 	{	
@@ -377,6 +418,7 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 			{
 				production_token_type *grammar_symbol = grammar_symbol_node->data;
 				context_free_grammar_type *next_state = LR_automata_transfer(set, grammar_symbol, lr_automata);
+				// context_free_grammar_type *next_state = NULL;
 
 				char *state_debug_str = get_context_free_grammar_debug_str(set);
 				LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE && LR_AUTOMATA_GOTO_TABLE_LOG_ENABLE, "state:\n%s", state_debug_str);
@@ -392,17 +434,12 @@ construct_canonical_collection(LR_automata_type *lr_automata)
 				{
 					array_list_append(cc, next_state);
 				}
-				else
-				{
-					// context_free_grammar_destroy(next_state, NULL);
-				}
 			}
 		}
 
 		last_iter_cc_size = cc->length;
 	}
-
-	lr_automata->items = cc;
+	
 
 	char *cc_debug_str = get_array_list_debug_str(cc, context_free_grammar_debug_str, NULL);
 	LOG(LR_AUTOMATA_LOG_ENABLE && LR_AUTOMATA_CONSTRUCT_SET_LOG_ENABLE, "state count: %d, cc: \n%s\n", cc->length, cc_debug_str);
@@ -751,7 +788,7 @@ LR_automata_deconstructor(LR_automata_type *lr_automata, va_list arg_list)
 
 	array_list_destroy(lr_automata->items, context_free_grammar_deconstructor, NULL);
 
-	hash_table_deconstructor(lr_automata->goto_table, NULL);
+	hash_table_destroy(lr_automata->goto_table, table_key_deconstructor, NULL);
 	hash_table_deconstructor(lr_automata->action_table, NULL);
 
 	array_list_destroy(lr_automata->follow_set, linked_list_deconstructor, NULL);
@@ -772,9 +809,13 @@ char *lr_table_key_pair_debug_str(LR_table_key_pair_type *key_pair, va_list arg_
 
 	string_buffer debug_str = string_buffer_create();
 
-	string_buffer_append(&debug_str, context_free_grammar_debug_str(key_pair->state, NULL));
+	char *tmp = context_free_grammar_debug_str(key_pair->state, NULL);
+
+	string_buffer_append(&debug_str, tmp);
 	string_buffer_append(&debug_str, " , ");
-	string_buffer_append(&debug_str, desc_table[*TYPE_CAST(key_pair->symbol ,int *)]); 
+	string_buffer_append(&debug_str, desc_table[*TYPE_CAST(key_pair->symbol ,int *)]);
+
+	free(tmp);
 
 	return debug_str;
 }
@@ -793,7 +834,6 @@ lr_table_key_pair_comparator(void *k1, void *k2, va_list arg_list)
 		else
 			return FALSE;
 	}
-
 	
 	assert(key1->state && key2->state && key1->symbol && key2->symbol);
 	return context_free_grammar_comparator(key1->state, key2->state, NULL) && int_comparator(key1->symbol, key2->symbol, NULL);
