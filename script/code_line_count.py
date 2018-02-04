@@ -35,7 +35,7 @@ count_code_line_recursively('.')
 total_line_number = 0
 for k in OrderedDict(sorted(line_count_dict.items(), key=lambda x: x[0])):
 	total_line_number += line_count_dict[k]
-	print "{0:40}: {1:5}".format(k[2:], line_count_dict[k])
-print "================================================="
-print "Total code line number: %s" % total_line_number
+	print("{0:40}: {1:5}".format(k[2:], line_count_dict[k]))
+print("=================================================")
+print("Total code line number: %s" % total_line_number)
 
