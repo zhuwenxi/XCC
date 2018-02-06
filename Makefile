@@ -20,7 +20,8 @@ SOURCE_FILE = $(UTIL_DIR)/util.c \
 	$(UTIL_DIR)/context_free_grammar.c \
 	$(UTIL_DIR)/LR_automata.c \
 	$(SCANNER_DIR)/scanner.c \
-	$(UTIL_DIR)/Ast.c
+	$(UTIL_DIR)/Ast.c \
+	$(UTIL_DIR)/NFA.c
 OBJ_FILE = $(patsubst %.c, %.o, $(SOURCE_FILE))
 OBJ_FILE_FULL_PATH = $(addprefix $(BUILD_DIR)/, $(OBJ_FILE)) 
 XCC_BIN = $(BUILD_DIR)/xcc
