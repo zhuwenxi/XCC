@@ -23,7 +23,7 @@ array_list_append_test()
 	array_list_type *list = array_list_create();
 
 	int len = 30;
-	int data[len];
+	int *data = (int *)malloc(sizeof(int) * len);
 	int i;
 
 	for (i = 0; i < len; i++)
@@ -44,6 +44,8 @@ array_list_append_test()
 
 	array_list_destroy(list, NULL);
 
+	free(data);
+
 	return TRUE;
 }
 
@@ -53,7 +55,7 @@ array_list_get_test()
 	array_list_type *list = array_list_create();
 
 	int len = 30;
-	int data[len];
+	int *data = (int *)malloc(sizeof(int) * len);
 	int i;
 
 	for (i = 0; i < len; i++)
@@ -65,6 +67,7 @@ array_list_get_test()
 
 	array_list_destroy(list, NULL);
 
+	free(data);
 	return TRUE;
 }
 
@@ -74,7 +77,7 @@ array_list_set_test()
 	array_list_type *list = array_list_create();
 
 	int len = 30;
-	int data[len];
+	int *data = (int *)malloc(sizeof(int) * len);
 	int i;
 
 	for (i = 0; i < len; i++)
@@ -96,6 +99,7 @@ array_list_set_test()
 
 	array_list_destroy(list, NULL);
 
+	free(data);
 	return TRUE;
 }
 
@@ -264,7 +268,7 @@ array_list_adjust_length_test()
 	array_list_type *list = array_list_create();
 
 	int len = 30;
-	int data[len];
+	int *data = (int *)malloc(sizeof(int) * len);
 	int i;
 
 	for (i = 0; i < len; i++)
@@ -292,6 +296,7 @@ array_list_adjust_length_test()
 	}
 
 	array_list_destroy(list, NULL);
+	free(data);
 
 	return TRUE;
 }

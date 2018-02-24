@@ -237,7 +237,7 @@ Ast_node_debug_str(Ast_node_type *node, va_list arg_list)
 			if (sub_node->is_operator_node)
 			{
 				string_buffer_append(&sub_node_debug_str, "{");
-				string_buffer tmp = itoa(sub_node->id);
+				string_buffer tmp = my_itoa(sub_node->id);
 				string_buffer_append(&sub_node_debug_str, tmp);
 				string_buffer tmp2 = create_node_label(tmp, sub_node->type.operator_node->operator->desc);
 				string_buffer_append(&sub_node_debug_str, tmp2);
@@ -257,7 +257,7 @@ Ast_node_debug_str(Ast_node_type *node, va_list arg_list)
 			else
 			{
 				string_buffer_append(&sub_node_debug_str, "{");
-				string_buffer tmp = itoa(sub_node->id);
+				string_buffer tmp = my_itoa(sub_node->id);
 				string_buffer_append(&sub_node_debug_str, tmp);
 				
 				string_buffer tmp2 = create_node_label(tmp, sub_node->type.operand->desc);
@@ -270,7 +270,7 @@ Ast_node_debug_str(Ast_node_type *node, va_list arg_list)
 			}
 
 			string_buffer_append(&debug_str, "{");
-			string_buffer tmp = itoa(node->id);
+			string_buffer tmp = my_itoa(node->id);
 			string_buffer_append(&debug_str, tmp);
 			string_buffer tmp2 = create_node_label(tmp, current_node_desc);
 			string_buffer_append(&debug_str, tmp2);

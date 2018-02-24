@@ -6,6 +6,7 @@
 
 #include <stdarg.h>
 #include <assert.h>
+#include <stdlib.h>
 
 context_free_grammar_type *
 context_free_grammar_create(char **desc_table)
@@ -66,14 +67,15 @@ production_deconstructor(production_type *prod, va_list arg_list)
 	{
 		return FALSE;
 	}
-
+	printf("before prod: %p\n", prod);
 	if (prod->head != NULL)
 		free(prod->head);
 	
 	linked_list_destroy(prod->body, int_deconstructor, NULL);
 
+	printf("prod: %p\n", prod);
 	free(prod);
-
+	printf("here");
 	return FALSE;
 }
 

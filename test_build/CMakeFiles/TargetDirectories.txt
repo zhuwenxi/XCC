@@ -1,0 +1,10 @@
+/cygdrive/c/Users/wenxi/Desktop/workspace/XCC/test_build/CMakeFiles/edit_cache.dir
+/cygdrive/c/Users/wenxi/Desktop/workspace/XCC/test_build/CMakeFiles/test_all.dir
+/cygdrive/c/Users/wenxi/Desktop/workspace/XCC/test_build/CMakeFiles/rebuild_cache.dir
+/cygdrive/c/Users/wenxi/Desktop/workspace/XCC/test_build/CMakeFiles/xcc.dir
+/cygdrive/c/Users/wenxi/Desktop/workspace/XCC/test_build/src/CMakeFiles/edit_cache.dir
+/cygdrive/c/Users/wenxi/Desktop/workspace/XCC/test_build/src/CMakeFiles/rebuild_cache.dir
+/cygdrive/c/Users/wenxi/Desktop/workspace/XCC/test_build/src/util/CMakeFiles/edit_cache.dir
+/cygdrive/c/Users/wenxi/Desktop/workspace/XCC/test_build/src/util/CMakeFiles/rebuild_cache.dir
+/cygdrive/c/Users/wenxi/Desktop/workspace/XCC/test_build/src/scanner/CMakeFiles/edit_cache.dir
+/cygdrive/c/Users/wenxi/Desktop/workspace/XCC/test_build/src/scanner/CMakeFiles/rebuild_cache.dir

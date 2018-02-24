@@ -1,0 +1,1 @@
+set(BUILD_TEST ON CACHE BOOL "build test binary?")

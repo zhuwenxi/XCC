@@ -6,7 +6,7 @@ bool
 itoa_test()
 {
 	int i = 123;
-	char *res = itoa(i);
+	char *res = my_itoa(i);
 	if (!EXPECT_STRING_EQUAL(res, "123"))
 	{
 		free(res);

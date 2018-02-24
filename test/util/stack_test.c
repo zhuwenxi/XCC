@@ -35,7 +35,7 @@ stack_push_pop_test()
 	stack_type *stack = stack_create();
 
 	int len = 30;
-	int data[len];
+	int *data = (int *)malloc(sizeof(int) * len);
 
 	int i;
 	for (i = 0; i < len; i++)
@@ -57,6 +57,7 @@ stack_push_pop_test()
 
 	stack_destroy(stack, NULL);
 
+	free(data);
 	return TRUE;
 }
 
@@ -66,7 +67,7 @@ stack_peek_test()
 	stack_type *stack = stack_create();
 
 	int len = 30;
-	int data[len];
+	int *data = (int *)malloc(sizeof(int) * len);
 
 	int i;
 	for (i = 0; i < len; i++)
@@ -86,6 +87,7 @@ stack_peek_test()
 	if (!EXPECT_EQUAL(stack_empty(stack), FALSE)) return FALSE;
 	
 	stack_destroy(stack, NULL);
+	free(data);
 
 	return TRUE;
 }

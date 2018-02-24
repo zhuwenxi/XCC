@@ -10,6 +10,8 @@
 #include "stddefs.h"
 #include "logger.h"
 
+#define inline __inline
+
 typedef void void_type;
 
 #define TYPE_CAST(data, type) ((type)(data))
@@ -187,7 +189,7 @@ int_to_str(void *p, va_list arg_list)
 }
 
 static inline char *
-itoa(int number)
+my_itoa(int number)
 {
 	string_buffer str = string_buffer_create();
 	int quotient = 0;

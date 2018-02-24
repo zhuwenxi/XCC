@@ -111,7 +111,7 @@ array_list_node_destroy(array_list_node_type *node, va_list arg_list)
 	if (arg_list != NULL)
 	{
 		bool (*sub_deconstructor)(void *, va_list);
-		sub_deconstructor = va_arg(arg_list, bool (*)(void *, va_list));
+		sub_deconstructor = va_arg(arg_list, void *);
 
 		if (sub_deconstructor != NULL)
 		{
@@ -294,7 +294,7 @@ array_list_debug_str(array_list_type *list, va_list arg_list)
 	va_copy(arg_list_copy, arg_list);
 
 	char *(*sub_debug_str)(void *, va_list);
-	sub_debug_str = va_arg(arg_list_copy, char *(*)(void *, va_list));
+	sub_debug_str = va_arg(arg_list_copy, void *);
 
 	int i;
 	for (i = 0; i < list->length; i++)
@@ -363,7 +363,7 @@ array_list_node_copier(array_list_node_type *node, va_list arg_list)
 
 	array_list_node_type *node_copy = array_list_node_create();
 
-	void *(*sub_copier)(void *, va_list) = va_arg(arg_list, void *(*)(void *, va_list));
+	void *(*sub_copier)(void *, va_list) = va_arg(arg_list, void *);
 	if (sub_copier != NULL)
 	{
 		node_copy->data = sub_copier(node->data, arg_list);

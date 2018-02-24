@@ -127,7 +127,7 @@ hash_table_element_deconstructor(hash_table_element_type *element, va_list arg_l
 	}
 
 	bool (*key_deconstructor)(void *, va_list);
-	key_deconstructor = va_arg(arg_list, bool (*)(void *, va_list));
+	key_deconstructor = va_arg(arg_list, void *);
 
 	if (key_deconstructor == NULL)
 	{
@@ -137,7 +137,7 @@ hash_table_element_deconstructor(hash_table_element_type *element, va_list arg_l
 	key_deconstructor(element->key, arg_list);
 
 	bool (*value_deconstructor)(void *, va_list);
-	value_deconstructor = va_arg(arg_list, bool (*)(void *, va_list));
+	value_deconstructor = va_arg(arg_list, void *);
 
 	if (value_deconstructor == NULL)
 	{
@@ -408,12 +408,12 @@ char *hash_table_element_str(hash_table_element_type *table_element, va_list arg
 
 	// prepare key's debug str
 	char *(*get_key_str)(void *, va_list);
-	get_key_str = va_arg(arg_list, char *(*)(void *, va_list));
+	get_key_str = va_arg(arg_list, void *);
 
 	char *key_str = get_key_str(table_element->key, arg_list);
 	// prapre value's debug str
 	char *(*get_value_str)(void *, va_list);
-	get_value_str = va_arg(arg_list, char *(*)(void *, va_list));
+	get_value_str = va_arg(arg_list, void *);
 
 	char *value_str = get_value_str(table_element->value, arg_list);
 
@@ -430,7 +430,7 @@ char *hash_table_element_str(hash_table_element_type *table_element, va_list arg
 bool
 hash_table_element_comparator(void *e1, void *e2, va_list arg_list)
 {
-	bool (*sub_comparator)(void *, void *, va_list) = va_arg(arg_list, bool (*)(void *, void *, va_list));
+	bool (*sub_comparator)(void *, void *, va_list) = va_arg(arg_list, void *);
 
 	hash_table_element_type *element1;
 	element1 = TYPE_CAST(e1, hash_table_element_type *);

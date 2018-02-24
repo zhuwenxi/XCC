@@ -115,7 +115,7 @@ linked_list_node_destroy(linked_list_node_type *node, va_list arg_list)
 	if (arg_list != NULL)
 	{
 		bool (*sub_deconstructor)(void *, va_list);
-		sub_deconstructor = va_arg(arg_list, bool (*)(void *, va_list));
+		sub_deconstructor = va_arg(arg_list, void *);
 
 		if (sub_deconstructor != NULL)
 		{
@@ -320,7 +320,7 @@ linked_list_debug_str(linked_list_type *list, va_list arg_list)
 	va_copy(arg_list_copy, arg_list);
 	
 	char *(*sub_debug_str)(void *, va_list);
-	sub_debug_str = va_arg(arg_list_copy, char *(*)(void *, va_list));
+	sub_debug_str = va_arg(arg_list_copy, void *);
 
 	linked_list_node_type *node = list->head;
 	while (node != NULL)
@@ -375,7 +375,7 @@ linked_list_copier(linked_list_type *list, va_list arg_list)
 		va_list arg_list_copy;
 		va_copy(arg_list_copy, arg_list);
 
-		void *(*sub_copier)(void *, va_list) = va_arg(arg_list_copy, void *(*)(void *, va_list));
+		void *(*sub_copier)(void *, va_list) = va_arg(arg_list_copy, void *);
 		void *sub_data_copy = NULL;
 		if (sub_copier != NULL) {
 			sub_data_copy = sub_copier(node->data, arg_list_copy);
@@ -394,7 +394,7 @@ linked_list_node_copier(linked_list_node_type *node, va_list arg_list)
 {
 	linked_list_node_type *node_copy = linked_list_node_create();
 
-	void *(*sub_copier)(void *, va_list) = va_arg(arg_list, void *(*)(void *, va_list));
+	void *(*sub_copier)(void *, va_list) = va_arg(arg_list, void *);
 	if (sub_copier != NULL)
 	{
 		node_copy->data = sub_copier(node->data, arg_list);
@@ -412,7 +412,7 @@ linked_list_comparator(linked_list_type *list1, linked_list_type *list2, va_list
 		if (list1 != list2) return FALSE;
 	}
 
-	bool (*sub_comparator)(void *, void *, va_list) = va_arg(arg_list, bool (*)(void *, void *, va_list));
+	bool (*sub_comparator)(void *, void *, va_list) = va_arg(arg_list, void *);
 
 	assert(sub_comparator);
 
@@ -556,7 +556,7 @@ linked_list_merge(linked_list_type *list1, linked_list_type *list2, bool (*compa
 
 		if (linked_list_searcher(list1, data, comparator, arg_list_copy) == NULL)
 		{
-			void *(*copier)(void *, va_list) = va_arg(arg_list_copy, void *(*)(void *, va_list));
+			void *(*copier)(void *, va_list) = va_arg(arg_list_copy, void *);
 			assert(copier != NULL);
 
 			linked_list_insert_back(list1, copier(data, arg_list_copy));
