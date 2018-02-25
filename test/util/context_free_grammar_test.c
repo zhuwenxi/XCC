@@ -21,6 +21,16 @@ static char *token_desc_table[] =
 };
 
 bool
+production_create_destroy_test()
+{
+	production_type *production = production_create();
+
+	production_destroy(production);
+
+	return TRUE;
+}
+
+bool
 context_free_grammar_create_destroy_test()
 {
 	context_free_grammar_type *cfg = context_free_grammar_create(token_desc_table);

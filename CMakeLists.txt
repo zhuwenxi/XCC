@@ -14,9 +14,11 @@ add_subdirectory(src)
 
 add_executable(xcc src/main.c ${CORE_SRC})
 
-# to make Visual studio happy...
+
 if (WIN32)
+	# to make Visual studio happy...
 	add_definitions(-Dinline=__inline)
+	add_definitions(-DWINDOWS)
 endif()
 
 # build test binary

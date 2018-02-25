@@ -5,6 +5,10 @@
 #include <mcheck.h>
 #endif
 
+#ifdef WINDOWS
+#include <crtdbg.h>
+#endif
+
 
 testcase testcases[TESTCASE_LIMIT] =
 {
@@ -45,5 +49,8 @@ int main(int argc, char *args[])
 	muntrace();
 #endif
 
+#ifdef WINDOWS
+	_CrtDumpMemoryLeaks();
+#endif
 	return 0;
 }

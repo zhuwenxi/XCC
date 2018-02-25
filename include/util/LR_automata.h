@@ -31,9 +31,10 @@ typedef struct
 	linked_list_type *non_terminal_symbols;
 } LR_automata_type;
 
-// "E'" and "$" symbols
+// "E'" "$" and "epsilon" symbols
 extern production_token_type LR_automata_goal_symbol;
 extern production_token_type LR_automata_dollar_symbol;
+extern production_token_type LR_automata_epsilon_symbol;
 
 /*
  * Key pair of ACTION & GOTO table.

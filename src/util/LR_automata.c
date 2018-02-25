@@ -21,6 +21,10 @@ typedef enum
 
 production_token_type LR_automata_goal_symbol = GOAL;
 production_token_type LR_automata_dollar_symbol = DOLLAR;
+production_token_type LR_automata_epsilon_symbol = EPSILON;
+
+
+
 
 bool
 table_key_deconstructor(LR_table_key_pair_type *key1, va_list arg_list)
@@ -1182,7 +1186,7 @@ LR_automata_construct_first_set(context_free_grammar_type *grammar)
 				if (body_node == prod->body->tail && linked_list_search(first_set_of_b1, &epsilon, int_comparator, NULL))
 				{	
 					// if "epsilon" in all Y[0] ~ Y[k], place "epsilon" in FIRST(A)
-					linked_list_insert_back(first_set_of_current_symbol, &epsilon);
+					linked_list_insert_back(first_set_of_current_symbol, &LR_automata_epsilon_symbol);
 				}
 			}
 

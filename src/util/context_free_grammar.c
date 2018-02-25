@@ -52,7 +52,7 @@ context_free_grammar_deconstructor(context_free_grammar_type *grammar, va_list a
 production_type *
 production_create()
 {
-	production_type *production = (production_type *)malloc(sizeof(production_type *));
+	production_type *production = (production_type *)malloc(sizeof(production_type));
 
 	production->head = NULL;
 	production->body = linked_list_create();
@@ -67,15 +67,13 @@ production_deconstructor(production_type *prod, va_list arg_list)
 	{
 		return FALSE;
 	}
-	printf("before prod: %p\n", prod);
 	if (prod->head != NULL)
 		free(prod->head);
 	
 	linked_list_destroy(prod->body, int_deconstructor, NULL);
 
-	printf("prod: %p\n", prod);
 	free(prod);
-	printf("here");
+
 	return FALSE;
 }
 
