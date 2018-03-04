@@ -155,10 +155,10 @@ Ast_set_sub_node(Ast_node_type *node, int i, Ast_node_type *sub_node)
 	array_list_set(operator_node->operand_nodes, i, sub_node);
 }
 
+// call this function implies that current node is an "Operator" node.
 void
 Ast_append_sub_node(Ast_node_type *node, Ast_node_type *sub_node)
 {
-		// call this function implies that current node is an "Operator" node.
 	node->is_operator_node = TRUE;
 
 	Ast_operator_node_type *operator_node = node->type.operator_node;

@@ -6,6 +6,9 @@
 
 #include <stdarg.h>
 
+#define OPERATOR_NODE(node) (node->type.operator_node)
+#define OPERAND_NODE(node) (node->type.operand)
+
 typedef struct
 {
 	char *desc;

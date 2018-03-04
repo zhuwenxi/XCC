@@ -9,7 +9,7 @@
 #include <string.h>
 #include <assert.h>
 
-typedef enum 
+typedef enum
 {
 #define PRODUCTION_TOKEN(code, name) code,
 #include "LR_automata_symbol.def"

@@ -69,3 +69,8 @@ TESTCASE(AST_CONSTRUCTION_TEST, Ast_construction_test, "Test for AST constructio
  * Test cases for util.h
  */
 TESTCASE(UTIL_ITOA_TEST, itoa_test, "Test for itoa()")
+
+/*
+ * Test case for NFA
+ */
+ TESTCASE(NFA_CREATE_DESTROY_TEST, NFA_create_destroy_test, "Test for NFA_create() and NFA_destroy().")
