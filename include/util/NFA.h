@@ -29,7 +29,7 @@ typedef struct {
 
 NFA_type *NFA_create();
 
-bool NFA_deconstructor(NFA_type *self);
+bool NFA_deconstructor(NFA_type *self, va_list arg_list);
 DECLARE_DESTROY(NFA)
 
 NFA_state_type *NFA_state_create();

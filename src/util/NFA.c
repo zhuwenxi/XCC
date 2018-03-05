@@ -14,6 +14,9 @@ NFA_type *NFA_create()
 	self->transfer_diagram = hash_table_create(NFA_state_hash);
 	self->states = array_list_create();
 
+	self->start = NULL;
+	self->end = array_list_create();
+
 	return self;
 }
 
@@ -88,12 +91,33 @@ AST_from_str(char *str)
 	return ast;
 }
 
+static NFA_type *
+merge_NFA_for_concat(array_list_type *nfas)
+{
+	// because "concat" is a binary operator
+	assert(nfas->length == 2);
+
+	// the NFA of left sub-node must have only one "end" state
+	NFA_type *left_nfa = TYPE_CAST(array_list_get(nfas, 0), NFA_type *);
+	assert(left_nfa->end->length == 1);
+
+	// one big new NFA, to subsititude the "left" and "right" NFAs.
+	NFA_type *new_nfa = NFA_create();
+
+
+}
+
 NFA_type *
 build_NFA_from_node(NFA_type *nfa, Ast_node_type *node)
 {
 	assert(nfa && node);
 
+	NFA_type *new_nfa = NFA_create();
+
 	if (node->is_operator_node) {
+		//
+		// operator node:
+		//
 		array_list_type *nfas = array_list_create();
 
 		int i;
@@ -117,6 +141,25 @@ build_NFA_from_node(NFA_type *nfa, Ast_node_type *node)
 				break;
 		}
 	}
+	else {
+		//
+		// operand node:
+		//
+
+		char *desc = OPERAND_NODE(node)->desc;
+		assert(strlen(desc) == 1);
+		//char *desc_char = char_create(desc[0]);
+
+		NFA_state_type *state = NFA_state_create();
+
+		new_nfa->start = state;
+		array_list_append(new_nfa->end, state);
+
+		
+
+	}
+
+	return new_nfa;
 }
 
 static NFA_type *
