@@ -20,6 +20,11 @@ typedef struct {
 	hash_table_type *transfer_diagram;
 } NFA_type;
 
+typedef struct {
+	NFA_state_type *state;
+	char *symbol;
+} NFA_state_symbol_pair_type;
+
 
 
 
@@ -34,8 +39,12 @@ DECLARE_DESTROY(NFA)
 
 NFA_state_type *NFA_state_create();
 
-bool NFA_state_deconstructor(NFA_state_type *self);
+bool NFA_state_deconstructor(NFA_state_type *self, va_list arg_list);
 DECLARE_DESTROY(NFA_state)
+
+NFA_state_symbol_pair_type *NFA_state_symbol_pair_create();
+bool NFA_state_symbol_deconstructor(NFA_state_symbol_pair_type *self, va_list arg_list);
+DECLARE_DESTROY(NFA_state_symbol_pair)
 
 // construct a NFA from regexp str:
 NFA_type *NFA_from_str(char *str);
@@ -45,7 +54,7 @@ NFA_type *NFA_from_str(char *str);
 /*
  * hash function for NFA_state:
  */
-int NFA_state_hash(void *state);
+int NFA_state_symbol_pair_hash(void *key);
 
 
 

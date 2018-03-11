@@ -11,7 +11,7 @@ NFA_type *NFA_create()
 {
 	NFA_type *self = (NFA_type *)malloc(sizeof(NFA_type));
 
-	self->transfer_diagram = hash_table_create(NFA_state_hash);
+	self->transfer_diagram = hash_table_create(NFA_state_symbol_pair_hash);
 	self->states = array_list_create();
 
 	self->start = NULL;
@@ -20,7 +20,7 @@ NFA_type *NFA_create()
 	return self;
 }
 
-bool NFA_deconstructor(NFA_type *self)
+bool NFA_deconstructor(NFA_type *self, va_list arg_list)
 {
 	assert(self && self->transfer_diagram && self->states);
 
@@ -46,6 +46,26 @@ bool NFA_state_deconstructor(NFA_state_type *self)
 {
 	free(self);
 	
+	return TRUE;
+}
+
+NFA_state_symbol_pair_type *
+NFA_state_symbol_pair_create(NFA_state_type *state, char *symbol)
+{
+	NFA_state_symbol_pair_type *self = (NFA_state_symbol_pair_type *)malloc(sizeof(NFA_state_symbol_pair_type));
+	self->state = state;
+	self->symbol = symbol;
+
+	return self;
+}
+
+bool
+NFA_state_symbol_deconstructor(NFA_state_symbol_pair_type *self, va_list arg_list)
+{
+	NFA_state_destroy(self->state, NULL);
+	char_deconstructor(self->symbol, NULL);
+	free(self);
+
 	return TRUE;
 }
 
@@ -148,14 +168,16 @@ build_NFA_from_node(NFA_type *nfa, Ast_node_type *node)
 
 		char *desc = OPERAND_NODE(node)->desc;
 		assert(strlen(desc) == 1);
-		//char *desc_char = char_create(desc[0]);
 
-		NFA_state_type *state = NFA_state_create();
+		NFA_state_type *start = NFA_state_create();
+		NFA_state_type *end = NFA_state_create();
 
-		new_nfa->start = state;
-		array_list_append(new_nfa->end, state);
+		new_nfa->start = start;
+		array_list_append(new_nfa->end, end);
 
-		
+		char *symbol = char_create(desc[0]);
+		NFA_state_symbol_pair_type *key = NFA_state_symbol_pair_create(start, symbol);
+		hash_table_insert(new_nfa->transfer_diagram, key, end);
 
 	}
 
@@ -171,8 +193,10 @@ NFA_from_AST(Ast_type *ast)
 
 	// postorder tree tranversal.
 	if (ast->root != NULL) {
-		build_NFA_from_node(nfa, ast);
+		build_NFA_from_node(nfa, ast->root);
 	}
+
+	return nfa;
 }
 
 NFA_type *NFA_from_str(char *str)
@@ -181,10 +205,16 @@ NFA_type *NFA_from_str(char *str)
 
 	LOG(NFA_LOG_ENABLE, "ast: %s", get_Ast_debug_str(ast, NULL));
 
+	NFA_type *nfa = NFA_from_AST(ast);
+
 	return NULL;
 }
 
-int NFA_state_hash(void *state)
+int NFA_state_symbol_pair_hash(void *key)
 {
-	return TYPE_CAST(state, NFA_state_type *)->id;
+	assert(key);
+
+	NFA_state_symbol_pair_type *k = (NFA_state_symbol_pair_type *)key;
+
+	return k->state->id % 10 + k->symbol;
 }
