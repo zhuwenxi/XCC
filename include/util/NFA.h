@@ -57,6 +57,9 @@ NFA_type *NFA_from_str(char *str);
 int NFA_state_symbol_pair_hash(void *key);
 
 
+/*
+ * interfaces:
+ */
 
 
 /*

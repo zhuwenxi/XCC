@@ -111,6 +111,58 @@ AST_from_str(char *str)
 	return ast;
 }
 
+
+static void
+merge_nfas(array_list_type *nfas, NFA_type *big_nfa)
+{
+	assert(nfas && big_nfa);
+
+	int i;
+	for (i = 0; i < nfas->length; i++) {
+		NFA_type *nfa = array_list_get(nfas, i);
+		assert(nfa);
+
+		//
+		// merge states to the big NFA.
+		//
+
+		// merge states:
+		int s_i;
+		for (s_i = 0; s_i < nfa->states->length; s_i++) {
+			NFA_state_type *state = array_list_get(nfa->states, s_i);
+			array_list_append(big_nfa, state);
+		}
+
+		// update transfer diagram:
+		hash_table_type *sub_trans_diag = nfa->transfer_diagram;
+		int bucket_index;
+		for (bucket_index = 0; bucket_index < sub_trans_diag->buckets->length; bucket_index++) {
+			array_list_node_type *bucket = array_list_get(sub_trans_diag->buckets, bucket_index);
+			if (bucket != NULL) {
+				linked_list_type *ll = bucket->data;
+				linked_list_node_type *ll_node = ll->head;
+
+				while (ll_node) {
+					hash_table_element_type *ele = ll_node->data;
+					NFA_state_symbol_pair_type *key = ele->key;
+					NFA_state_type *value = ele->value;
+
+					// update in big NFA's transfer diagram:
+					hash_table_insert(big_nfa, key, value);
+					
+					ll_node = ll_node->next;
+				}
+			}
+		}
+
+		// destroy the sub-NFA. (have to be partial destroyed, since some objects are still refered by the big NFA)
+		nfa->start = NULL;
+		array_list_destroy(nfa->end, NULL);
+		array_list_destroy(nfa->states, NULL);
+		hash_table_destroy(nfa->transfer_diagram, NULL);
+	}
+}
+
 static NFA_type *
 merge_NFA_for_concat(array_list_type *nfas)
 {
@@ -119,10 +171,13 @@ merge_NFA_for_concat(array_list_type *nfas)
 
 	// the NFA of left sub-node must have only one "end" state
 	NFA_type *left_nfa = TYPE_CAST(array_list_get(nfas, 0), NFA_type *);
+	LOG(TRUE, "left_nfa->end->length: %d", left_nfa->end->length);
 	assert(left_nfa->end->length == 1);
 
 	// one big new NFA, to subsititude the "left" and "right" NFAs.
 	NFA_type *new_nfa = NFA_create();
+
+	merge_nfas(nfas, new_nfa);
 
 
 }
@@ -154,6 +209,7 @@ build_NFA_from_node(NFA_type *nfa, Ast_node_type *node)
 		production_token_type operator_type = OPERATOR_NODE(node)->operator->type;
 		switch (operator_type) {
 			case CONCAT:
+				merge_NFA_for_concat(nfas);
 				break;
 			case REPEAT:
 				break;
