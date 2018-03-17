@@ -65,3 +65,4 @@ int NFA_state_symbol_pair_hash(void *key);
 /*
  * debug print function:
  */
+char *get_NFA_debug_str(NFA_type *self);

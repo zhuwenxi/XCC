@@ -111,6 +111,15 @@ AST_from_str(char *str)
 	return ast;
 }
 
+static void
+NFA_state_renaming(NFA_type *nfa)
+{
+	int s_i;
+	for (s_i = 0; s_i < nfa->states->length; s_i++) {
+		NFA_state_type *state = array_list_get(nfa->states, s_i);
+		state->id = s_i;
+	}
+}
 
 static void
 merge_nfas(array_list_type *nfas, NFA_type *big_nfa)
@@ -130,15 +139,15 @@ merge_nfas(array_list_type *nfas, NFA_type *big_nfa)
 		int s_i;
 		for (s_i = 0; s_i < nfa->states->length; s_i++) {
 			NFA_state_type *state = array_list_get(nfa->states, s_i);
-			array_list_append(big_nfa, state);
+			array_list_append(big_nfa->states, state);
 		}
 
 		// update transfer diagram:
 		hash_table_type *sub_trans_diag = nfa->transfer_diagram;
 		int bucket_index;
-		for (bucket_index = 0; bucket_index < sub_trans_diag->buckets->length; bucket_index++) {
-			array_list_node_type *bucket = array_list_get(sub_trans_diag->buckets, bucket_index);
-			if (bucket != NULL) {
+		for (bucket_index = 0; bucket_index < sub_trans_diag->buckets->capacity; bucket_index++) {
+			array_list_node_type *bucket = sub_trans_diag->buckets->content[bucket_index];
+			if (bucket != NULL && bucket->data != NULL) {
 				linked_list_type *ll = bucket->data;
 				linked_list_node_type *ll_node = ll->head;
 
@@ -148,7 +157,7 @@ merge_nfas(array_list_type *nfas, NFA_type *big_nfa)
 					NFA_state_type *value = ele->value;
 
 					// update in big NFA's transfer diagram:
-					hash_table_insert(big_nfa, key, value);
+					hash_table_insert(big_nfa->transfer_diagram, key, value);
 					
 					ll_node = ll_node->next;
 				}
@@ -161,6 +170,8 @@ merge_nfas(array_list_type *nfas, NFA_type *big_nfa)
 		array_list_destroy(nfa->states, NULL);
 		hash_table_destroy(nfa->transfer_diagram, NULL);
 	}
+
+	NFA_state_renaming(big_nfa);
 }
 
 static NFA_type *
@@ -171,15 +182,22 @@ merge_NFA_for_concat(array_list_type *nfas)
 
 	// the NFA of left sub-node must have only one "end" state
 	NFA_type *left_nfa = TYPE_CAST(array_list_get(nfas, 0), NFA_type *);
-	LOG(TRUE, "left_nfa->end->length: %d", left_nfa->end->length);
 	assert(left_nfa->end->length == 1);
+
+	NFA_type *right_nfa = TYPE_CAST(array_list_get(nfas, 1), NFA_type *);
+	
 
 	// one big new NFA, to subsititude the "left" and "right" NFAs.
 	NFA_type *new_nfa = NFA_create();
 
+	new_nfa->start = left_nfa->start;
+	array_list_append(new_nfa->end, array_list_get(right_nfa->end, 0));
+	
+	NFA_state_symbol_pair_type *pair = NFA_state_symbol_pair_create(array_list_get(left_nfa->end, 0), char_create('.'));
+	hash_table_insert(new_nfa->transfer_diagram, pair, right_nfa->start);
 	merge_nfas(nfas, new_nfa);
 
-
+	return new_nfa;
 }
 
 NFA_type *
@@ -187,7 +205,7 @@ build_NFA_from_node(NFA_type *nfa, Ast_node_type *node)
 {
 	assert(nfa && node);
 
-	NFA_type *new_nfa = NFA_create();
+	NFA_type *new_nfa = NULL;
 
 	if (node->is_operator_node) {
 		//
@@ -209,7 +227,8 @@ build_NFA_from_node(NFA_type *nfa, Ast_node_type *node)
 		production_token_type operator_type = OPERATOR_NODE(node)->operator->type;
 		switch (operator_type) {
 			case CONCAT:
-				merge_NFA_for_concat(nfas);
+				new_nfa = merge_NFA_for_concat(nfas);
+				LOG(TRUE, "one big NFA: %s", get_NFA_debug_str(new_nfa));
 				break;
 			case REPEAT:
 				break;
@@ -222,20 +241,32 @@ build_NFA_from_node(NFA_type *nfa, Ast_node_type *node)
 		// operand node:
 		//
 
+		new_nfa = NFA_create();
+
 		char *desc = OPERAND_NODE(node)->desc;
 		assert(strlen(desc) == 1);
 
 		NFA_state_type *start = NFA_state_create();
+		start->id = 0;
 		NFA_state_type *end = NFA_state_create();
+		end->id = 1;
 
 		new_nfa->start = start;
 		array_list_append(new_nfa->end, end);
 
+		array_list_append(new_nfa->states, start);
+		array_list_append(new_nfa->states, end);
+
 		char *symbol = char_create(desc[0]);
+
 		NFA_state_symbol_pair_type *key = NFA_state_symbol_pair_create(start, symbol);
 		hash_table_insert(new_nfa->transfer_diagram, key, end);
 
+		LOG(TRUE, "new_nfa: %s", get_NFA_debug_str(new_nfa));
+
 	}
+
+	
 
 	return new_nfa;
 }
@@ -266,11 +297,82 @@ NFA_type *NFA_from_str(char *str)
 	return NULL;
 }
 
-int NFA_state_symbol_pair_hash(void *key)
+int
+NFA_state_symbol_pair_hash(void *key)
 {
 	assert(key);
 
 	NFA_state_symbol_pair_type *k = (NFA_state_symbol_pair_type *)key;
 
-	return k->state->id % 10 + k->symbol;
+	return k->state->id * 10 + k->symbol;
+}
+
+char *
+get_NFA_debug_str(NFA_type *self)
+{
+	hash_table_type *diag = self->transfer_diagram;
+
+	string_buffer debug_str = string_buffer_create();
+	string_buffer_append(&debug_str, "digraph {");
+
+	//
+	// traverse the transfer diagram and generate digraph for each element.
+	//
+	array_list_type *buckets = diag->buckets;
+
+	int i;
+	for (i = 0; i < buckets->capacity; ++i) {
+		array_list_node_type *bucket = buckets->content[i];
+
+		if (bucket != NULL && bucket->data != NULL) {
+			linked_list_node_type *ll_node = TYPE_CAST(bucket->data, linked_list_type *)->head;
+			while (ll_node != NULL)  {
+				hash_table_element_type *ele = ll_node->data;
+				
+				// (source state, symbol)
+				NFA_state_symbol_pair_type *key = ele->key;
+				NFA_state_type *source = key->state;
+				char *symbol = key->symbol;
+
+				char str_from_char[2];
+				str_from_char[0] = *symbol;
+				str_from_char[1] = '\0';
+
+				string_buffer_append(&debug_str, "{");
+				string_buffer_append(&debug_str, my_itoa(source->id));
+				string_buffer_append(&debug_str, " [label=\"");
+				string_buffer_append(&debug_str, my_itoa(source->id));
+				string_buffer_append(&debug_str, "\"]}");
+				string_buffer_append(&debug_str, " -> ");
+				
+
+				// (target state)
+				NFA_state_type *target = ele->value;
+				string_buffer_append(&debug_str, "{");
+				string_buffer_append(&debug_str, my_itoa(target->id));
+				string_buffer_append(&debug_str, " [label=\"");
+				string_buffer_append(&debug_str, my_itoa(target->id));
+				string_buffer_append(&debug_str, "\" ]} ");
+				string_buffer_append(&debug_str, " [label=\"");
+				string_buffer_append(&debug_str, str_from_char);
+				string_buffer_append(&debug_str, "\"];");
+				
+				ll_node = ll_node->next;
+			}
+		}
+	}
+
+	// mark "start" and "end" states with special shape
+	assert(self->start);
+	string_buffer_append(&debug_str, my_itoa(self->start->id));
+	string_buffer_append(&debug_str, " [shape=diamond];");
+
+	assert(self->end->length);
+	for (i = 0; i < self->end->length; ++i) {
+		NFA_state_type *end_state = array_list_get(self->end, i);
+		string_buffer_append(&debug_str, my_itoa(end_state->id));
+		string_buffer_append(&debug_str, " [shape=rectangle];");
+	}
+	string_buffer_append(&debug_str, " }");
+	return debug_str;
 }

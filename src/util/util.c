@@ -5,7 +5,7 @@ char *
 char_create(char c)
 {
 	char *c_ptr = (char *)malloc(sizeof(char));
-
+	c_ptr[0] = c;
 	return c_ptr;
 }
 
