@@ -63,7 +63,7 @@ bool
 NFA_state_symbol_deconstructor(NFA_state_symbol_pair_type *self, va_list arg_list)
 {
 	NFA_state_destroy(self->state, NULL);
-	char_deconstructor(self->symbol, NULL);
+	string_buffer_destroy(self->symbol, NULL);
 	free(self);
 
 	return TRUE;
@@ -193,8 +193,129 @@ merge_NFA_for_concat(array_list_type *nfas)
 	new_nfa->start = left_nfa->start;
 	array_list_append(new_nfa->end, array_list_get(right_nfa->end, 0));
 	
-	NFA_state_symbol_pair_type *pair = NFA_state_symbol_pair_create(array_list_get(left_nfa->end, 0), char_create('.'));
+	string_buffer epsilon = string_buffer_create();
+	string_buffer_append(&epsilon, "EPSILON");
+	NFA_state_symbol_pair_type *pair = NFA_state_symbol_pair_create(array_list_get(left_nfa->end, 0), epsilon);
 	hash_table_insert(new_nfa->transfer_diagram, pair, right_nfa->start);
+	merge_nfas(nfas, new_nfa);
+
+	return new_nfa;
+}
+
+static NFA_type *
+merge_NFA_for_alter(array_list_type *nfas)
+{
+	// because "alter" is a binary operator
+	assert(nfas->length == 2);
+
+	//left & right sub-node must have only one "end" state
+	NFA_type *left_nfa = TYPE_CAST(array_list_get(nfas, 0), NFA_type *);
+	assert(left_nfa->end->length == 1);
+
+	NFA_type *right_nfa = TYPE_CAST(array_list_get(nfas, 1), NFA_type *);
+	assert(right_nfa->end->length == 1);
+
+	// one big new NFA, to subsititude the "left" and "right" NFAs.
+	NFA_type *new_nfa = NFA_create();
+
+	//
+	// new "start" and "end" states for the big NFA:
+	//
+
+	NFA_state_type *new_start = NFA_state_create();
+	array_list_append(new_nfa->states, new_start);
+	new_nfa->start = new_start;
+
+	NFA_state_type *new_end = NFA_state_create();
+	array_list_append(new_nfa->states, new_end);
+	array_list_append(new_nfa->end, new_end);
+
+	//
+	// update transfer diagram:
+	//
+
+	string_buffer epsilon1 = string_buffer_create();
+	string_buffer_append(&epsilon1, "EPSILON");
+
+	string_buffer epsilon2 = string_buffer_create();
+	string_buffer_append(&epsilon2, "EPSILON");
+
+	string_buffer epsilon3 = string_buffer_create();
+	string_buffer_append(&epsilon3, "EPSILON");
+
+	string_buffer epsilon4 = string_buffer_create();
+	string_buffer_append(&epsilon4, "EPSILON");
+
+	NFA_state_symbol_pair_type *pair1 = NFA_state_symbol_pair_create(new_start, epsilon1);
+	hash_table_insert(new_nfa->transfer_diagram, pair1, left_nfa->start);
+
+	NFA_state_symbol_pair_type *pair2 = NFA_state_symbol_pair_create(new_start, epsilon2);
+	hash_table_insert(new_nfa->transfer_diagram, pair2, right_nfa->start);
+
+	NFA_state_symbol_pair_type *pair3 = NFA_state_symbol_pair_create(array_list_get(left_nfa->end, 0), epsilon3);
+	hash_table_insert(new_nfa->transfer_diagram, pair3, new_end);
+
+	NFA_state_symbol_pair_type *pair4 = NFA_state_symbol_pair_create(array_list_get(right_nfa->end, 0), epsilon4);
+	hash_table_insert(new_nfa->transfer_diagram, pair4, new_end);
+
+	merge_nfas(nfas, new_nfa);
+
+	return new_nfa;
+}
+
+static NFA_type *
+merge_NFA_for_repeat(array_list_type *nfas)
+{
+	// because "repaat (*)" is a unary operator
+	assert(nfas->length == 1);
+
+	//left sub-node must have only one "end" state
+	NFA_type *left_nfa = TYPE_CAST(array_list_get(nfas, 0), NFA_type *);
+	assert(left_nfa->end->length == 1);
+
+	// one big new NFA, to subsititude the "left" NFA.
+	NFA_type *new_nfa = NFA_create();
+
+	//
+	// new "start" and "end" states for the big NFA:
+	//
+
+	NFA_state_type *new_start = NFA_state_create();
+	array_list_append(new_nfa->states, new_start);
+	new_nfa->start = new_start;
+
+	NFA_state_type *new_end = NFA_state_create();
+	array_list_append(new_nfa->states, new_end);
+	array_list_append(new_nfa->end, new_end);
+
+	//
+	// update transfer diagram:
+	//
+
+	string_buffer epsilon1 = string_buffer_create();
+	string_buffer_append(&epsilon1, "EPSILON");
+
+	string_buffer epsilon2 = string_buffer_create();
+	string_buffer_append(&epsilon2, "EPSILON");
+
+	string_buffer epsilon3 = string_buffer_create();
+	string_buffer_append(&epsilon3, "EPSILON");
+
+	string_buffer epsilon4 = string_buffer_create();
+	string_buffer_append(&epsilon4, "EPSILON");
+
+	NFA_state_symbol_pair_type *pair1 = NFA_state_symbol_pair_create(new_start, epsilon1);
+	hash_table_insert(new_nfa->transfer_diagram, pair1, left_nfa->start);
+
+	NFA_state_symbol_pair_type *pair2 = NFA_state_symbol_pair_create(new_start, epsilon2);
+	hash_table_insert(new_nfa->transfer_diagram, pair2, new_end);
+
+	NFA_state_symbol_pair_type *pair3 = NFA_state_symbol_pair_create(array_list_get(left_nfa->end, 0), epsilon3);
+	hash_table_insert(new_nfa->transfer_diagram, pair3, new_end);
+
+	NFA_state_symbol_pair_type *pair4 = NFA_state_symbol_pair_create(array_list_get(left_nfa->end, 0), epsilon4);
+	hash_table_insert(new_nfa->transfer_diagram, pair4, left_nfa->start);
+
 	merge_nfas(nfas, new_nfa);
 
 	return new_nfa;
@@ -228,9 +349,12 @@ build_NFA_from_node(NFA_type *nfa, Ast_node_type *node)
 		switch (operator_type) {
 			case CONCAT:
 				new_nfa = merge_NFA_for_concat(nfas);
-				LOG(TRUE, "one big NFA: %s", get_NFA_debug_str(new_nfa));
 				break;
-			case REPEAT:
+			case VERTICAL_BAR:
+				new_nfa = merge_NFA_for_alter(nfas);
+				break;
+			case STAR:
+				new_nfa = merge_NFA_for_repeat(nfas);
 				break;
 			default:
 				break;
@@ -257,16 +381,18 @@ build_NFA_from_node(NFA_type *nfa, Ast_node_type *node)
 		array_list_append(new_nfa->states, start);
 		array_list_append(new_nfa->states, end);
 
-		char *symbol = char_create(desc[0]);
+		string_buffer symbol = string_buffer_create();
+		string_buffer_append(&symbol, desc);
 
 		NFA_state_symbol_pair_type *key = NFA_state_symbol_pair_create(start, symbol);
 		hash_table_insert(new_nfa->transfer_diagram, key, end);
 
-		LOG(TRUE, "new_nfa: %s", get_NFA_debug_str(new_nfa));
+		//LOG(TRUE, "new_nfa: %s", get_NFA_debug_str(new_nfa));
 
 	}
 
 	
+	LOG(NFA_LOG_ENABLE, "one big NFA: %s", get_NFA_debug_str(new_nfa));
 
 	return new_nfa;
 }
@@ -304,7 +430,7 @@ NFA_state_symbol_pair_hash(void *key)
 
 	NFA_state_symbol_pair_type *k = (NFA_state_symbol_pair_type *)key;
 
-	return k->state->id * 10 + k->symbol;
+	return k->state->id * 10 + *(k->symbol);
 }
 
 char *
@@ -334,10 +460,6 @@ get_NFA_debug_str(NFA_type *self)
 				NFA_state_type *source = key->state;
 				char *symbol = key->symbol;
 
-				char str_from_char[2];
-				str_from_char[0] = *symbol;
-				str_from_char[1] = '\0';
-
 				string_buffer_append(&debug_str, "{");
 				string_buffer_append(&debug_str, my_itoa(source->id));
 				string_buffer_append(&debug_str, " [label=\"");
@@ -354,7 +476,7 @@ get_NFA_debug_str(NFA_type *self)
 				string_buffer_append(&debug_str, my_itoa(target->id));
 				string_buffer_append(&debug_str, "\" ]} ");
 				string_buffer_append(&debug_str, " [label=\"");
-				string_buffer_append(&debug_str, str_from_char);
+				string_buffer_append(&debug_str, symbol);
 				string_buffer_append(&debug_str, "\"];");
 				
 				ll_node = ll_node->next;
