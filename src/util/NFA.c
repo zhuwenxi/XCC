@@ -25,7 +25,9 @@ bool NFA_deconstructor(NFA_type *self, va_list arg_list)
 	assert(self && self->transfer_diagram && self->states);
 
 	// TO DO:
-	hash_table_destroy(self->transfer_diagram, NULL);
+	hash_table_destroy(self->transfer_diagram, NFA_state_symbol_deconstructor, NULL);
+	array_list_destroy(self->states, NFA_state_deconstructor, NULL);
+	array_list_destroy(self->end, NFA_state_deconstructor, NULL);
 
 	free(self);
 
@@ -62,7 +64,6 @@ NFA_state_symbol_pair_create(NFA_state_type *state, char *symbol)
 bool
 NFA_state_symbol_deconstructor(NFA_state_symbol_pair_type *self, va_list arg_list)
 {
-	NFA_state_destroy(self->state, NULL);
 	string_buffer_destroy(self->symbol, NULL);
 	free(self);
 
@@ -408,8 +409,9 @@ build_NFA_from_node(NFA_type *nfa, Ast_node_type *node)
 
 	}
 
-	
-	LOG(NFA_LOG_ENABLE, "one big NFA: %s", get_NFA_debug_str(new_nfa));
+	char *debug_str = get_NFA_debug_str(new_nfa);
+	LOG(NFA_LOG_ENABLE, "one big NFA: %s", debug_str);
+	free(debug_str);
 
 	return new_nfa;
 }
@@ -478,9 +480,11 @@ get_NFA_debug_str(NFA_type *self)
 				char *symbol = key->symbol;
 
 				string_buffer_append(&debug_str, "{");
-				string_buffer_append(&debug_str, my_itoa(source->id));
+				char *src_id_str = my_itoa(source->id);
+				string_buffer_append(&debug_str, src_id_str);
 				string_buffer_append(&debug_str, " [label=\"");
-				string_buffer_append(&debug_str, my_itoa(source->id));
+				string_buffer_append(&debug_str, src_id_str);
+				free(src_id_str);
 				string_buffer_append(&debug_str, "\"]}");
 				string_buffer_append(&debug_str, " -> ");
 				
@@ -488,9 +492,11 @@ get_NFA_debug_str(NFA_type *self)
 				// (target state)
 				NFA_state_type *target = ele->value;
 				string_buffer_append(&debug_str, "{");
-				string_buffer_append(&debug_str, my_itoa(target->id));
+				char *tgt_id_str = my_itoa(target->id);
+				string_buffer_append(&debug_str, tgt_id_str);
 				string_buffer_append(&debug_str, " [label=\"");
-				string_buffer_append(&debug_str, my_itoa(target->id));
+				string_buffer_append(&debug_str, tgt_id_str);
+				free(tgt_id_str);
 				string_buffer_append(&debug_str, "\" ]} ");
 				string_buffer_append(&debug_str, " [label=\"");
 				string_buffer_append(&debug_str, symbol);
@@ -503,13 +509,20 @@ get_NFA_debug_str(NFA_type *self)
 
 	// mark "start" and "end" states with special shape
 	assert(self->start);
-	string_buffer_append(&debug_str, my_itoa(self->start->id));
+	char *start_id_str = my_itoa(self->start->id);
+	string_buffer_append(&debug_str, start_id_str);
+	free(start_id_str);
+
 	string_buffer_append(&debug_str, " [shape=diamond];");
 
 	assert(self->end->length);
 	for (i = 0; i < self->end->length; ++i) {
 		NFA_state_type *end_state = array_list_get(self->end, i);
-		string_buffer_append(&debug_str, my_itoa(end_state->id));
+
+		char *end_id_str = my_itoa(end_state->id);
+		string_buffer_append(&debug_str, end_id_str);
+		free(end_id_str);
+
 		string_buffer_append(&debug_str, " [shape=rectangle];");
 	}
 	string_buffer_append(&debug_str, " }");

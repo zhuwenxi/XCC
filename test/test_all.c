@@ -21,6 +21,10 @@ testcase testcases[TESTCASE_LIMIT] =
 
 int main(int argc, char *args[])
 {	
+#ifdef WINDOWS
+	_CrtSetBreakAlloc(131140);
+#endif
+
 	int test_case_num = TESTCASE_LIMIT;
 	int fail_case_num = 0;
 	int pass_case_num = 0;
