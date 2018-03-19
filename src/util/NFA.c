@@ -321,6 +321,19 @@ merge_NFA_for_repeat(array_list_type *nfas)
 	return new_nfa;
 }
 
+static NFA_type *
+merge_NFA_for_unit(array_list_type *nfas)
+{
+	// because "()" is a unary operator
+	assert(nfas->length == 1);
+
+	NFA_type *nfa = array_list_get(nfas, 0);
+
+	array_list_destroy(nfas, NULL);
+
+	return nfa;
+}
+
 NFA_type *
 build_NFA_from_node(NFA_type *nfa, Ast_node_type *node)
 {
@@ -356,7 +369,11 @@ build_NFA_from_node(NFA_type *nfa, Ast_node_type *node)
 			case STAR:
 				new_nfa = merge_NFA_for_repeat(nfas);
 				break;
+			case LEFT_PARENTHESIS:
+				new_nfa = merge_NFA_for_unit(nfas);
+				break;
 			default:
+				LOG(NFA_LOG_ENABLE, "Oops! Unknown operator type: %d", operator_type);
 				break;
 		}
 	}
