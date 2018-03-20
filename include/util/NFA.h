@@ -3,6 +3,7 @@
 #endif
 
 #include "util/hash_table.h"
+#include "util/util.h"
 
 typedef struct {
 	int id;

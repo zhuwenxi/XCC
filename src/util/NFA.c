@@ -27,7 +27,7 @@ bool NFA_deconstructor(NFA_type *self, va_list arg_list)
 	// TO DO:
 	hash_table_destroy(self->transfer_diagram, NFA_state_symbol_deconstructor, NULL);
 	array_list_destroy(self->states, NFA_state_deconstructor, NULL);
-	array_list_destroy(self->end, NFA_state_deconstructor, NULL);
+	array_list_destroy(self->end, NULL);
 
 	free(self);
 
@@ -170,6 +170,7 @@ merge_nfas(array_list_type *nfas, NFA_type *big_nfa)
 		array_list_destroy(nfa->end, NULL);
 		array_list_destroy(nfa->states, NULL);
 		hash_table_destroy(nfa->transfer_diagram, NULL);
+		free(nfa);
 	}
 
 	NFA_state_renaming(big_nfa);
@@ -330,15 +331,13 @@ merge_NFA_for_unit(array_list_type *nfas)
 
 	NFA_type *nfa = array_list_get(nfas, 0);
 
-	array_list_destroy(nfas, NULL);
-
 	return nfa;
 }
 
 NFA_type *
-build_NFA_from_node(NFA_type *nfa, Ast_node_type *node)
+build_NFA_from_node(Ast_node_type *node)
 {
-	assert(nfa && node);
+	assert(node);
 
 	NFA_type *new_nfa = NULL;
 
@@ -353,7 +352,7 @@ build_NFA_from_node(NFA_type *nfa, Ast_node_type *node)
 			// build NFA for each sub-node.
 			Ast_node_type *sub_node = (Ast_node_type *)array_list_get(OPERATOR_NODE(node)->operand_nodes, i);
 
-			NFA_type *sub_nfa = build_NFA_from_node(nfa, sub_node);
+			NFA_type *sub_nfa = build_NFA_from_node(sub_node);
 
 			array_list_append(nfas, sub_nfa);
 		}
@@ -377,6 +376,8 @@ build_NFA_from_node(NFA_type *nfa, Ast_node_type *node)
 				LOG(NFA_LOG_ENABLE, "Oops! Unknown operator type: %d", operator_type);
 				break;
 		}
+
+		array_list_destroy(nfas, NULL);
 	}
 	else {
 		//
@@ -421,11 +422,11 @@ NFA_from_AST(Ast_type *ast)
 {
 	if (ast == NULL) return NULL;
 
-	NFA_type *nfa = NFA_create();
+	NFA_type *nfa = NULL;
 
 	// postorder tree tranversal.
 	if (ast->root != NULL) {
-		build_NFA_from_node(nfa, ast->root);
+		nfa = build_NFA_from_node(ast->root);
 	}
 
 	return nfa;
@@ -435,11 +436,15 @@ NFA_type *NFA_from_str(char *str)
 {
 	Ast_type *ast = AST_from_str(str);
 
-	LOG(NFA_LOG_ENABLE, "ast: %s", get_Ast_debug_str(ast, NULL));
+	char *ast_debug_str = get_Ast_debug_str(ast, NULL);
+	LOG(NFA_LOG_ENABLE, "ast: %s", ast_debug_str);
+	free(ast_debug_str);
 
 	NFA_type *nfa = NFA_from_AST(ast);
 
-	return NULL;
+	Ast_destroy(ast, NULL);
+
+	return nfa;
 }
 
 int
