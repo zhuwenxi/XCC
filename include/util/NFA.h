@@ -63,6 +63,8 @@ int NFA_state_symbol_pair_hash(void *key);
  */
 
 
+
+
 /*
  * debug print function:
  */
