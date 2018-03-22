@@ -97,3 +97,32 @@ hash_table_delete_test()
 	hash_table_destroy(hash_table, NULL);
 	return TRUE;
 }
+
+static void
+visitor(void *key, void *value, void *context)
+{
+	char **k = key;
+	int *v = value;
+
+	//LOG(TRUE, "%s: %d", *k, *v);
+
+	return TRUE;
+}
+
+bool
+hash_table_traverse_test()
+{
+	hash_table_type *hash_table = hash_table_create(string_hash);
+
+	int i;
+	for (i = 0; i < item_num; i++)
+	{
+		hash_table_insert(hash_table, &keys[i], &values[i]);
+	}
+
+	hash_table_traverse(hash_table, visitor, NULL);
+
+	hash_table_destroy(hash_table, NULL);
+
+	return TRUE;
+}

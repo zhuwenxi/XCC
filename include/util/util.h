@@ -176,6 +176,27 @@ int_comparator(void *a, void *b, va_list arg_list)
 	return a_val == b_val;
 }
 
+static inline bool
+str_compartor(void *a, void *b, va_list arg_list)
+{
+	if (a == NULL || b == NULL)
+	{
+		if (a == NULL && b == NULL)
+		{
+			return TRUE;
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+
+	char* a_str = a;
+	char* b_str = b;
+
+	return !strcmp(a_str, b_str);
+}
+
 static inline char *
 int_to_str(void *p, va_list arg_list)
 {

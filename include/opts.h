@@ -23,6 +23,6 @@
 #define LR_AUTOMATA_PARSE_LOG_ENABLE TRUE
 
 // options for NFA
-#define NFA_LOG_ENABLE TRUE
+#define NFA_LOG_ENABLE FALSE
 
 #endif

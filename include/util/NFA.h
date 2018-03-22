@@ -1,6 +1,6 @@
 #ifndef __NFA_H__
 #define __NFA_H__
-#endif
+
 
 #include "util/hash_table.h"
 #include "util/util.h"
@@ -69,3 +69,5 @@ int NFA_state_symbol_pair_hash(void *key);
  * debug print function:
  */
 char *get_NFA_debug_str(NFA_type *self);
+
+#endif

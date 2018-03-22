@@ -40,6 +40,7 @@ TESTCASE(HASH_TABLE_CREATE_DESTROY_TEST, hash_table_create_destroy_test, "Test f
 TESTCASE(HASH_TABLE_INSERT_TEST, hash_table_insert_test, "Test for hash_table_insert()")
 TESTCASE(HASH_TABLE_SEARCH_TEST, hash_table_search_test, "Test for hash_table_search()")
 TESTCASE(HASH_TABLE_DELETE_TEST, hash_table_delete_test, "Test for hash_table_delete()")
+TESTCASE(HASH_TABLE_TRAVERSE_TEST, hash_table_traverse_test, "Test for hash_table_traverse()")
 
 /*
  * Test cases for context_free_grammar.c
@@ -74,3 +75,8 @@ TESTCASE(UTIL_ITOA_TEST, itoa_test, "Test for itoa()")
  * Test case for NFA
  */
  TESTCASE(NFA_CREATE_DESTROY_TEST, NFA_create_destroy_test, "Test for NFA_create() and NFA_destroy().")
+
+ /*
+  * Test case for DFA
+  */
+ TESTCASE(DFA_CREATE_DESTROY_TEST, DFA_create_destroy_test, "Test for DFA_create() and DFA_destroy().")

@@ -52,6 +52,8 @@ char *hash_table_element_str(hash_table_element_type *table_element, va_list arg
 // We use division method to create hash function
 #define HASH_TABLE_SLOT_NUMBER 701
 
+void hash_table_traverse(hash_table_type *table, void (*visitor)(void *key, void *value, void *context), void *context);
+
 /*
  * common hash function
  */

@@ -438,6 +438,35 @@ hash_table_element_comparator(void *e1, void *e2, va_list arg_list)
 	return sub_comparator(element1->key, e2, arg_list);
 }
 
+void
+hash_table_traverse(hash_table_type *table, void (*visitor)(void *key, void *value, void *context), void *context)
+{
+	assert(table);
+
+	if (!visitor) return;
+	
+	array_list_type *buckets = table->buckets;
+
+	int i;
+	for (i = 0; i < buckets->capacity; ++i) {
+		array_list_node_type *bucket = buckets->content[i];
+
+		if (bucket && bucket->data) {
+			linked_list_node_type *ll_node = TYPE_CAST(bucket->data, linked_list_type*)->head;
+
+			while (ll_node) {
+				hash_table_element_type *ele = ll_node->data;
+
+				if (ele != NULL) {
+					assert(ele->key && ele->value);
+					visitor(ele->key, ele->value, context);
+				}
+				ll_node = ll_node->next;
+			}
+		}
+	}
+}
+
 
 
 /*
