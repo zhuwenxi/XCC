@@ -20,3 +20,9 @@ dequeue(queue_type *queue)
 	linked_list_delete(queue, tail_node, NULL);
 	return data;
 }
+
+bool
+queue_empty(queue_type *queue)
+{
+	return queue->head != NULL;
+}

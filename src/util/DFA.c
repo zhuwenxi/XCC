@@ -1,5 +1,6 @@
 #include "util/DFA.h"
 #include "util/util.h"
+#include "util/queue.h"
 
 bool
 DFA_deconstructor(DFA_type *self, va_list arg_list)
@@ -67,13 +68,30 @@ epsilon_closure(linked_list_type *nfa_states)
 {
 	linked_list_type *closure = linked_list_create();
 
+	//
+	// Initial E(N) to N:
+	//
+	queue_type *work_queue = queue_create();
 	linked_list_node_type *node = nfa_states->head;
 	while (node) {
 		NFA_state_type *nfa_state = node->data;
 		assert(nfa_state);
 
+		enqueue(work_queue, nfa_state);
+
 		node = node->next;
 	}
+
+	while (queue_empty(work_queue)) {
+		queue_node_type *q_node = dequeue(work_queue);
+		assert(q_node && q_node->data);
+
+		NFA_state_type *state = q_node->data;
+	}
+
+	
+
+	return closure;
 }
 
 static DFA_type *
