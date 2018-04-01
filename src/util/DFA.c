@@ -62,13 +62,36 @@ _collect_alphabet(NFA_type *nfa)
 	return alphabet;
 }
 
+static linked_list_type *
+epsilon_closure(linked_list_type *nfa_states)
+{
+	linked_list_type *closure = linked_list_create();
+
+	linked_list_node_type *node = nfa_states->head;
+	while (node) {
+		NFA_state_type *nfa_state = node->data;
+		assert(nfa_state);
+
+		node = node->next;
+	}
+}
+
+static DFA_type *
+subset_construction(NFA_type *nfa)
+{
+	DFA_type *dfa = DFA_create();
+
+	linked_list_type *alphabet = _collect_alphabet(nfa);
+	LOG(TRUE, "alphabet: %s", get_linked_list_debug_str(alphabet, NULL));
+
+	return dfa;
+}
+
 /*
  * NFA to DFA through "subset construction"
  */
 DFA_type *
 NFA_to_DFA(NFA_type *nfa)
 {
-	linked_list_type *alphabet = _collect_alphabet(nfa);
-
-	LOG(TRUE, "alphabet: %s", get_linked_list_debug_str(alphabet, NULL));
+	DFA_type *dfa = subset_construction(nfa);
 }
