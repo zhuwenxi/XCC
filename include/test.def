@@ -84,4 +84,4 @@ TESTCASE(UTIL_ITOA_TEST, itoa_test, "Test for itoa()")
  /*
   * Test case for DFA
   */
- XTESTCASE(DFA_CREATE_DESTROY_TEST, DFA_create_destroy_test, "Test for DFA_create() and DFA_destroy().")
+ TESTCASE(DFA_CREATE_DESTROY_TEST, DFA_create_destroy_test, "Test for DFA_create() and DFA_destroy().")

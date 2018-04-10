@@ -197,6 +197,12 @@ str_compartor(void *a, void *b, va_list arg_list)
 	return !strcmp(a_str, b_str);
 }
 
+static inline bool
+pointer_comparator(void *a, void *b, va_list arg_list)
+{
+	return a == b;
+}
+
 static inline char *
 int_to_str(void *p, va_list arg_list)
 {
