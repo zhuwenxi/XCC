@@ -24,5 +24,5 @@ dequeue(queue_type *queue)
 bool
 queue_empty(queue_type *queue)
 {
-	return queue->head != NULL;
+	return queue->head == NULL;
 }

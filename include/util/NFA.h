@@ -61,6 +61,7 @@ int NFA_state_symbol_pair_hash(void *key);
 /*
  * interfaces:
  */
+bool NFA_state_symbol_pair_compartor(void *one, void *another, va_list arg_list);
 
 
 
@@ -69,5 +70,7 @@ int NFA_state_symbol_pair_hash(void *key);
  * debug print function:
  */
 char *get_NFA_debug_str(NFA_type *self);
+
+char *NFA_state_debug_str(NFA_state_type *state, va_list arg_list);
 
 #endif

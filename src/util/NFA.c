@@ -457,6 +457,18 @@ NFA_state_symbol_pair_hash(void *key)
 	return k->state->id * 10 + *(k->symbol);
 }
 
+bool
+NFA_state_symbol_pair_compartor(void *one, void *another, va_list arg_list)
+{
+	NFA_state_symbol_pair_type *a = one;
+	NFA_state_symbol_pair_type *b = another;
+
+	assert(a && b);
+
+	return a->state == b->state && !strcmp(a->symbol, b->symbol);
+
+}
+
 char *
 get_NFA_debug_str(NFA_type *self)
 {
@@ -532,4 +544,10 @@ get_NFA_debug_str(NFA_type *self)
 	}
 	string_buffer_append(&debug_str, " }");
 	return debug_str;
+}
+
+char *
+NFA_state_debug_str(NFA_state_type *state, va_list arg_list)
+{
+	return int_to_str(&(state->id), NULL);
 }

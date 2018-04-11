@@ -22,7 +22,7 @@ DFA_state_create()
 {
 	DFA_state_type *self = (DFA_state_type *)malloc(sizeof(DFA_state_type));
 	self->id = 0;
-	self->nfa_states = linked_list_create();
+	self->nfa_states = NULL;
 
 	return self;
 }
@@ -79,7 +79,7 @@ _visitor_to_collect_direct_neighbor(void *key, void *value, void *context)
 	NFA_state_type *source_state = state_symbol_pair->state;
 	char *symbol = state_symbol_pair->symbol;
 
-	NFA_state_type *target_state = TYPE_CAST(key, NFA_state_type *);
+	NFA_state_type *target_state = TYPE_CAST(value, NFA_state_type *);
 
 	if (strcmp(symbol, "EPSILON") == 0 && source_state == origin_state) {
 		linked_list_insert_back(neighbor_list, target_state);
@@ -101,16 +101,15 @@ epsilon_closure(linked_list_type *nfa_states, hash_table_type *trans_diag)
 		NFA_state_type *nfa_state = node->data;
 		assert(nfa_state);
 
+		linked_list_insert_back(closure, nfa_state);
 		enqueue(work_queue, nfa_state);
 
 		node = node->next;
 	}
 
-	while (queue_empty(work_queue)) {
-		queue_node_type *q_node = dequeue(work_queue);
-		assert(q_node && q_node->data);
+	while (!queue_empty(work_queue)) {
 
-		NFA_state_type *state = q_node->data;
+		NFA_state_type *state = dequeue(work_queue);
 
 		linked_list_type *neighbor_list = linked_list_create();
 		context_for_collect_direct_neighbor context;
@@ -138,16 +137,66 @@ epsilon_closure(linked_list_type *nfa_states, hash_table_type *trans_diag)
 static DFA_type *
 subset_construction(NFA_type *nfa)
 {
+	LOG(TRUE, "current NFA: %s", get_NFA_debug_str(nfa, NULL));
 	DFA_type *dfa = DFA_create();
 
 	linked_list_type *alphabet = _collect_alphabet(nfa);
 	LOG(TRUE, "alphabet: %s", get_linked_list_debug_str(alphabet, NULL));
 
-	linked_list_type *q0 = linked_list_create();
-	linked_list_insert_back(q0, nfa->start);
+	linked_list_type *nfa_start = linked_list_create();
+	linked_list_insert_back(nfa_start, nfa->start);
 
-	epsilon_closure(q0, nfa->transfer_diagram);
+	//
+	// DFA's start state.
+	//
+	linked_list_type *dfa_start_set = epsilon_closure(nfa_start, nfa->transfer_diagram);
+	DFA_state_type *dfa_start_state = DFA_state_create();
+	dfa_start_state->nfa_states = dfa_start_set;
+	dfa->start = dfa_start_state;
 
+	linked_list_destroy(nfa_start, NULL);
+	
+	LOG(TRUE, "initial_set: %s", get_linked_list_debug_str(dfa_start_set, NFA_state_debug_str, NULL));
+
+	
+	//
+	// Initialize work queue.
+	// 
+	queue_type *work_queue = queue_create();
+	linked_list_node_type *dfa_start_set_node = dfa_start_set->head;
+	while (dfa_start_set_node) {
+		enqueue(work_queue, dfa_start_set_node->data);
+		dfa_start_set_node = dfa_start_set_node->next;
+	}
+
+	while (!queue_empty(work_queue)) {
+		NFA_state_type *source_state = dequeue(work_queue);
+
+		// for each symbol in dictionary
+		linked_list_node_type *dict_node = alphabet->head;
+		while (dict_node) {
+			char *symbol = dict_node->data;
+
+			NFA_state_symbol_pair_type key;
+			key.state = source_state;
+			key.symbol = symbol;
+
+			NFA_state_type *target = hash_table_search(nfa->transfer_diagram, &key, NFA_state_symbol_pair_compartor, NULL);
+
+			if (!target) {
+				linked_list_type *tmp_target_set = linked_list_create();
+				linked_list_insert_back(tmp_target_set, target);
+
+				linked_list_type *target_nfa_set = epsilon_closure(tmp_target_set, nfa->transfer_diagram);
+
+				linked_list_destroy(tmp_target_set, NULL);
+			}
+			
+			dict_node = dict_node->next;
+		}
+	}
+
+	
 	return dfa;
 }
 
@@ -159,3 +208,5 @@ NFA_to_DFA(NFA_type *nfa)
 {
 	DFA_type *dfa = subset_construction(nfa);
 }
+
+
