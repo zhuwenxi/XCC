@@ -28,5 +28,13 @@ bool DFA_state_deconstructor(DFA_state_type *state);
 DECLARE_DESTROY(DFA_state);
 
 
+/*
+* hash function for DFA_state:
+*/
+int DFA_state_symbol_pair_hash(void *key);
+
+bool DFA_state_symbol_pair_compartor(void *one, void *another, va_list arg_list);
+
+
 
 #endif

@@ -153,6 +153,7 @@ subset_construction(NFA_type *nfa)
 	DFA_state_type *dfa_start_state = DFA_state_create();
 	dfa_start_state->nfa_states = dfa_start_set;
 	dfa->start = dfa_start_state;
+	array_list_append(dfa->transfer_diagram, dfa_start_state);
 
 	linked_list_destroy(nfa_start, NULL);
 	
@@ -163,34 +164,38 @@ subset_construction(NFA_type *nfa)
 	// Initialize work queue.
 	// 
 	queue_type *work_queue = queue_create();
-	linked_list_node_type *dfa_start_set_node = dfa_start_set->head;
-	while (dfa_start_set_node) {
-		enqueue(work_queue, dfa_start_set_node->data);
-		dfa_start_set_node = dfa_start_set_node->next;
-	}
+	enqueue(work_queue, dfa_start_set);
 
 	while (!queue_empty(work_queue)) {
-		NFA_state_type *source_state = dequeue(work_queue);
+		linked_list_type *nfa_states = dequeue(work_queue);
 
 		// for each symbol in dictionary
 		linked_list_node_type *dict_node = alphabet->head;
 		while (dict_node) {
 			char *symbol = dict_node->data;
 
+			linked_list_type *target_nfa_states = linked_list_create();
+			linked_list_node_type *nfa_state_node = nfa_states->head;
 			NFA_state_symbol_pair_type key;
-			key.state = source_state;
-			key.symbol = symbol;
 
-			NFA_state_type *target = hash_table_search(nfa->transfer_diagram, &key, NFA_state_symbol_pair_compartor, NULL);
+			while (nfa_state_node) {
+				key.state = nfa_state_node->data;
+				key.symbol = symbol;
 
-			if (!target) {
-				linked_list_type *tmp_target_set = linked_list_create();
-				linked_list_insert_back(tmp_target_set, target);
+				NFA_state_type *target = hash_table_search(nfa->transfer_diagram, &key, NFA_state_symbol_pair_compartor, NULL);
 
-				linked_list_type *target_nfa_set = epsilon_closure(tmp_target_set, nfa->transfer_diagram);
+				if (target) {
+					linked_list_insert_back(target_nfa_states, target);
+				}
 
-				linked_list_destroy(tmp_target_set, NULL);
+				nfa_state_node = nfa_state_node->next;
 			}
+			
+			linked_list_type *target_dfa_state = epsilon_closure(target_nfa_states, nfa->transfer_diagram);
+
+			/*if (!hash_table_search(dfa->transfer_diagram, )) {
+
+			}*/
 			
 			dict_node = dict_node->next;
 		}

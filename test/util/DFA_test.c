@@ -6,7 +6,7 @@
 bool
 DFA_create_destroy_test()
 {
-	/*NFA_type *nfa = NFA_from_str("a");
+	NFA_type *nfa = NFA_from_str("a");
 	NFA_to_DFA(nfa);
 	NFA_destroy(nfa, NULL);
 
@@ -20,8 +20,8 @@ DFA_create_destroy_test()
 
 	NFA_type *nfa4 = NFA_from_str("(a)");
 	NFA_to_DFA(nfa4);
-	NFA_destroy(nfa4, NULL);*/
-
+	NFA_destroy(nfa4, NULL);
+		
 	NFA_type *nfa5 = NFA_from_str("(a|b)*abb");
 	NFA_to_DFA(nfa5);
 	NFA_destroy(nfa5, NULL);
