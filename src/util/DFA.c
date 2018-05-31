@@ -2,6 +2,19 @@
 #include "util/util.h"
 #include "util/queue.h"
 
+DFA_type *DFA_create()
+{
+	DFA_type *self = (DFA_type *)malloc(sizeof(DFA_type));
+
+	self->transfer_diagram = hash_table_create(DFA_state_symbol_pair_hash);
+	self->states = array_list_create();
+
+	self->start = NULL;
+	self->end = array_list_create();
+
+	return self;
+}
+
 bool
 DFA_deconstructor(DFA_type *self, va_list arg_list)
 {
@@ -34,6 +47,25 @@ DFA_state_deconstructor(DFA_state_type *state)
 
 	linked_list_destroy(state->nfa_states, NFA_state_deconstructor, NULL);
 	free(state);
+
+	return TRUE;
+}
+
+DFA_state_symbol_pair_type *
+DFA_state_symbol_pair_create(DFA_state_type *state, char *symbol)
+{
+	DFA_state_symbol_pair_type *self = (DFA_state_symbol_pair_type *)malloc(sizeof(DFA_state_symbol_pair_type));
+	self->state = state;
+	self->symbol = symbol;
+
+	return self;
+}
+
+bool
+DFA_state_symbol_pair_deconstructor(DFA_state_symbol_pair_type *self, va_list arg_list)
+{
+	string_buffer_destroy(self->symbol, NULL);
+	free(self);
 
 	return TRUE;
 }
@@ -153,7 +185,7 @@ subset_construction(NFA_type *nfa)
 	DFA_state_type *dfa_start_state = DFA_state_create();
 	dfa_start_state->nfa_states = dfa_start_set;
 	dfa->start = dfa_start_state;
-	array_list_append(dfa->transfer_diagram, dfa_start_state);
+	array_list_append(dfa->states, dfa_start_state);
 
 	linked_list_destroy(nfa_start, NULL);
 	
@@ -164,10 +196,11 @@ subset_construction(NFA_type *nfa)
 	// Initialize work queue.
 	// 
 	queue_type *work_queue = queue_create();
-	enqueue(work_queue, dfa_start_set);
+	enqueue(work_queue, dfa_start_state);
 
 	while (!queue_empty(work_queue)) {
-		linked_list_type *nfa_states = dequeue(work_queue);
+		DFA_state_type *source_dfa_state = dequeue(work_queue);
+		linked_list_type *nfa_states = source_dfa_state->nfa_states;
 
 		// for each symbol in dictionary
 		linked_list_node_type *dict_node = alphabet->head;
@@ -191,17 +224,40 @@ subset_construction(NFA_type *nfa)
 				nfa_state_node = nfa_state_node->next;
 			}
 			
-			linked_list_type *target_dfa_state = epsilon_closure(target_nfa_states, nfa->transfer_diagram);
+			linked_list_type *origin_target_nfa_states = target_nfa_states;
+			target_nfa_states = epsilon_closure(target_nfa_states, nfa->transfer_diagram);
+			linked_list_destroy(origin_target_nfa_states, NULL);
 
-			/*if (!hash_table_search(dfa->transfer_diagram, )) {
+			// check if "target_dfa_state" already exists.
+			DFA_state_type *candidate_target_dfa_state = DFA_state_create();
+			candidate_target_dfa_state->id = 0;
+			candidate_target_dfa_state->nfa_states = target_nfa_states;
 
-			}*/
+			DFA_state_type *target_dfa_state = array_list_search(dfa->states, candidate_target_dfa_state, DFA_state_compartor);
+
+			if (!target_dfa_state) {
+				// add "target_dfa_state" to DFA's "states"
+				target_dfa_state = candidate_target_dfa_state;
+				array_list_append(dfa->states, target_dfa_state);
+
+				// add "target_dfa_state" to work queue
+				enqueue(work_queue, target_dfa_state);
+			}
+			else {
+				free(candidate_target_dfa_state);
+			}
+
+			// update DFA's "transfer_diagram"
+			string_buffer key_symbol = string_buffer_create();
+			string_buffer_append(&key_symbol, symbol);
+
+			DFA_state_symbol_pair_type *dfa_key = DFA_state_symbol_pair_create(source_dfa_state, key_symbol);
+			hash_table_insert(dfa->transfer_diagram, dfa_key, target_dfa_state);
 			
 			dict_node = dict_node->next;
 		}
 	}
 
-	
 	return dfa;
 }
 
@@ -212,6 +268,70 @@ DFA_type *
 NFA_to_DFA(NFA_type *nfa)
 {
 	DFA_type *dfa = subset_construction(nfa);
+}
+
+int
+DFA_state_symbol_pair_hash(void *key)
+{
+	assert(key);
+
+	DFA_state_symbol_pair_type *k = (DFA_state_symbol_pair_type *)key;
+
+	int hash_code = 0;
+	
+	assert(k->state);
+	linked_list_type *nfa_states = k->state->nfa_states;
+	linked_list_node_type *nfa_state_node = NULL;
+
+	for (nfa_state_node = nfa_states->head; nfa_state_node != NULL; nfa_state_node = nfa_state_node->next) {
+		NFA_state_type *nfa_state = TYPE_CAST(nfa_state_node->data, NFA_state_type *);
+
+		hash_code += nfa_state->id;
+	}
+
+	hash_code += *(k->symbol);
+
+	return hash_code;
+}
+
+bool
+DFA_state_symbol_pair_compartor(void *one, void *another, va_list arg_list)
+{
+	DFA_state_symbol_pair_type *a = one;
+	DFA_state_symbol_pair_type *b = another;
+
+	assert(a && b);
+
+	char a_symbol = *(a->symbol);
+	char b_symbol = *(b->symbol);
+
+	if (a_symbol != b_symbol) return FALSE;
+
+	return DFA_state_compartor(a->state, b->state, NULL);
+}
+
+bool
+DFA_state_compartor(void *one, void *another, va_list arg_list)
+{
+	DFA_state_type *a = one;
+	DFA_state_type *b = another;
+
+	linked_list_type *a_nfa_states = a->nfa_states;
+	linked_list_type *b_nfa_states = b->nfa_states;
+
+	linked_list_node_type *a_node;
+	linked_list_node_type *b_node;
+
+	for (a_node = a_nfa_states->head, b_node = b_nfa_states->head; a_node && b_node; a_node = a_node->next, b_node = b_node->next) {
+		int a_id = TYPE_CAST(a_node->data, NFA_state_type *)->id;
+		int b_id = TYPE_CAST(b_node->data, NFA_state_type *)->id;
+
+		if (a_id != b_id) return FALSE;
+	}
+
+	if (a_node != NULL || b_node != NULL) return FALSE;
+
+	return FALSE;
 }
 
 
