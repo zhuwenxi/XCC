@@ -53,5 +53,6 @@ bool DFA_state_symbol_pair_compartor(void *one, void *another, va_list arg_list)
 
 bool DFA_state_compartor(void *one, void *another, va_list arg_list);
 
+char *DFA_state_debug_str(DFA_state_type *state, va_list arg_list);
 
 #endif
