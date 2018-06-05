@@ -69,6 +69,11 @@ array_list_node_type *array_list_searcher(array_list_type *list, void *data, boo
 DECLARE_SEARCH(array_list_type, array_list_node_type, array_list)
 
 /*
+ * Return index of a data.
+ */
+int array_list_index_of(array_list_type *list, void *data);
+
+/*
  * Resize the internal dynamic array
  */
 bool array_list_resize(array_list_type *list, int new_size);

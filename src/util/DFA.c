@@ -166,6 +166,16 @@ epsilon_closure(linked_list_type *nfa_states, hash_table_type *trans_diag)
 	return closure;
 }
 
+static void
+DFA_state_renaming(DFA_type *dfa)
+{
+	int s_i;
+	for (s_i = 0; s_i < dfa->states->length; s_i++) {
+		NFA_state_type *state = array_list_get(dfa->states, s_i);
+		state->id = s_i;
+	}
+}
+
 static DFA_type *
 subset_construction(NFA_type *nfa)
 {
@@ -273,6 +283,10 @@ subset_construction(NFA_type *nfa)
 		}
 	}
 
+	DFA_state_renaming(dfa);
+
+	LOG(TRUE, "DFA: %s", get_DFA_debug_str(dfa));
+
 	return dfa;
 }
 
@@ -294,7 +308,7 @@ DFA_state_symbol_pair_hash(void *key)
 
 	int hash_code = 0;
 	
-	assert(k->state);
+	/*assert(k->state);
 	linked_list_type *nfa_states = k->state->nfa_states;
 	linked_list_node_type *nfa_state_node = NULL;
 
@@ -302,7 +316,7 @@ DFA_state_symbol_pair_hash(void *key)
 		NFA_state_type *nfa_state = TYPE_CAST(nfa_state_node->data, NFA_state_type *);
 
 		hash_code += nfa_state->id;
-	}
+	}*/
 
 	hash_code += *(k->symbol);
 
@@ -353,5 +367,82 @@ char *
 DFA_state_debug_str(DFA_state_type *state, va_list arg_list)
 {
 	return get_linked_list_debug_str(state->nfa_states, NFA_state_debug_str, NULL);
+}
+
+char *
+get_DFA_debug_str(DFA_type *self)
+{
+	hash_table_type *diag = self->transfer_diagram;
+
+	string_buffer debug_str = string_buffer_create();
+	string_buffer_append(&debug_str, "digraph {");
+
+	//
+	// traverse the transfer diagram and generate digraph for each element.
+	//
+	array_list_type *buckets = diag->buckets;
+
+	int i;
+	for (i = 0; i < buckets->capacity; ++i) {
+		array_list_node_type *bucket = buckets->content[i];
+
+		if (bucket != NULL && bucket->data != NULL) {
+			linked_list_node_type *ll_node = TYPE_CAST(bucket->data, linked_list_type *)->head;
+			while (ll_node != NULL)  {
+				hash_table_element_type *ele = ll_node->data;
+
+				// (source state, symbol)
+				DFA_state_symbol_pair_type *key = ele->key;
+				DFA_state_type *source = key->state;
+				char *symbol = key->symbol;
+
+				string_buffer_append(&debug_str, "{");
+				char *src_id_str = my_itoa(source->id);
+				string_buffer_append(&debug_str, src_id_str);
+				string_buffer_append(&debug_str, " [label=\"");
+				string_buffer_append(&debug_str, src_id_str);
+				free(src_id_str);
+				string_buffer_append(&debug_str, "\"]}");
+				string_buffer_append(&debug_str, " -> ");
+
+
+				// (target state)
+				DFA_state_type *target = ele->value;
+				string_buffer_append(&debug_str, "{");
+				char *tgt_id_str = my_itoa(target->id);
+				string_buffer_append(&debug_str, tgt_id_str);
+				string_buffer_append(&debug_str, " [label=\"");
+				string_buffer_append(&debug_str, tgt_id_str);
+				free(tgt_id_str);
+				string_buffer_append(&debug_str, "\" ]} ");
+				string_buffer_append(&debug_str, " [label=\"");
+				string_buffer_append(&debug_str, symbol);
+				string_buffer_append(&debug_str, "\"];");
+
+				ll_node = ll_node->next;
+			}
+		}
+	}
+
+	// mark "start" and "end" states with special shape
+	assert(self->start);
+	char *start_id_str = my_itoa(self->start->id);
+	string_buffer_append(&debug_str, start_id_str);
+	free(start_id_str);
+
+	string_buffer_append(&debug_str, " [shape=diamond];");
+
+	//assert(self->end->length);
+	for (i = 0; i < self->end->length; ++i) {
+		DFA_state_type *end_state = array_list_get(self->end, i);
+
+		char *end_id_str = my_itoa(end_state->id);
+		string_buffer_append(&debug_str, end_id_str);
+		free(end_id_str);
+
+		string_buffer_append(&debug_str, " [shape=rectangle];");
+	}
+	string_buffer_append(&debug_str, " }");
+	return debug_str;
 }
 

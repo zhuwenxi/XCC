@@ -142,7 +142,7 @@ merge_nfas(array_list_type *nfas, NFA_type *big_nfa)
 			NFA_state_type *state = array_list_get(nfa->states, s_i);
 			array_list_append(big_nfa->states, state);
 
-			 state->id = big_nfa->states->length - 1;
+			// state->id = big_nfa->states->length - 1;
 		}
 
 		// update transfer diagram:
@@ -175,7 +175,7 @@ merge_nfas(array_list_type *nfas, NFA_type *big_nfa)
 		free(nfa);
 	}
 
-	//NFA_state_renaming(big_nfa);
+	NFA_state_renaming(big_nfa);
 }
 
 static NFA_type *
@@ -455,8 +455,8 @@ NFA_state_symbol_pair_hash(void *key)
 	assert(key);
 
 	NFA_state_symbol_pair_type *k = (NFA_state_symbol_pair_type *)key;
-	LOG(TRUE, "id: %d, symbol: %s, hash: %d", k->state->id, k->symbol, k->state->id * 10 + *(k->symbol));
-	return k->state->id * 10 + *(k->symbol);
+
+	return *(k->symbol);
 }
 
 bool

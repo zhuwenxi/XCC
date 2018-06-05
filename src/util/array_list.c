@@ -206,6 +206,24 @@ array_list_searcher(array_list_type *list, void *data, bool (*equal)(void *, voi
 	return NULL;
 }
 
+int
+array_list_index_of(array_list_type *list, void *data)
+{
+	assert(list != NULL);
+	int i;
+	for (i = 0; i < list->length; i++)
+	{
+		void *node_data = array_list_get(list, i);
+
+		if (node_data == data)
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
 bool
 array_list_resize(array_list_type *list, int new_size)
 {
