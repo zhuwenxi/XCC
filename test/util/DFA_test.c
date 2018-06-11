@@ -16,15 +16,19 @@ DFA_create_destroy_test()
 
 	/*NFA_type *nfa3 = NFA_from_str("a*");
 	NFA_to_DFA(nfa3);
-	NFA_destroy(nfa3, NULL);
+	NFA_destroy(nfa3, NULL);*/
 
-	NFA_type *nfa4 = NFA_from_str("(a)");
+	/*NFA_type *nfa4 = NFA_from_str("(a)");
 	NFA_to_DFA(nfa4);
-	NFA_destroy(nfa4, NULL);
+	NFA_destroy(nfa4, NULL);*/
 		
-	NFA_type *nfa5 = NFA_from_str("(a|b)*abb");
+	/*NFA_type *nfa5 = NFA_from_str("(a|b)*abb");
 	NFA_to_DFA(nfa5);
 	NFA_destroy(nfa5, NULL);*/
+
+	/*NFA_type *nfa6 = NFA_from_str("a(b|c)*");
+	NFA_to_DFA(nfa6);
+	NFA_destroy(nfa6, NULL);*/
 
 	return TRUE;
 }

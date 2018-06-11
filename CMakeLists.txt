@@ -26,3 +26,7 @@ if (BUILD_TEST)
 	FILE(GLOB TEST_SRC test/util/*.c test/*.c)
 	add_executable(test_all ${TEST_SRC} ${CORE_SRC})
 endif()
+
+if (DEBUG)
+	add_definitions(-DDEBUG)
+endif()

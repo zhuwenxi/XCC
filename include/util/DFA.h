@@ -36,7 +36,7 @@ DECLARE_DESTROY(DFA)
 
 DFA_state_type *DFA_state_create();
 
-bool DFA_state_deconstructor(DFA_state_type *state);
+bool DFA_state_deconstructor(DFA_state_type *state, va_list arg_list);
 DECLARE_DESTROY(DFA_state);
 
 DFA_state_symbol_pair_type *DFA_state_symbol_pair_create(DFA_state_type *state, char *symbol);

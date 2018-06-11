@@ -1,6 +1,7 @@
 #include "util/DFA.h"
 #include "util/util.h"
 #include "util/queue.h"
+#include "opts.h"
 
 DFA_type *DFA_create()
 {
@@ -21,8 +22,8 @@ DFA_deconstructor(DFA_type *self, va_list arg_list)
 	assert(self && self->transfer_diagram && self->states);
 
 	// TO DO:
-	hash_table_destroy(self->transfer_diagram, NFA_state_symbol_deconstructor, NULL);
-	array_list_destroy(self->states, NFA_state_deconstructor, NULL);
+	hash_table_destroy(self->transfer_diagram, DFA_state_symbol_pair_deconstructor, NULL);
+	array_list_destroy(self->states, DFA_state_deconstructor, NULL);
 	array_list_destroy(self->end, NULL);
 
 	free(self);
@@ -45,7 +46,7 @@ DFA_state_deconstructor(DFA_state_type *state)
 {
 	assert(state);
 
-	linked_list_destroy(state->nfa_states, NFA_state_deconstructor, NULL);
+	linked_list_destroy(state->nfa_states, NULL);
 	free(state);
 
 	return TRUE;
@@ -179,11 +180,11 @@ DFA_state_renaming(DFA_type *dfa)
 static DFA_type *
 subset_construction(NFA_type *nfa)
 {
-	LOG(TRUE, "current NFA: %s", get_NFA_debug_str(nfa, NULL));
+	DB_LOG(DFA_LOG_ENABLE, "current NFA: %s", get_NFA_debug_str(nfa, NULL));
 	DFA_type *dfa = DFA_create();
 
 	linked_list_type *alphabet = _collect_alphabet(nfa);
-	LOG(TRUE, "alphabet: %s", get_linked_list_debug_str(alphabet, NULL));
+	DB_LOG(DFA_LOG_ENABLE, "alphabet: %s", get_linked_list_debug_str(alphabet, NULL));
 
 	linked_list_type *nfa_start = linked_list_create();
 	linked_list_insert_back(nfa_start, nfa->start);
@@ -199,9 +200,8 @@ subset_construction(NFA_type *nfa)
 
 	linked_list_destroy(nfa_start, NULL);
 	
-	LOG(TRUE, "initial_set: %s", get_linked_list_debug_str(dfa_start_set, NFA_state_debug_str, NULL));
+	DB_LOG(DFA_LOG_ENABLE, "initial_set: %s", get_linked_list_debug_str(dfa_start_set, NFA_state_debug_str, NULL));
 
-	
 	//
 	// Initialize work queue.
 	// 
@@ -217,8 +217,6 @@ subset_construction(NFA_type *nfa)
 		while (dict_node) {
 			char *symbol = dict_node->data;
 
-			LOG(TRUE, "symbol: %s", symbol);
-
 			linked_list_type *target_nfa_states = linked_list_create();
 			linked_list_node_type *nfa_state_node = nfa_states->head;
 			NFA_state_symbol_pair_type key;
@@ -227,13 +225,9 @@ subset_construction(NFA_type *nfa)
 				key.state = nfa_state_node->data;
 				key.symbol = symbol;
 
-				LOG(TRUE, "search NFA states: ");
-				LOG(TRUE, "key.symbol: %s", key.symbol);
-				LOG(TRUE, "key.state: %s", NFA_state_debug_str(key.state, NULL));
 				NFA_state_type *target = hash_table_search(nfa->transfer_diagram, &key, NFA_state_symbol_pair_compartor, NULL);
 
 				if (target) {
-					LOG(TRUE, "target.state: %s", NFA_state_debug_str(target, NULL));
 					linked_list_insert_back(target_nfa_states, target);
 				}
 
@@ -241,15 +235,12 @@ subset_construction(NFA_type *nfa)
 			}
 
 			if (target_nfa_states->head == NULL) {
-				LOG(TRUE, "no target nfa states");
 				dict_node = dict_node->next;
 				continue;
 			}
 			
 			linked_list_type *origin_target_nfa_states = target_nfa_states;
-			LOG(TRUE, "before epsilon closure: %s", get_linked_list_debug_str(origin_target_nfa_states, NFA_state_debug_str, NULL));
 			target_nfa_states = epsilon_closure(target_nfa_states, nfa->transfer_diagram);
-			LOG(TRUE, "after epsilon closure: %s", get_linked_list_debug_str(target_nfa_states, NFA_state_debug_str, NULL));
 			linked_list_destroy(origin_target_nfa_states, NULL);
 
 			// check if "target_dfa_state" already exists.
@@ -257,18 +248,20 @@ subset_construction(NFA_type *nfa)
 			candidate_target_dfa_state->id = 0;
 			candidate_target_dfa_state->nfa_states = target_nfa_states;
 
-			DFA_state_type *target_dfa_state = array_list_search(dfa->states, candidate_target_dfa_state, DFA_state_compartor);
-
-			if (!target_dfa_state) {
+			DFA_state_type *target_dfa_state = NULL;
+			array_list_node_type *target_dfa_state_node = array_list_search(dfa->states, candidate_target_dfa_state, DFA_state_compartor);
+			
+			if (!target_dfa_state_node) {
 				// add "target_dfa_state" to DFA's "states"
 				target_dfa_state = candidate_target_dfa_state;
 				array_list_append(dfa->states, target_dfa_state);
 
-				LOG(TRUE, "new dfa states: %s", DFA_state_debug_str(target_dfa_state, NULL));
 				// add "target_dfa_state" to work queue
 				enqueue(work_queue, target_dfa_state);
 			}
 			else {
+				target_dfa_state = target_dfa_state_node->data;
+				linked_list_destroy(target_nfa_states, NULL);
 				free(candidate_target_dfa_state);
 			}
 
@@ -285,7 +278,9 @@ subset_construction(NFA_type *nfa)
 
 	DFA_state_renaming(dfa);
 
-	LOG(TRUE, "DFA: %s", get_DFA_debug_str(dfa));
+	char *db_str = get_DFA_debug_str(dfa);
+	DB_LOG(DFA_LOG_ENABLE, "DFA: %s", db_str);
+	free(db_str);
 
 	return dfa;
 }
@@ -297,6 +292,7 @@ DFA_type *
 NFA_to_DFA(NFA_type *nfa)
 {
 	DFA_type *dfa = subset_construction(nfa);
+	DFA_destroy(dfa, NULL);
 }
 
 int
@@ -360,7 +356,7 @@ DFA_state_compartor(void *one, void *another, va_list arg_list)
 
 	if (a_node != NULL || b_node != NULL) return FALSE;
 
-	return FALSE;
+	return TRUE;
 }
 
 char *
@@ -445,4 +441,3 @@ get_DFA_debug_str(DFA_type *self)
 	string_buffer_append(&debug_str, " }");
 	return debug_str;
 }
-
