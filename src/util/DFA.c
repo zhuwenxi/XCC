@@ -160,9 +160,11 @@ epsilon_closure(linked_list_type *nfa_states, hash_table_type *trans_diag)
 			}
 			nb_list_node = nb_list_node->next;
 		}
+
+		linked_list_destroy(neighbor_list, NULL);
 	}
 
-	
+	queue_destroy(work_queue, NULL);
 
 	return closure;
 }
@@ -180,11 +182,17 @@ DFA_state_renaming(DFA_type *dfa)
 static DFA_type *
 subset_construction(NFA_type *nfa)
 {
-	DB_LOG(DFA_LOG_ENABLE, "current NFA: %s", get_NFA_debug_str(nfa, NULL));
+	char *nfa_db_str = get_NFA_debug_str(nfa, NULL);
+	DB_LOG(DFA_LOG_ENABLE, "current NFA: %s", nfa_db_str);
+	free(nfa_db_str);
+
 	DFA_type *dfa = DFA_create();
 
 	linked_list_type *alphabet = _collect_alphabet(nfa);
-	DB_LOG(DFA_LOG_ENABLE, "alphabet: %s", get_linked_list_debug_str(alphabet, NULL));
+
+	char *alphabet_db_str = get_linked_list_debug_str(alphabet, NULL);
+	DB_LOG(DFA_LOG_ENABLE, "alphabet: %s", alphabet_db_str);
+	free(alphabet_db_str);
 
 	linked_list_type *nfa_start = linked_list_create();
 	linked_list_insert_back(nfa_start, nfa->start);
@@ -200,7 +208,9 @@ subset_construction(NFA_type *nfa)
 
 	linked_list_destroy(nfa_start, NULL);
 	
-	DB_LOG(DFA_LOG_ENABLE, "initial_set: %s", get_linked_list_debug_str(dfa_start_set, NFA_state_debug_str, NULL));
+	char *init_set_db_str = get_linked_list_debug_str(dfa_start_set, NFA_state_debug_str, NULL);
+	DB_LOG(DFA_LOG_ENABLE, "initial_set: %s", init_set_db_str);
+	free(init_set_db_str);
 
 	//
 	// Initialize work queue.
@@ -236,6 +246,7 @@ subset_construction(NFA_type *nfa)
 
 			if (target_nfa_states->head == NULL) {
 				dict_node = dict_node->next;
+				linked_list_destroy(target_nfa_states, NULL);
 				continue;
 			}
 			
@@ -275,6 +286,10 @@ subset_construction(NFA_type *nfa)
 			dict_node = dict_node->next;
 		}
 	}
+
+	queue_destroy(work_queue, NULL);
+
+	linked_list_destroy(alphabet, char_deconstructor, NULL);
 
 	DFA_state_renaming(dfa);
 
