@@ -10,9 +10,10 @@ DFA_create_destroy_test()
 	NFA_to_DFA(nfa);
 	NFA_destroy(nfa, NULL);*/
 
-	NFA_type *nfa2 = NFA_from_str("a|b");
-	NFA_to_DFA(nfa2);
-	NFA_destroy(nfa2, NULL);
+	/*NFA_type *nfa2 = NFA_from_str("a|b");
+	DFA_type *dfa2 = NFA_to_DFA(nfa2);
+	DFA_destroy(dfa2, NULL);
+	NFA_destroy(nfa2, NULL);*/
 
 	/*NFA_type *nfa3 = NFA_from_str("a*");
 	NFA_to_DFA(nfa3);
@@ -26,9 +27,10 @@ DFA_create_destroy_test()
 	NFA_to_DFA(nfa5);
 	NFA_destroy(nfa5, NULL);*/
 
-	/*NFA_type *nfa6 = NFA_from_str("a(b|c)*");
-	NFA_to_DFA(nfa6);
-	NFA_destroy(nfa6, NULL);*/
+	NFA_type *nfa6 = NFA_from_str("a(b|c)*");
+	DFA_type *dfa6 = NFA_to_DFA(nfa6);
+	DFA_destroy(dfa6, NULL);
+	NFA_destroy(nfa6, NULL);
 
 	return TRUE;
 }

@@ -460,6 +460,15 @@ NFA_state_symbol_pair_hash(void *key)
 }
 
 bool
+NFA_state_compartor(void *one, void *another, va_list arg_list)
+{
+	NFA_state_type *a = TYPE_CAST(one, NFA_state_type *);
+	NFA_state_type *b = TYPE_CAST(another, NFA_state_type *);
+
+	return a->id == b->id;
+}
+
+bool
 NFA_state_symbol_pair_compartor(void *one, void *another, va_list arg_list)
 {
 	NFA_state_symbol_pair_type *a = one;

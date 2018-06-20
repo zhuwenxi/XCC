@@ -43,6 +43,8 @@ NFA_state_type *NFA_state_create();
 bool NFA_state_deconstructor(NFA_state_type *self, va_list arg_list);
 DECLARE_DESTROY(NFA_state)
 
+bool NFA_state_compartor(void *one, void *another, va_list arg_list);
+
 NFA_state_symbol_pair_type *NFA_state_symbol_pair_create();
 bool NFA_state_symbol_deconstructor(NFA_state_symbol_pair_type *self, va_list arg_list);
 DECLARE_DESTROY(NFA_state_symbol_pair)

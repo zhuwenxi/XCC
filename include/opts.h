@@ -26,6 +26,6 @@
 #define NFA_LOG_ENABLE FALSE
 
 // options for DFA
-#define DFA_LOG_ENABLE FALSE
+#define DFA_LOG_ENABLE TRUE
 
 #endif

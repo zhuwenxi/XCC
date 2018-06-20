@@ -183,7 +183,7 @@ static DFA_type *
 subset_construction(NFA_type *nfa)
 {
 	char *nfa_db_str = get_NFA_debug_str(nfa, NULL);
-	DB_LOG(DFA_LOG_ENABLE, "current NFA: %s", nfa_db_str);
+	LOG(DFA_LOG_ENABLE, "current NFA: %s", nfa_db_str);
 	free(nfa_db_str);
 
 	DFA_type *dfa = DFA_create();
@@ -191,7 +191,7 @@ subset_construction(NFA_type *nfa)
 	linked_list_type *alphabet = _collect_alphabet(nfa);
 
 	char *alphabet_db_str = get_linked_list_debug_str(alphabet, NULL);
-	DB_LOG(DFA_LOG_ENABLE, "alphabet: %s", alphabet_db_str);
+	LOG(DFA_LOG_ENABLE, "alphabet: %s", alphabet_db_str);
 	free(alphabet_db_str);
 
 	linked_list_type *nfa_start = linked_list_create();
@@ -209,7 +209,7 @@ subset_construction(NFA_type *nfa)
 	linked_list_destroy(nfa_start, NULL);
 	
 	char *init_set_db_str = get_linked_list_debug_str(dfa_start_set, NFA_state_debug_str, NULL);
-	DB_LOG(DFA_LOG_ENABLE, "initial_set: %s", init_set_db_str);
+	LOG(DFA_LOG_ENABLE, "initial_set: %s", init_set_db_str);
 	free(init_set_db_str);
 
 	//
@@ -267,6 +267,16 @@ subset_construction(NFA_type *nfa)
 				target_dfa_state = candidate_target_dfa_state;
 				array_list_append(dfa->states, target_dfa_state);
 
+				int i;
+				for (i = 0; i < nfa->end->length; i++) {
+					NFA_state_type *end_state = array_list_get(nfa->end, i);
+
+					if (linked_list_search(target_dfa_state->nfa_states, end_state, NFA_state_compartor, NULL)) {
+						array_list_append(dfa->end, target_dfa_state);
+					}
+				}
+				
+
 				// add "target_dfa_state" to work queue
 				enqueue(work_queue, target_dfa_state);
 			}
@@ -294,7 +304,7 @@ subset_construction(NFA_type *nfa)
 	DFA_state_renaming(dfa);
 
 	char *db_str = get_DFA_debug_str(dfa);
-	DB_LOG(DFA_LOG_ENABLE, "DFA: %s", db_str);
+	LOG(DFA_LOG_ENABLE, "DFA: %s", db_str);
 	free(db_str);
 
 	return dfa;
@@ -307,7 +317,8 @@ DFA_type *
 NFA_to_DFA(NFA_type *nfa)
 {
 	DFA_type *dfa = subset_construction(nfa);
-	DFA_destroy(dfa, NULL);
+	
+	return dfa;
 }
 
 int
