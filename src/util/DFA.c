@@ -311,13 +311,57 @@ subset_construction(NFA_type *nfa)
 }
 
 /*
+ * Hopcroft's algorithm.
+ * DFA => Minimal DFAs
+ */
+static DFA_type *
+minify_DFA(DFA_type *dfa)
+{
+	DFA_type *minimal_DFA = DFA_create();
+
+	//
+	// Initially, partition "P" is { { D[A] }, { D - D[A] } }
+	//
+	linked_list_type *partition = linked_list_create();
+
+	linked_list_type *accept_states = linked_list_create();
+	linked_list_type *non_accept_states = linked_list_create();
+
+	int i;
+	for (i = 0; i < dfa->states->length; ++i) {
+		DFA_state_type *dfa_state = array_list_get(dfa->states, i);
+		
+		if (array_list_search(dfa->end, dfa_state, DFA_state_compartor, NULL)) {
+			linked_list_insert_back(accept_states, dfa_state);
+		}
+		else {
+			linked_list_insert_back(non_accept_states, dfa_state);
+		}
+	}
+
+	linked_list_insert_back(partition, accept_states);
+	linked_list_insert_back(partition, non_accept_states);
+
+	char *accept_states_debug_str = get_linked_list_debug_str(accept_states, DFA_state_debug_str, NULL);
+	LOG(DFA_LOG_ENABLE, "accept_states: %s", accept_states_debug_str);
+	free(accept_states_debug_str);
+
+	char *non_accept_states_debug_str = get_linked_list_debug_str(non_accept_states, DFA_state_debug_str, NULL);
+	LOG(DFA_LOG_ENABLE, "non_accept_states: %s", non_accept_states_debug_str);
+	free(non_accept_states_debug_str);
+	
+	
+	return minify_DFA;
+}
+
+/*
  * NFA to DFA through "subset construction"
  */
 DFA_type *
 NFA_to_DFA(NFA_type *nfa)
 {
 	DFA_type *dfa = subset_construction(nfa);
-	
+	minify_DFA(dfa);
 	return dfa;
 }
 
@@ -388,7 +432,9 @@ DFA_state_compartor(void *one, void *another, va_list arg_list)
 char *
 DFA_state_debug_str(DFA_state_type *state, va_list arg_list)
 {
-	return get_linked_list_debug_str(state->nfa_states, NFA_state_debug_str, NULL);
+	//return get_linked_list_debug_str(state->nfa_states, NFA_state_debug_str, NULL);
+	
+	return my_itoa(state->id);
 }
 
 char *

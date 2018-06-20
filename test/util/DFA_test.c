@@ -24,7 +24,8 @@ DFA_create_destroy_test()
 	NFA_destroy(nfa4, NULL);*/
 		
 	/*NFA_type *nfa5 = NFA_from_str("(a|b)*abb");
-	NFA_to_DFA(nfa5);
+	DFA_type *dfa5 = NFA_to_DFA(nfa5);
+	DFA_destroy(dfa5, NULL);
 	NFA_destroy(nfa5, NULL);*/
 
 	NFA_type *nfa6 = NFA_from_str("a(b|c)*");
