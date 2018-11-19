@@ -19,6 +19,9 @@ typedef struct {
 
 	// transfer diagram:
 	hash_table_type *transfer_diagram;
+
+	// alphabet:
+	linked_list_type *alphabet;
 } DFA_type;
 
 typedef struct {

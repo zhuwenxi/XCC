@@ -79,9 +79,9 @@ TESTCASE(UTIL_ITOA_TEST, itoa_test, "Test for itoa()")
 /*
  * Test case for NFA
  */
- TESTCASE(NFA_CREATE_DESTROY_TEST, NFA_create_destroy_test, "Test for NFA_create() and NFA_destroy().")
+TESTCASE(NFA_CREATE_DESTROY_TEST, NFA_create_destroy_test, "Test for NFA_create() and NFA_destroy().")
 
  /*
   * Test case for DFA
   */
- TESTCASE(DFA_CREATE_DESTROY_TEST, DFA_create_destroy_test, "Test for DFA_create() and DFA_destroy().")
+TESTCASE(DFA_CREATE_DESTROY_TEST, DFA_create_destroy_test, "Test for DFA_create() and DFA_destroy().")
