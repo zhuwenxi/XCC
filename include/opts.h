@@ -27,5 +27,6 @@
 
 // options for DFA
 #define DFA_LOG_ENABLE TRUE
+#define DFA_SPLIT_LOG_ENABLE FALSE
 
 #endif

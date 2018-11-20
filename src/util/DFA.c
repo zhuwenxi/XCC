@@ -346,7 +346,7 @@ split(DFA_type *dfa, array_list_type *partition, linked_list_type *p) {
 	while (alphabet_node) {
 		char *symbol = alphabet_node->data;
 
-		LOG(TRUE, "symbol: %s\n", symbol);
+		LOG(DFA_SPLIT_LOG_ENABLE, "symbol: %s\n", symbol);
 		// Clear "ret".
 		array_list_destroy(state_map, linked_list_deconstructor, NULL);
 		state_map = array_list_create();
@@ -370,18 +370,27 @@ split(DFA_type *dfa, array_list_type *partition, linked_list_type *p) {
 			key.state = state;
 			key.symbol = symbol;
 
+			char *state_debug_str = DFA_state_debug_str(state, NULL);
+			LOG(DFA_SPLIT_LOG_ENABLE, "source state: %s", state_debug_str);
+			free(state_debug_str);
+
 			DFA_state_type *target_state = hash_table_search(dfa->transfer_diagram, &key, DFA_state_symbol_pair_compartor, NULL);
 
 			int partition_idx = -1;
 			if (target_state)
 			{
+				char *target_state_debug_str = DFA_state_debug_str(target_state, NULL);
+				LOG(DFA_SPLIT_LOG_ENABLE, "target state: %s", target_state_debug_str);
+				free(target_state_debug_str);
+
 				partition_idx = state_in_which_partition(target_state, partition);
 			}
 			else
 			{
 				partition_idx = dfa->states->length;
 			}
-			LOG(TRUE, "partition_idx: %d\n", partition_idx);
+
+			LOG(DFA_SPLIT_LOG_ENABLE, "partition_idx: %d\n", partition_idx);
 			assert(partition_idx >= 0);
 
 			linked_list_type *ret_p = array_list_get(state_map, partition_idx);
@@ -395,41 +404,82 @@ split(DFA_type *dfa, array_list_type *partition, linked_list_type *p) {
 			linked_list_type *new_p = array_list_get(state_map, array_idx);
 			if (new_p->head) {
 				array_list_append(idx_array, create_int(array_idx));
-				LOG(TRUE, "new_p: %s\n", get_linked_list_debug_str(new_p, DFA_state_debug_str, NULL));
 			}
 		}
 
 		for (array_idx = 0; array_idx < idx_array->length; ++array_idx)
 		{
-			LOG(TRUE, "array_idx: %d\n", array_idx);
 			int state_map_idx = *TYPE_CAST(array_list_get(idx_array, array_idx), int *);
-			LOG(TRUE, "state_map_idx: %d\n", state_map_idx);
 			linked_list_type *set = array_list_get(state_map, state_map_idx);
 			array_list_append(ret, set);
-			LOG(TRUE, "set: %s\n", get_array_list_debug_str(ret, linked_list_debug_str, DFA_state_debug_str, NULL));
 
 			array_list_set(state_map, state_map_idx, NULL);
 
-			LOG(TRUE, "set after: %s\n", get_array_list_debug_str(ret, linked_list_debug_str, DFA_state_debug_str, NULL));
+			char *set_debug_str = get_array_list_debug_str(ret, linked_list_debug_str, DFA_state_debug_str, NULL);
+			LOG(DFA_SPLIT_LOG_ENABLE, "set: %s\n", set_debug_str);
+			free(set_debug_str);
 		}
 
 		if (idx_array->length > 1)
 		{
-
 			return ret;
-			
 		}
 
 		alphabet_node = alphabet_node->next;
 	}
-
 	
-	LOG(TRUE, "return p");
 	//array_list_destroy(ret, linked_list_deconstructor, NULL);
 	array_list_destroy(state_map, linked_list_deconstructor, NULL);
 
-	LOG(TRUE, "ret: %s\n", get_array_list_debug_str(ret, linked_list_debug_str, DFA_state_debug_str, NULL));
 	return ret;
+}
+
+typedef struct {
+	linked_list_type *partition;
+	array_list_type *states;
+	hash_table_type *diag;
+	hash_table_type *new_diag;
+} gen_new_transfer_diagram_ctx;
+
+static void 
+_gen_new_transfer_diagram(void *key, void *value, void *context)
+{
+	DFA_state_symbol_pair_type *pair = key;
+	DFA_state_type *source = pair->state;
+	char *symbol = pair->symbol;
+
+	gen_new_transfer_diagram_ctx *ctx = context;
+	linked_list_type *partition = ctx->partition;
+	array_list_type *states = ctx->states;
+	hash_table_type *diag = ctx->diag;
+	hash_table_type *new_diag = ctx->new_diag;
+	
+	DFA_state_type *target = hash_table_search(diag, key, DFA_state_symbol_pair_compartor, NULL);
+	assert(target);
+
+	int target_state_id = state_in_which_partition(target, partition);
+	DFA_state_type *new_target_state = array_list_get(states, target_state_id);
+	assert(new_target_state);
+
+	int source_state_id = state_in_which_partition(source, partition);
+	DFA_state_type *new_source_state = array_list_get(states, source_state_id);
+	assert(new_source_state);
+
+	DFA_state_symbol_pair_type key_pair;
+	key_pair.state = new_source_state;
+	key_pair.symbol = symbol;
+
+	// Add to the new transition table, if this transition does not exit.
+	if (!hash_table_search(new_diag, &key_pair, DFA_state_symbol_pair_compartor, NULL))
+	{
+		string_buffer new_symbol = string_buffer_create();
+		string_buffer_append(&new_symbol, symbol);
+
+		DFA_state_symbol_pair_type *new_key_pair = DFA_state_symbol_pair_create(new_source_state, new_symbol);
+		
+		hash_table_insert(new_diag, new_key_pair, new_target_state);
+	}
+	
 }
 
 /*
@@ -472,13 +522,12 @@ minify_DFA(DFA_type *dfa)
 	LOG(DFA_LOG_ENABLE, "non_accept_states: %s", non_accept_states_debug_str);
 	free(non_accept_states_debug_str);
 
-	// Partition size of last iteration;
+	// Hopcroft's algorithm, find a minimal parition with fix-point algorithm.
 	int last_partition_size = 0;
 	int cur_partition_size = partition->length;
 
 	while (cur_partition_size != last_partition_size)
 	{
-		LOG(TRUE, "iteration");
 		last_partition_size = cur_partition_size;
 
 		array_list_type *new_partition = array_list_create();
@@ -489,9 +538,9 @@ minify_DFA(DFA_type *dfa)
 			linked_list_type *p = array_list_get(partition, partition_idx);
 			
 			// Split p.
-			LOG(TRUE, "before split: %s\n", get_linked_list_debug_str(p, DFA_state_debug_str, NULL));
+			LOG(DFA_SPLIT_LOG_ENABLE, "before split: %s\n", get_linked_list_debug_str(p, DFA_state_debug_str, NULL));
 			array_list_type *split_set = split(dfa, partition, p);
-			LOG(TRUE, "split set: %s\n", get_array_list_debug_str(split_set, linked_list_debug_str, DFA_state_debug_str, NULL));
+			LOG(DFA_SPLIT_LOG_ENABLE, "split set: %s\n", get_array_list_debug_str(split_set, linked_list_debug_str, DFA_state_debug_str, NULL));
 
 			// Add new partitions to "new_partition"
 			int split_set_idx;
@@ -505,14 +554,124 @@ minify_DFA(DFA_type *dfa)
 			array_list_destroy(split_set, NULL);
 		}
 
-		//array_list_destroy(partition, linked_list_deconstructor, NULL);
 		partition = new_partition;
 		
 		cur_partition_size = new_partition->length;
 	}
 
-	LOG(TRUE, "partition: %s\n", get_array_list_debug_str(partition, linked_list_debug_str, DFA_state_debug_str, NULL));
+	LOG(DFA_LOG_ENABLE, "Minimal partition: %s\n", get_array_list_debug_str(partition, linked_list_debug_str, DFA_state_debug_str, NULL));
 	
+	/*
+	 * Construct a new DFA with the minimal partition we get.
+	 */
+
+	// New DFA's states.
+	array_list_type *new_states = array_list_create();
+	int part_idx;
+	for (part_idx = 0; part_idx < partition->length; ++part_idx)
+	{
+		// Create a new state for each partition, state id is
+		// the partition index.
+		DFA_state_type *new_dfa_state = DFA_state_create();
+		new_dfa_state->id = part_idx;
+		new_dfa_state->nfa_states = linked_list_create();
+
+		// Also retrieve all nfa states belong to this partition,
+		// and copy to the new_dfa_state.
+		linked_list_type *sub_partition = array_list_get(partition, part_idx);
+		linked_list_node_type *sub_partition_node;
+		for (sub_partition_node = sub_partition->head; sub_partition_node != NULL; sub_partition_node = sub_partition_node->next)
+		{
+			DFA_state_type *old_dfa_state = sub_partition_node->data;
+			
+			linked_list_type *nfas = old_dfa_state->nfa_states;
+			linked_list_node_type *nfa_node;
+
+			for (nfa_node = nfas->head; nfa_node != NULL; nfa_node = nfa_node->next)
+			{
+				assert(nfa_node->data);
+				if (!linked_list_search(new_dfa_state->nfa_states, nfa_node->data, NFA_state_compartor, NULL))
+				{
+					linked_list_insert_back(new_dfa_state->nfa_states, nfa_node->data);
+				}
+			}
+		}
+
+		array_list_append(new_states, new_dfa_state);
+	}
+
+	// New DFA's start state.
+	DFA_state_type *new_start_state = NULL;
+
+	// New DFA's end states.
+	array_list_type *new_end_states = array_list_create();
+	
+	// Set new DFA's start & end states.
+	for (part_idx = 0; part_idx < partition->length; ++part_idx)
+	{
+		linked_list_type *sub_partition = array_list_get(partition, part_idx);
+
+		// Flag to indicate current parition contains old DFA's end state.
+		// Initially set to FALSE.
+		bool has_end = FALSE;
+
+		linked_list_node_type *sub_partition_node;
+		for (sub_partition_node = sub_partition->head; sub_partition_node != NULL; sub_partition_node = sub_partition_node->next)
+		{
+			DFA_state_type *dfa_state = sub_partition_node->data;
+			assert(dfa_state);
+
+			// This partition contains old DFA's start state, mark it as
+			// the new start state.
+			if (DFA_state_compartor(dfa_state, dfa->start, NULL))
+			{
+				
+				
+				assert(part_idx < new_states->length);
+				new_start_state = array_list_get(new_states, part_idx);
+			}
+
+			// This partition contains old DFA's end state, add it to the
+			// the new end state list.
+			if (array_list_search(dfa->end, dfa_state, DFA_state_compartor, NULL))
+			{
+				has_end = TRUE;
+			}
+		}
+
+		if (has_end) {
+			array_list_append(new_end_states, array_list_get(new_states, part_idx));
+		}
+	}
+
+	assert(new_start_state);
+	assert(new_end_states->length);
+
+	LOG(TRUE, "new_start_state: %s", DFA_state_debug_str(new_start_state, NULL));
+	LOG(TRUE, "new_end_states: %s", get_array_list_debug_str(new_end_states, DFA_state_debug_str, NULL));
+
+	// New transition table.
+	hash_table_type *new_transfer_diagram = hash_table_create(DFA_state_symbol_pair_hash);
+
+	// Traverse the old transition table, to generate the new transition table entry.
+	gen_new_transfer_diagram_ctx ctx;
+	ctx.partition = partition;
+	ctx.states = new_states;
+	ctx.diag = dfa->transfer_diagram;
+	ctx.new_diag = new_transfer_diagram;
+
+	hash_table_traverse(dfa->transfer_diagram, _gen_new_transfer_diagram, &ctx);
+
+	// TO DO: de-construct old DFA's properties.
+	
+	// Assign new properties to DFA to form the new minified DFA.
+	dfa->states = new_states;
+	dfa->start = new_start_state;
+	dfa->end = new_end_states;
+	dfa->transfer_diagram = new_transfer_diagram;
+
+	LOG(TRUE, "Minified DFA: \n%s", get_DFA_debug_str(dfa));
+
 	return minimal_DFA;
 }
 
@@ -570,6 +729,8 @@ DFA_state_symbol_pair_compartor(void *one, void *another, va_list arg_list)
 bool
 DFA_state_compartor(void *one, void *another, va_list arg_list)
 {
+	if (one == another) return TRUE;
+
 	DFA_state_type *a = one;
 	DFA_state_type *b = another;
 
@@ -578,6 +739,9 @@ DFA_state_compartor(void *one, void *another, va_list arg_list)
 
 	linked_list_node_type *a_node;
 	linked_list_node_type *b_node;
+
+	if (a_nfa_states == NULL && b_nfa_states != NULL) return FALSE;
+	if (b_nfa_states == NULL && a_nfa_states != NULL) return FALSE;
 
 	for (a_node = a_nfa_states->head, b_node = b_nfa_states->head; a_node && b_node; a_node = a_node->next, b_node = b_node->next) {
 		int a_id = TYPE_CAST(a_node->data, NFA_state_type *)->id;
