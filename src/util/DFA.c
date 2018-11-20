@@ -422,13 +422,18 @@ split(DFA_type *dfa, array_list_type *partition, linked_list_type *p) {
 
 		if (idx_array->length > 1)
 		{
+			array_list_destroy(state_map, linked_list_deconstructor, NULL);
+			array_list_destroy(idx_array, int_deconstructor, NULL);
 			return ret;
+		}
+		else
+		{
+			array_list_destroy(idx_array, int_deconstructor, NULL);
 		}
 
 		alphabet_node = alphabet_node->next;
 	}
 	
-	//array_list_destroy(ret, linked_list_deconstructor, NULL);
 	array_list_destroy(state_map, linked_list_deconstructor, NULL);
 
 	return ret;
@@ -489,8 +494,6 @@ _gen_new_transfer_diagram(void *key, void *value, void *context)
 static DFA_type *
 minify_DFA(DFA_type *dfa)
 {
-	DFA_type *minimal_DFA = DFA_create();
-
 	//
 	// Initially, partition "P" is { { D[A] }, { D - D[A] } }
 	//
@@ -538,9 +541,15 @@ minify_DFA(DFA_type *dfa)
 			linked_list_type *p = array_list_get(partition, partition_idx);
 			
 			// Split p.
-			LOG(DFA_SPLIT_LOG_ENABLE, "before split: %s\n", get_linked_list_debug_str(p, DFA_state_debug_str, NULL));
+			char *before_split_debug_str = get_linked_list_debug_str(p, DFA_state_debug_str, NULL);
+			LOG(DFA_SPLIT_LOG_ENABLE, "before split: %s\n", before_split_debug_str);
+			free(before_split_debug_str);
+
 			array_list_type *split_set = split(dfa, partition, p);
-			LOG(DFA_SPLIT_LOG_ENABLE, "split set: %s\n", get_array_list_debug_str(split_set, linked_list_debug_str, DFA_state_debug_str, NULL));
+
+			char *after_split_debug_str = get_array_list_debug_str(split_set, linked_list_debug_str, DFA_state_debug_str, NULL);
+			LOG(DFA_SPLIT_LOG_ENABLE, "split set: %s\n", after_split_debug_str);
+			free(after_split_debug_str);
 
 			// Add new partitions to "new_partition"
 			int split_set_idx;
@@ -554,12 +563,15 @@ minify_DFA(DFA_type *dfa)
 			array_list_destroy(split_set, NULL);
 		}
 
+		array_list_destroy(partition, linked_list_deconstructor, NULL);
 		partition = new_partition;
 		
 		cur_partition_size = new_partition->length;
 	}
 
-	LOG(DFA_LOG_ENABLE, "Minimal partition: %s\n", get_array_list_debug_str(partition, linked_list_debug_str, DFA_state_debug_str, NULL));
+	char *minimal_partition_debug_str = get_array_list_debug_str(partition, linked_list_debug_str, DFA_state_debug_str, NULL);
+	LOG(DFA_LOG_ENABLE, "Minimal partition: %s\n", minimal_partition_debug_str);
+	free(minimal_partition_debug_str);
 	
 	/*
 	 * Construct a new DFA with the minimal partition we get.
@@ -647,8 +659,13 @@ minify_DFA(DFA_type *dfa)
 	assert(new_start_state);
 	assert(new_end_states->length);
 
-	LOG(TRUE, "new_start_state: %s", DFA_state_debug_str(new_start_state, NULL));
-	LOG(TRUE, "new_end_states: %s", get_array_list_debug_str(new_end_states, DFA_state_debug_str, NULL));
+	char *new_start_state_debug_str = DFA_state_debug_str(new_start_state, NULL);
+	LOG(DFA_MINIFY_LOG_ENABLE, "new_start_state: %s", new_start_state_debug_str);
+	free(new_start_state_debug_str);
+	
+	char *new_end_states_debug_str = get_array_list_debug_str(new_end_states, DFA_state_debug_str, NULL);
+	LOG(DFA_MINIFY_LOG_ENABLE, "new_end_states: %s", new_end_states_debug_str);
+	free(new_end_states_debug_str);
 
 	// New transition table.
 	hash_table_type *new_transfer_diagram = hash_table_create(DFA_state_symbol_pair_hash);
@@ -662,17 +679,28 @@ minify_DFA(DFA_type *dfa)
 
 	hash_table_traverse(dfa->transfer_diagram, _gen_new_transfer_diagram, &ctx);
 
-	// TO DO: de-construct old DFA's properties.
+	// De-construct old DFA's properties.
+	// 1. No need to destroy "start", because it's a borrowed pointer;
+	// 2. No need to destroy "alphabet", because it's reused in the
+	//    new minified DFA.
+	array_list_destroy(dfa->states, DFA_state_deconstructor, NULL);
+	array_list_destroy(dfa->end, NULL);
+	hash_table_destroy(dfa->transfer_diagram, DFA_state_symbol_pair_deconstructor, NULL);
 	
+	// De-construct partition.
+	array_list_destroy(partition, linked_list_deconstructor, NULL);
+
 	// Assign new properties to DFA to form the new minified DFA.
 	dfa->states = new_states;
 	dfa->start = new_start_state;
 	dfa->end = new_end_states;
 	dfa->transfer_diagram = new_transfer_diagram;
 
-	LOG(TRUE, "Minified DFA: \n%s", get_DFA_debug_str(dfa));
+	char *minified_DFA_debug_str = get_DFA_debug_str(dfa);
+	LOG(DFA_MINIFY_LOG_ENABLE, "Minified DFA: \n%s", minified_DFA_debug_str);
+	free(minified_DFA_debug_str);
 
-	return minimal_DFA;
+	return dfa;
 }
 
 /*
