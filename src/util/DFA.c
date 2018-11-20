@@ -346,13 +346,18 @@ split(DFA_type *dfa, array_list_type *partition, linked_list_type *p) {
 	while (alphabet_node) {
 		char *symbol = alphabet_node->data;
 
+		LOG(TRUE, "symbol: %s\n", symbol);
 		// Clear "ret".
 		array_list_destroy(state_map, linked_list_deconstructor, NULL);
 		state_map = array_list_create();
+		array_list_destroy(ret, linked_list_deconstructor, NULL);
+		ret = array_list_create();
 
-		// "ret" has the size of DFA state number.
+		// "ret" has the size of DFA state number plus one. The plus
+		// one is for error state.
+		array_list_adjust_length(state_map, dfa->states->length + 1);
 		int array_idx;
-		for (array_idx = 0; array_idx < dfa->states->length; ++array_idx)
+		for (array_idx = 0; array_idx < dfa->states->length + 1; ++array_idx)
 		{
 			array_list_set(state_map, array_idx, linked_list_create());
 		}
@@ -367,44 +372,64 @@ split(DFA_type *dfa, array_list_type *partition, linked_list_type *p) {
 
 			DFA_state_type *target_state = hash_table_search(dfa->transfer_diagram, &key, DFA_state_symbol_pair_compartor, NULL);
 
+			int partition_idx = -1;
 			if (target_state)
 			{
-				int partition_idx = state_in_which_partition(target_state, partition);
-				LOG(TRUE, "partition_idx: %d\n", partition_idx);
-				assert(partition_idx >= 0);
-				
-				linked_list_type *ret_p = array_list_get(state_map, partition_idx);
-				linked_list_insert_back(ret_p, state);
-
+				partition_idx = state_in_which_partition(target_state, partition);
 			}
+			else
+			{
+				partition_idx = dfa->states->length;
+			}
+			LOG(TRUE, "partition_idx: %d\n", partition_idx);
+			assert(partition_idx >= 0);
+
+			linked_list_type *ret_p = array_list_get(state_map, partition_idx);
+			linked_list_insert_back(ret_p, state);
 		}
 		
 		array_list_type *idx_array = array_list_create();
-		for (array_idx = 0; array_idx < dfa->states->length; ++array_idx)
+		for (array_idx = 0; array_idx < dfa->states->length + 1; ++array_idx)
 		{
+			
 			linked_list_type *new_p = array_list_get(state_map, array_idx);
 			if (new_p->head) {
-				array_list_append(idx_array, array_idx);
+				array_list_append(idx_array, create_int(array_idx));
+				LOG(TRUE, "new_p: %s\n", get_linked_list_debug_str(new_p, DFA_state_debug_str, NULL));
 			}
+		}
+
+		for (array_idx = 0; array_idx < idx_array->length; ++array_idx)
+		{
+			LOG(TRUE, "array_idx: %d\n", array_idx);
+			int state_map_idx = *TYPE_CAST(array_list_get(idx_array, array_idx), int *);
+			LOG(TRUE, "state_map_idx: %d\n", state_map_idx);
+			linked_list_type *set = array_list_get(state_map, state_map_idx);
+			array_list_append(ret, set);
+			LOG(TRUE, "set: %s\n", get_array_list_debug_str(ret, linked_list_debug_str, DFA_state_debug_str, NULL));
+
+			array_list_set(state_map, state_map_idx, NULL);
+
+			LOG(TRUE, "set after: %s\n", get_array_list_debug_str(ret, linked_list_debug_str, DFA_state_debug_str, NULL));
 		}
 
 		if (idx_array->length > 1)
 		{
-			for (array_idx = 0; array_idx < idx_array->length; ++array_idx)
-			{
-				linked_list_type *set = array_list_get(state_map, array_idx);
-				array_list_append(ret, set);
-			}
+
+			return ret;
 			
 		}
 
 		alphabet_node = alphabet_node->next;
 	}
+
 	
-	array_list_destroy(ret, linked_list_deconstructor, NULL);
+	LOG(TRUE, "return p");
+	//array_list_destroy(ret, linked_list_deconstructor, NULL);
 	array_list_destroy(state_map, linked_list_deconstructor, NULL);
 
-	return p;
+	LOG(TRUE, "ret: %s\n", get_array_list_debug_str(ret, linked_list_debug_str, DFA_state_debug_str, NULL));
+	return ret;
 }
 
 /*
@@ -474,11 +499,13 @@ minify_DFA(DFA_type *dfa)
 			{
 				linked_list_type *new_p = array_list_get(split_set, split_set_idx);
 				array_list_append(new_partition, new_p);
+
+				array_list_set(split_set, split_set_idx, NULL);
 			}
 			array_list_destroy(split_set, NULL);
 		}
 
-		array_list_destroy(partition, linked_list_deconstructor, NULL);
+		//array_list_destroy(partition, linked_list_deconstructor, NULL);
 		partition = new_partition;
 		
 		cur_partition_size = new_partition->length;
