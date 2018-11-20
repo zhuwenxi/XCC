@@ -1,7 +1,13 @@
 #include <stdio.h>
 #include "test_all.h"
 
+#ifdef MTRACE
+#include <mcheck.h>
+#endif
 
+#ifdef WINDOWS
+#include <crtdbg.h>
+#endif
 
 
 testcase testcases[TESTCASE_LIMIT] =
@@ -15,10 +21,18 @@ testcase testcases[TESTCASE_LIMIT] =
 
 int main(int argc, char *args[])
 {	
+#ifdef WINDOWS
+	//_CrtSetBreakAlloc(264876);
+#endif
+
 	int test_case_num = TESTCASE_LIMIT;
 	int fail_case_num = 0;
 	int pass_case_num = 0;
-	
+
+#ifdef MTRACE
+	mtrace();
+#endif
+
 	int i;
 	for (i = 0; i < test_case_num; i ++)
 	{
@@ -34,4 +48,13 @@ int main(int argc, char *args[])
 	printf("All cases:  %d\n", pass_case_num + fail_case_num);
 	printf("Pass cases: %d\n", pass_case_num);
 	printf("Fail cases: %d\n\n", fail_case_num);
+
+#ifdef MTRACE
+	muntrace();
+#endif
+
+#ifdef WINDOWS
+	_CrtDumpMemoryLeaks();
+#endif
+	return 0;
 }

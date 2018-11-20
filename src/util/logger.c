@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #include "util/logger.h"
 
@@ -14,7 +15,7 @@ void LOG_impl(bool condition, char *format, ...)
 		size_t text_len = strlen(format) + 2;
 
 		// create an empty string
-		char new_text[text_len];
+		char *new_text = (char *)malloc(sizeof(char) * text_len);
 		new_text[0] = '\0';	
 		
 		// add a '\n' at the end of the string
@@ -26,5 +27,7 @@ void LOG_impl(bool condition, char *format, ...)
 		va_start(ap, format);
 		vprintf(new_text, ap);
 		va_end(ap);
+
+		free(new_text);
 	}
 }
