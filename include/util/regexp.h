@@ -6,6 +6,7 @@
 #include "LR_automata.h"
 #include "NFA.h"
 #include "DFA.h"
+#include "opts.h"
 
 typedef enum
 {

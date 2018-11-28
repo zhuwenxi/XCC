@@ -49,39 +49,83 @@ string_buffer regexp_search(char *pattern, char *str)
 	for (str_idx = 0; str_idx < strlen(str); ++str_idx)
 	{
 		int start_pos = str_idx;
-		int end_pos = strlen(str);
+		int end_pos = strlen(str) - 1;
 
 		int cur_pos = start_pos;
 		char *cur_char = str[cur_pos];
 
+		stack_type *state_stack = stack_create();
+
+		LOG(REGEXP_LOG_ENABLE, "start char: %c", cur_char);
+
 		// Record the ret string length.
-		int ret_lengh = 0;
+		int ret_length = 1;
 
 		DFA_type *dfa = regexp->DFA;
 		assert(dfa);
 
 		DFA_state_type *state = dfa->start;
+		array_list_type *end_state_set = dfa->end;
 
 		
 		do {
 			// "cur_char" is a char, make is a string (with exactly one element).
 			string_buffer symbol = string_buffer_create();
-			string_buffer_append(&symbol, cur_char);
+
+			char tmp_str[2];
+			tmp_str[0] = cur_char;
+			tmp_str[1] = '\0';
+
+			string_buffer_append(&symbol, tmp_str);
 
 			DFA_state_symbol_pair_type key;
 			key.state = state;
 			key.symbol = symbol;
 
+			LOG(REGEXP_LOG_ENABLE, "soruce state: %s", DFA_state_debug_str(key.state, NULL));
+			LOG(REGEXP_LOG_ENABLE, "symbol: %s", symbol);
+
 			state = hash_table_search(dfa->transfer_diagram, &key, DFA_state_symbol_pair_compartor, NULL);
 
 			if (state)
 			{
+				LOG(REGEXP_LOG_ENABLE, "target state: %s", DFA_state_debug_str(state, NULL));
 				++cur_pos;
 				cur_char = str[cur_pos];
+				++ret_length;
+
+				stack_push(state_stack, state);
 			}
 		} while (state != NULL && cur_pos <= end_pos);
 
-		
+		bool find_a_match = FALSE;
+		// Roll back and try to find the matched state.
+		while (!stack_empty(state_stack))
+		{
+			state = stack_pop(state_stack);
+			--cur_pos;
+			--ret_length;
+			
+			if (array_list_search(end_state_set, state, DFA_state_compartor, NULL))
+			{
+				find_a_match = TRUE;
+				break;
+			}
+
+			LOG(REGEXP_LOG_ENABLE, "start_pos: %d, ret_length: %d", start_pos, ret_length);
+		}
+
+		if (find_a_match) 
+		{
+			int ret_idx;
+			for (ret_idx = start_pos; ret_idx < start_pos + ret_length; ++ret_idx)
+			{
+				char tmp[2] = { str[ret_idx], '\0' };
+				string_buffer_append(&ret, tmp);
+			}
+
+			return ret;
+		}
 	}
 	
 	// Destroy the regexp.

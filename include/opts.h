@@ -26,8 +26,11 @@
 #define NFA_LOG_ENABLE FALSE
 
 // options for DFA
-#define DFA_LOG_ENABLE FALSE
+#define DFA_LOG_ENABLE TRUE
 #define DFA_SPLIT_LOG_ENABLE FALSE
-#define DFA_MINIFY_LOG_ENABLE FALSE
+#define DFA_MINIFY_LOG_ENABLE TRUE
+
+// options for regexp
+#define REGEXP_LOG_ENABLE TRUE
 
 #endif
