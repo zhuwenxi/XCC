@@ -29,7 +29,9 @@ regexp_type *regexp_create(char *text);
 bool regexp_deconstructor(regexp_type *regexp, va_list arg_list);
 DECLARE_DESTROY(regexp);
 
-char *regexp_search(char *pattern, char *str);
+string_buffer regexp_search(char *pattern, char *str);
+
+bool regexp_match(char *pattern, char *str);
 
 production_token_type regexp_grammar_get_token_type(char c);
 

@@ -35,9 +35,57 @@ regexp_deconstructor(regexp_type *self, va_list arg_list)
 	return TRUE;
 }
 
-char *regexp_search(char *pattern, char *str)
+string_buffer regexp_search(char *pattern, char *str)
 {
+	// regexp constructed from the "pattern" string.
+	regexp_type *regexp = regexp_create(pattern);
+
+	string_buffer ret = string_buffer_create();
+
+	// We iterate every char in the "str", treat it
+	// as the start of a matched pattern and try to
+	// find the match.
+	int str_idx;
+	for (str_idx = 0; str_idx < strlen(str); ++str_idx)
+	{
+		int start_pos = str_idx;
+		int end_pos = strlen(str);
+
+		int cur_pos = start_pos;
+		char *cur_char = str[cur_pos];
+
+		// Record the ret string length.
+		int ret_lengh = 0;
+
+		DFA_type *dfa = regexp->DFA;
+		assert(dfa);
+
+		DFA_state_type *state = dfa->start;
+
+		
+		do {
+			// "cur_char" is a char, make is a string (with exactly one element).
+			string_buffer symbol = string_buffer_create();
+			string_buffer_append(&symbol, cur_char);
+
+			DFA_state_symbol_pair_type key;
+			key.state = state;
+			key.symbol = symbol;
+
+			state = hash_table_search(dfa->transfer_diagram, &key, DFA_state_symbol_pair_compartor, NULL);
+
+			if (state)
+			{
+				++cur_pos;
+				cur_char = str[cur_pos];
+			}
+		} while (state != NULL && cur_pos <= end_pos);
+
+		
+	}
 	
+	// Destroy the regexp.
+	regexp_destroy(regexp, NULL);
 }
 
 production_token_type
