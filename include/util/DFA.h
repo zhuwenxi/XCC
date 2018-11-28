@@ -22,6 +22,9 @@ typedef struct {
 
 	// alphabet:
 	linked_list_type *alphabet;
+
+	// NFA:
+	NFA_type *nfa;
 } DFA_type;
 
 typedef struct {

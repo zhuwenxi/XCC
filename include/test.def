@@ -85,3 +85,8 @@ TESTCASE(NFA_CREATE_DESTROY_TEST, NFA_create_destroy_test, "Test for NFA_create(
   * Test case for DFA
   */
 TESTCASE(DFA_CREATE_DESTROY_TEST, DFA_create_destroy_test, "Test for DFA_create() and DFA_destroy().")
+
+/*
+ * Test case for regexp
+ */
+ TESTCASE(REGEXP_CREATE_DESTROY_TEST, regexp_create_destroy_test, "Test for regexp_create")

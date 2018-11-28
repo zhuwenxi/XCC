@@ -4,6 +4,8 @@
 #include <stdarg.h>
 
 #include "LR_automata.h"
+#include "NFA.h"
+#include "DFA.h"
 
 typedef enum
 {

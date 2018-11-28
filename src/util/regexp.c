@@ -18,22 +18,21 @@ regexp_create(char *text)
 	regexp_type *self = (regexp_type *)malloc(sizeof(regexp_type));
 	self->text = text;
 
+	NFA_type *nfa = NFA_from_str(text);
+	DFA_type *dfa = NFA_to_DFA(nfa);
+	self->DFA = dfa;
+
 	return self;
 }
 
 bool
-regexp_deconstructor(regexp_type *regexp, va_list arg_list)
+regexp_deconstructor(regexp_type *self, va_list arg_list)
 {
-	bool dfa_destroyed = LR_automata_destroy(regexp->DFA);
-	free(regexp);
+	DFA_destroy(self->DFA, NULL);
+
+	free(self);
 	
-	return dfa_destroyed;
-}
-
-static void
-thompson_consturction()
-{
-
+	return TRUE;
 }
 
 char *regexp_search(char *pattern, char *str)

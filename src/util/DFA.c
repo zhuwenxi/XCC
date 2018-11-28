@@ -14,6 +14,8 @@ DFA_type *DFA_create()
 	self->end = array_list_create();
 
 	self->alphabet = NULL;
+
+	self->nfa = NULL;
 	
 	return self;
 }
@@ -31,6 +33,11 @@ DFA_deconstructor(DFA_type *self, va_list arg_list)
 	if (self->alphabet)
 	{
 		linked_list_destroy(self->alphabet, char_deconstructor, NULL);
+	}
+
+	if (self->nfa)
+	{
+		NFA_destroy(self->nfa, NULL);
 	}
 
 	free(self);
@@ -711,6 +718,8 @@ NFA_to_DFA(NFA_type *nfa)
 {
 	DFA_type *dfa = subset_construction(nfa);
 	minify_DFA(dfa);
+	dfa->nfa = nfa;
+
 	return dfa;
 }
 
