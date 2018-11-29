@@ -25,14 +25,21 @@ typedef struct {
 	LR_automata_type *DFA;
 } regexp_type;
 
+// "Group" return by regexp_search()
+typedef struct {
+	int start;
+	int length;
+	char *str;
+} regexp_return_group_type;
+
 regexp_type *regexp_create(char *text);
 
 bool regexp_deconstructor(regexp_type *regexp, va_list arg_list);
 DECLARE_DESTROY(regexp);
 
-string_buffer regexp_search(char *pattern, char *str);
+regexp_return_group_type regexp_search(char *pattern, char *str);
 
-bool regexp_match(char *pattern, char *str);
+regexp_return_group_type regexp_match(char *pattern, char *str);
 
 production_token_type regexp_grammar_get_token_type(char c);
 

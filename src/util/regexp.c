@@ -35,7 +35,7 @@ regexp_deconstructor(regexp_type *self, va_list arg_list)
 	return TRUE;
 }
 
-string_buffer regexp_search(char *pattern, char *str)
+regexp_return_group_type regexp_search(char *pattern, char *str)
 {
 	// regexp constructed from the "pattern" string.
 	regexp_type *regexp = regexp_create(pattern);
@@ -82,20 +82,29 @@ string_buffer regexp_search(char *pattern, char *str)
 			key.state = state;
 			key.symbol = symbol;
 
-			LOG(REGEXP_LOG_ENABLE, "soruce state: %s", DFA_state_debug_str(key.state, NULL));
+			char *source_state_debug_str = DFA_state_debug_str(key.state, NULL);
+			LOG(REGEXP_LOG_ENABLE, "soruce state: %s", source_state_debug_str);
+			free(source_state_debug_str);
+
 			LOG(REGEXP_LOG_ENABLE, "symbol: %s", symbol);
 
 			state = hash_table_search(dfa->transfer_diagram, &key, DFA_state_symbol_pair_compartor, NULL);
 
 			if (state)
 			{
-				LOG(REGEXP_LOG_ENABLE, "target state: %s", DFA_state_debug_str(state, NULL));
+				char *target_state_debug_str = DFA_state_debug_str(state, NULL);
+				LOG(REGEXP_LOG_ENABLE, "target state: %s", target_state_debug_str);
+				free(target_state_debug_str);
+
 				++cur_pos;
 				cur_char = str[cur_pos];
 				++ret_length;
 
 				stack_push(state_stack, state);
 			}
+
+			// De-construct the "symbol".
+			free(symbol);
 		} while (state != NULL && cur_pos <= end_pos);
 
 		bool find_a_match = FALSE;
@@ -105,15 +114,17 @@ string_buffer regexp_search(char *pattern, char *str)
 			state = stack_pop(state_stack);
 			--cur_pos;
 			--ret_length;
+
+			LOG(REGEXP_LOG_ENABLE, "start_pos: %d, ret_length: %d", start_pos, ret_length);
 			
 			if (array_list_search(end_state_set, state, DFA_state_compartor, NULL))
 			{
 				find_a_match = TRUE;
 				break;
 			}
-
-			LOG(REGEXP_LOG_ENABLE, "start_pos: %d, ret_length: %d", start_pos, ret_length);
 		}
+
+		stack_destroy(state_stack, NULL);
 
 		if (find_a_match) 
 		{
@@ -124,12 +135,29 @@ string_buffer regexp_search(char *pattern, char *str)
 				string_buffer_append(&ret, tmp);
 			}
 
-			return ret;
+			regexp_destroy(regexp, NULL);
+
+			regexp_return_group_type group;
+			group.start = start_pos;
+			group.length = ret_length;
+			group.str = ret;
+
+			return group;
 		}
 	}
 	
-	// Destroy the regexp.
+	// Destroy the regexp and ret.
 	regexp_destroy(regexp, NULL);
+	free(ret);
+
+	LOG(REGEXP_LOG_ENABLE, "Fail to search.")
+
+	regexp_return_group_type group;
+	group.start = -1;
+	group.length = 0;
+	group.str = NULL;
+
+	return group;
 }
 
 production_token_type
