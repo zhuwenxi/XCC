@@ -11,14 +11,12 @@ bool regexp_create_destroy_test()
 bool regexp_search_test()
 {
 	regexp_return_group_type ret = regexp_search("(a|b)*abb", "abb");
-	LOG(TRUE, "ret: %s", ret.str);
 	if (ret.start != 0) return FALSE;
 	if (ret.length != 3) return FALSE;
 	if (strcmp(ret.str, "abb")) return FALSE;
 	free(ret.str);
 
 	regexp_return_group_type ret2 = regexp_search("(a|b)*abb", "fabbc");
-	LOG(TRUE, "ret2: %s", ret2.str);
 	if (ret2.start != 1) return FALSE;
 	if (ret2.length != 3) return FALSE;
 	if (strcmp(ret2.str, "abb")) return FALSE;
@@ -31,11 +29,22 @@ bool regexp_search_test()
 	free(ret3.str);
 
 	regexp_return_group_type ret4 = regexp_search("fee|fie", "feex");
-	LOG(TRUE, "ret4: %s", ret4.str);
 	if (ret4.start != 0) return FALSE;
 	if (ret4.length != 3) return FALSE;
 	if (strcmp(ret4.str, "fee")) return FALSE;
 	free(ret4.str);
+
+	regexp_return_group_type ret5 = regexp_search("(a|b)*abb", "aabbabbb");
+	if (ret5.start != 0) return FALSE;
+	if (ret5.length != 7) return FALSE;
+	if (strcmp(ret5.str, "aabbabb")) return FALSE;
+	free(ret5.str);
+
+	regexp_return_group_type ret6 = regexp_search("0x1234", "0x123a");
+	if (ret6.start != -1) return FALSE;
+	if (ret6.length != 0) return FALSE;
+	if (ret6.str != NULL) return FALSE;
+	free(ret6.str);
 	
 	return TRUE;
 }
