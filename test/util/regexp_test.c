@@ -63,8 +63,12 @@ bool regexp_search_test()
 	if (ret9.length != 3) return FALSE;
 	if (strcmp(ret9.str, "a b")) return FALSE;
 	free(ret9.str);
-	
 
+	regexp_return_group_type ret10 = regexp_search("a\\*b", "a*b");
+	if (ret10.start != 0) return FALSE;
+	if (ret10.length != 3) return FALSE;
+	if (strcmp(ret10.str, "a*b")) return FALSE;
+	free(ret10.str);
 	
 	return TRUE;
 }

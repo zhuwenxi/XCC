@@ -174,19 +174,24 @@ regexp_grammar_get_token_type(char *str)
 
 		switch (c)
 		{
-			case '+':
-				return CHAR;
+			case '+':								  // Plus
+				break;
+			case '*':								  // Multiple
 				break;
 			default:
 				LOG(TRUE, "Oops, unknown token: %c!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", c);
 				return -1;
 		}
+
+		return CHAR;
 	}
 
 	if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'  // Alphabet
 	 || c >= '0' && c <= '9'                          // Digit
 	 || c == '_'									  // Underscore
 	 || c == ' '									  // Whitespace
+	 || c == '-'									  // Minus
+	 || c == '/'									  // Divide
 	 )
 	{
 		return CHAR;
@@ -210,6 +215,7 @@ regexp_grammar_get_token_type(char *str)
 	else
 	{
 		LOG(TRUE, "Oops, unknown token: %c!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", c);
+		return -1;
 	}
 }
 
