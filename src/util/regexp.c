@@ -185,7 +185,9 @@ regexp_grammar_get_token_type(char *str)
 
 	if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'  // Alphabet
 	 || c >= '0' && c <= '9'                          // Digit
-	 || c == '_')									  // Underscore
+	 || c == '_'									  // Underscore
+	 || c == ' '									  // Whitespace
+	 )
 	{
 		return CHAR;
 	}

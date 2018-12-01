@@ -51,11 +51,19 @@ bool regexp_search_test()
 	if (ret7.length != 5) return FALSE;
 	if (strcmp(ret7.str, "_____")) return FALSE;
 	free(ret7.str);
+	
 	regexp_return_group_type ret8 = regexp_search("a\\+b", "a+b");
 	if (ret8.start != 0) return FALSE;
 	if (ret8.length != 3) return FALSE;
 	if (strcmp(ret8.str, "a+b")) return FALSE;
 	free(ret8.str);
+
+	regexp_return_group_type ret9 = regexp_search("a b", " a b");
+	if (ret9.start != 1) return FALSE;
+	if (ret9.length != 3) return FALSE;
+	if (strcmp(ret9.str, "a b")) return FALSE;
+	free(ret9.str);
+	
 
 	
 	return TRUE;
