@@ -45,6 +45,12 @@ bool regexp_search_test()
 	if (ret6.length != 0) return FALSE;
 	if (ret6.str != NULL) return FALSE;
 	free(ret6.str);
+
+	regexp_return_group_type ret7 = regexp_search("_*", "a_____b");
+	if (ret7.start == 1) return FALSE;
+	if (ret7.length == 5) return FALSE;
+	if (strcmp(ret5.str, "_____")) return FALSE;
+	free(ret7.str);
 	
 	return TRUE;
 }

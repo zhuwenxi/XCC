@@ -163,7 +163,9 @@ regexp_return_group_type regexp_search(char *pattern, char *str)
 production_token_type
 regexp_grammar_get_token_type(char c)
 {
-	if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9')
+	if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'  // Alphabet
+	 || c >= '0' && c <= '9'                          // Digit
+	 || c == '_')									  // Underscore
 	{
 		return CHAR;
 	}
