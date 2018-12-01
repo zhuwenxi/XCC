@@ -41,7 +41,7 @@ regexp_return_group_type regexp_search(char *pattern, char *str);
 
 regexp_return_group_type regexp_match(char *pattern, char *str);
 
-production_token_type regexp_grammar_get_token_type(char c);
+production_token_type regexp_grammar_get_token_type(char *str);
 
 void construct_ast_for_regexp_grammar(stack_type *ast_node_stack, production_type *prod_to_reduce);
 

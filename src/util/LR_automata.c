@@ -771,8 +771,37 @@ LR_automata_input_buffer_init(LR_automata_input_buffer_type *buffer, char *input
 	for (i = 0; i < input_size; i ++)
 	{
 		LR_automata_input_type *element = (LR_automata_input_type *)malloc(sizeof(LR_automata_input_type));
-		element->c = input[i];
-		element->type = buffer->get_token_type(input[i]);
+		
+		// Let "char_candidate has a length of 2, because we have to handle the escape char case".
+		// For example: use "\\+" represent the multiple symbol, since "+" is already used to
+		// Represent "Kleene closure".
+		char char_candidate[2];
+		
+		if (i == input_size - 1)
+		{
+			char_candidate[0] = input[i];
+			char_candidate[1] = '\0';
+		}
+		else
+		{
+			char_candidate[0] = input[i];
+			char_candidate[1] = input[i + 1];
+		}
+
+		// If current char is '\\' (escape), make the next char as the actual char.
+		if (char_candidate[0] == '\\')
+		{
+			assert(i != input_size - 1);
+			element->c = input[i + 1];
+			// Escape next char.
+			++i;
+		}
+		else
+		{
+			element->c = input[i];
+		}
+		
+		element->type = buffer->get_token_type(char_candidate);
 
 		array_list_append(buffer->list, element);
 	}

@@ -128,13 +128,13 @@ regexp_return_group_type regexp_search(char *pattern, char *str)
 
 		if (find_a_match) 
 		{
+			LOG(REGEXP_LOG_ENABLE, "Find a match.");
 			int ret_idx;
 			for (ret_idx = start_pos; ret_idx < start_pos + ret_length; ++ret_idx)
 			{
 				char tmp[2] = { str[ret_idx], '\0' };
 				string_buffer_append(&ret, tmp);
 			}
-
 			regexp_destroy(regexp, NULL);
 
 			regexp_return_group_type group;
@@ -144,6 +144,8 @@ regexp_return_group_type regexp_search(char *pattern, char *str)
 
 			return group;
 		}
+
+		LOG(REGEXP_LOG_ENABLE, "Could not find a match.");
 	}
 	
 	// Destroy the regexp and ret.
@@ -161,8 +163,26 @@ regexp_return_group_type regexp_search(char *pattern, char *str)
 }
 
 production_token_type
-regexp_grammar_get_token_type(char c)
+regexp_grammar_get_token_type(char *str)
 {
+	char c = str[0];
+
+	// Escaped char.
+	if (c == '\\')
+	{
+		c = str[1];
+
+		switch (c)
+		{
+			case '+':
+				return CHAR;
+				break;
+			default:
+				LOG(TRUE, "Oops, unknown token: %c!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", c);
+				return -1;
+		}
+	}
+
 	if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'  // Alphabet
 	 || c >= '0' && c <= '9'                          // Digit
 	 || c == '_')									  // Underscore

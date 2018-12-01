@@ -110,7 +110,7 @@ action_table_value_type *LR_automata_action(LR_automata_type *lr_automata, conte
 context_free_grammar_type *LR_automata_goto(LR_automata_type *lr_automata, context_free_grammar_type *state, production_token_type *symbol);
 
 LR_automata_input_buffer_type *LR_automata_input_buffer_create();
-void LR_automata_input_buffer_init(LR_automata_input_buffer_type *buffer, char *input, production_token_type (*get_token_type)(char));
+void LR_automata_input_buffer_init(LR_automata_input_buffer_type *buffer, char *input, production_token_type (*get_token_type)(char *));
 bool LR_automata_input_buffer_deconstructor(LR_automata_input_buffer_type *buffer, va_list arg_list);
 DECLARE_DESTROY(LR_automata_input_buffer)
 LR_automata_input_type *LR_automata_input_buffer_read(LR_automata_input_buffer_type *buffer);

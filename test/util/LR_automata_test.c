@@ -30,8 +30,10 @@ static char *token_desc_table[] =
 };
 
 static production_token_type 
-get_token_type(char c)
+get_token_type(char *str)
 {
+	char c = str[0];
+
 	if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
 	{
 		return ID;
@@ -59,8 +61,10 @@ get_token_type(char c)
 }
 
 static production_token_type 
-regexp_grammar_get_token_type(char c)
+regexp_grammar_get_token_type(char *str)
 {
+	char c = str[0];
+
 	if (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
 	{
 		return CHAR;
