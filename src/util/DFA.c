@@ -2,6 +2,7 @@
 #include "util/util.h"
 #include "util/queue.h"
 #include "opts.h"
+#include <time.h>
 
 DFA_type *DFA_create()
 {
@@ -234,6 +235,8 @@ subset_construction(NFA_type *nfa)
 	enqueue(work_queue, dfa_start_state);
 
 	while (!queue_empty(work_queue)) {
+		int count = 0;
+
 		DFA_state_type *source_dfa_state = dequeue(work_queue);
 		linked_list_type *nfa_states = source_dfa_state->nfa_states;
 
@@ -247,6 +250,7 @@ subset_construction(NFA_type *nfa)
 			NFA_state_symbol_pair_type key;
 
 			while (nfa_state_node) {
+				++count;
 				key.state = nfa_state_node->data;
 				key.symbol = symbol;
 
@@ -310,6 +314,7 @@ subset_construction(NFA_type *nfa)
 			
 			dict_node = dict_node->next;
 		}
+		//LOG(TRUE, "count: %d", count);
 	}
 
 	queue_destroy(work_queue, NULL);
@@ -318,6 +323,7 @@ subset_construction(NFA_type *nfa)
 
 	char *db_str = get_DFA_debug_str(dfa);
 	LOG(DFA_LOG_ENABLE, "DFA: %s", db_str);
+	LOG(TRUE, "DFA states num: %d", dfa->states->length);
 	free(db_str);
 
 	return dfa;
@@ -353,7 +359,7 @@ split(DFA_type *dfa, array_list_type *partition, linked_list_type *p) {
 	while (alphabet_node) {
 		char *symbol = alphabet_node->data;
 
-		LOG(DFA_SPLIT_LOG_ENABLE, "symbol: %s\n", symbol);
+		LOG(DFA_MINIFY_LOG_ENABLE, "symbol: %s\n", symbol);
 		// Clear "ret".
 		array_list_destroy(state_map, linked_list_deconstructor, NULL);
 		state_map = array_list_create();
@@ -378,7 +384,7 @@ split(DFA_type *dfa, array_list_type *partition, linked_list_type *p) {
 			key.symbol = symbol;
 
 			char *state_debug_str = DFA_state_debug_str(state, NULL);
-			LOG(DFA_SPLIT_LOG_ENABLE, "source state: %s", state_debug_str);
+			LOG(DFA_MINIFY_LOG_ENABLE, "source state: %s", state_debug_str);
 			free(state_debug_str);
 
 			DFA_state_type *target_state = hash_table_search(dfa->transfer_diagram, &key, DFA_state_symbol_pair_compartor, NULL);
@@ -387,7 +393,7 @@ split(DFA_type *dfa, array_list_type *partition, linked_list_type *p) {
 			if (target_state)
 			{
 				char *target_state_debug_str = DFA_state_debug_str(target_state, NULL);
-				LOG(DFA_SPLIT_LOG_ENABLE, "target state: %s", target_state_debug_str);
+				LOG(DFA_MINIFY_LOG_ENABLE, "target state: %s", target_state_debug_str);
 				free(target_state_debug_str);
 
 				partition_idx = state_in_which_partition(target_state, partition);
@@ -397,7 +403,7 @@ split(DFA_type *dfa, array_list_type *partition, linked_list_type *p) {
 				partition_idx = dfa->states->length;
 			}
 
-			LOG(DFA_SPLIT_LOG_ENABLE, "partition_idx: %d\n", partition_idx);
+			LOG(DFA_MINIFY_LOG_ENABLE, "partition_idx: %d\n", partition_idx);
 			assert(partition_idx >= 0);
 
 			linked_list_type *ret_p = array_list_get(state_map, partition_idx);
@@ -423,7 +429,7 @@ split(DFA_type *dfa, array_list_type *partition, linked_list_type *p) {
 			array_list_set(state_map, state_map_idx, NULL);
 
 			char *set_debug_str = get_array_list_debug_str(ret, linked_list_debug_str, DFA_state_debug_str, NULL);
-			LOG(DFA_SPLIT_LOG_ENABLE, "set: %s\n", set_debug_str);
+			LOG(DFA_MINIFY_LOG_ENABLE, "set: %s\n", set_debug_str);
 			free(set_debug_str);
 		}
 
@@ -501,6 +507,7 @@ _gen_new_transfer_diagram(void *key, void *value, void *context)
 static DFA_type *
 minify_DFA(DFA_type *dfa)
 {
+	LOG(DFA_MINIFY_LOG_ENABLE, "Start to minify DFA.");
 	//
 	// Initially, partition "P" is { { D[A] }, { D - D[A] } }
 	//
@@ -549,13 +556,13 @@ minify_DFA(DFA_type *dfa)
 			
 			// Split p.
 			char *before_split_debug_str = get_linked_list_debug_str(p, DFA_state_debug_str, NULL);
-			LOG(DFA_SPLIT_LOG_ENABLE, "before split: %s\n", before_split_debug_str);
+			LOG(DFA_MINIFY_LOG_ENABLE, "before split: %s\n", before_split_debug_str);
 			free(before_split_debug_str);
 
 			array_list_type *split_set = split(dfa, partition, p);
 
 			char *after_split_debug_str = get_array_list_debug_str(split_set, linked_list_debug_str, DFA_state_debug_str, NULL);
-			LOG(DFA_SPLIT_LOG_ENABLE, "split set: %s\n", after_split_debug_str);
+			LOG(DFA_MINIFY_LOG_ENABLE, "split set: %s\n", after_split_debug_str);
 			free(after_split_debug_str);
 
 			// Add new partitions to "new_partition"

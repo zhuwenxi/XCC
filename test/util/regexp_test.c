@@ -21,7 +21,7 @@ check_result(regexp_return_group_type ret, int start, int length, char *str)
 
 bool regexp_search_test()
 {
-	regexp_return_group_type ret = regexp_search("(a|b)*abb", "abb");
+	/*regexp_return_group_type ret = regexp_search("(a|b)*abb", "abb");
 	if (check_result(ret, 0, 3, "abb")) return FALSE;
 	free(ret.str);
 
@@ -63,7 +63,7 @@ bool regexp_search_test()
 
 	regexp_return_group_type ret11 = regexp_search("[0-9]*", "123");
 	if (check_result(ret11, 0, 3, "123")) return FALSE;
-	free(ret11.str);
+	free(ret11.str);*/
 
 	regexp_return_group_type ret12 = regexp_search("[_a-zA-Z][_a-zA-Z0-9]*", "hello_world");
 	if (check_result(ret12, 0, 12, "hello_world")) return FALSE;
