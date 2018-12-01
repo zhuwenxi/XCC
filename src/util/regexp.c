@@ -1,4 +1,5 @@
 #include "regexp.h"
+#include "string_buffer.h"
 
 
 
@@ -35,8 +36,116 @@ regexp_deconstructor(regexp_type *self, va_list arg_list)
 	return TRUE;
 }
 
+char *
+_pattern_preprocess(char *pattern)
+{
+	// Phase 1:
+	// Expand "[a-z]" to "(a|b|c|...|z)";
+	string_buffer processed_pattern = string_buffer_create();
+	string_buffer_append(&processed_pattern, pattern);
+
+	while (string_buffer_search_char(processed_pattern, '[') >= 0)
+	{
+		int start = string_buffer_search_char(processed_pattern, '[');
+		if (start == -1) break;
+
+		int end = string_buffer_search_char(processed_pattern, ']') + 1;
+		assert(end > 0);
+
+		LOG(REGEXP_PREPROCESS_LOG_ENABLE, "pattern before: %s", processed_pattern);
+
+		string_buffer before_bracket = string_buffer_substr(processed_pattern, 0, start);
+		LOG(REGEXP_PREPROCESS_LOG_ENABLE, "before_bracket: %s", before_bracket);
+		string_buffer after_bracket = string_buffer_substr(processed_pattern, end, strlen(processed_pattern));
+		LOG(REGEXP_PREPROCESS_LOG_ENABLE, "after_bracket: %s", after_bracket);
+
+		// Process the sub-string part "[...]":
+		string_buffer substr = string_buffer_substr(processed_pattern, start + 1, end - 1);
+		while (string_buffer_search_char(substr, '-') >= 0)
+		{
+			LOG(REGEXP_PREPROCESS_LOG_ENABLE, "substr before this iteration: %s", substr);
+
+			int dash_idx = string_buffer_search_char(substr, '-');
+			if (dash_idx < 0) break;
+
+			char start_char = substr[dash_idx - 1];
+			char end_char = substr[dash_idx + 1];
+
+			LOG(REGEXP_PREPROCESS_LOG_ENABLE, "start: %c, end: %c", start_char, end_char);
+
+			string_buffer from_to = string_buffer_create();
+			/*char tmp[2] = {'(', '\0'};
+			string_buffer_append(&from_to, tmp);*/
+			char c;
+			for (c = start_char; c <= end_char; ++c)
+			{
+				char tmp[3] = {c, '\0', '\0'};
+				//if (c != end_char) tmp[1] = '|';
+				string_buffer_append(&from_to, tmp);
+			}
+			//char tmp2[2] = { ')', '\0' };
+			//string_buffer_append(&from_to, tmp2);
+
+			LOG(REGEXP_PREPROCESS_LOG_ENABLE, "from_to: %s", from_to);
+
+			string_buffer before = string_buffer_substr(substr, 0, dash_idx - 1);
+			LOG(REGEXP_PREPROCESS_LOG_ENABLE, "before: %s", before);
+			string_buffer after = string_buffer_substr(substr, dash_idx + 2, strlen(substr));
+			LOG(REGEXP_PREPROCESS_LOG_ENABLE, "after: %s", after);
+
+			string_buffer_destroy(substr, NULL);
+
+			substr = string_buffer_create();
+			string_buffer_append(&substr, before);
+			string_buffer_append(&substr, from_to);
+			string_buffer_append(&substr, after);
+
+			string_buffer_destroy(before, NULL);
+			string_buffer_destroy(from_to, NULL);
+			string_buffer_destroy(after, NULL);
+
+			LOG(REGEXP_PREPROCESS_LOG_ENABLE, "substr after this iteration: %s", substr);
+		}
+
+		string_buffer_destroy(processed_pattern, NULL);
+		
+		processed_pattern = string_buffer_create();
+		string_buffer_append(&processed_pattern, before_bracket);
+	
+		char tmp[2] = { '(', '\0' };
+		string_buffer_append(&processed_pattern, &tmp);
+		//string_buffer_append(&processed_pattern, substr);
+		int substr_idx;
+		for (substr_idx = 0; substr_idx < strlen(substr); ++substr_idx)
+		{
+			char tmp[3] = { substr[substr_idx], '\0', '\0' };
+			if (substr_idx != strlen(substr) - 1)
+			{
+				tmp[1] = '|';
+			}
+			string_buffer_append(&processed_pattern, tmp);
+		}
+		char tmp2[2] = {')', '\0'};
+		string_buffer_append(&processed_pattern, &tmp2);
+
+		string_buffer_append(&processed_pattern, after_bracket);
+	}
+
+	LOG(TRUE, "pattern after preprocess: %s", processed_pattern);
+	
+	// Phase 2:
+	// 1. Replace "\\d" with "(0|1|2|3|4|5|6|7|8|9)";
+	// 2. Replace "\\w" with "(a|b|c|...|z|A|B|C|D|...|Z)";
+	// 3. Replace "a+" with "aa*";
+
+	return processed_pattern;
+}
+
 regexp_return_group_type regexp_search(char *pattern, char *str)
 {
+	// Preprocessing:
+	pattern = _pattern_preprocess(pattern);
+
 	// regexp constructed from the "pattern" string.
 	regexp_type *regexp = regexp_create(pattern);
 

@@ -48,3 +48,33 @@ string_buffer_revert(string_buffer buff)
 	}
 }
 
+int
+string_buffer_search_char(string_buffer str, char c)
+{
+	int length = strlen(str);
+	int index;
+	for (index = 0; index < length; ++index)
+	{
+		if (str[index] == c)
+		{
+			return index;
+		}
+	}
+
+	return -1;
+}
+
+string_buffer
+string_buffer_substr(string_buffer str, int start, int end)
+{
+	string_buffer substr = string_buffer_create();
+	int index;
+	for (index = start; index < end; ++index)
+	{
+		char tmp[] = {str[index], '\0'};
+		string_buffer_append(&substr, tmp);
+	}
+
+	return substr;
+}
+
