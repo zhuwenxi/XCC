@@ -12,7 +12,9 @@ include_directories(include include/util include/scanner)
 # "src"
 add_subdirectory(src)
 
-set(CMAKE_C_FLAGS  "-Wl,-lm")
+if(!WIN32)
+	set(CMAKE_C_FLAGS  "-Wl,-lm")
+endif()
 
 add_executable(xcc src/main.c ${CORE_SRC})
 
