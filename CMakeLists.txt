@@ -12,7 +12,7 @@ include_directories(include include/util include/scanner)
 # "src"
 add_subdirectory(src)
 
-if(!WIN32)
+if(NOT WIN32)
 	set(CMAKE_C_FLAGS  "-Wl,-lm")
 endif()
 
