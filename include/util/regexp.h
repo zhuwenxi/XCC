@@ -22,7 +22,7 @@ extern char *token_desc_table[];
 
 typedef struct {
 	char *text;
-	LR_automata_type *DFA;
+	DFA_type *DFA;
 } regexp_type;
 
 // "Group" return by regexp_search()

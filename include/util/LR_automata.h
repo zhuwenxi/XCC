@@ -81,7 +81,7 @@ typedef struct
 {
 	array_list_type *list;
 	int cursor;
-	production_token_type (*get_token_type)(char);
+	production_token_type (*get_token_type)(char *);
 } LR_automata_input_buffer_type;
 
 

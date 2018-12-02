@@ -57,7 +57,7 @@ DFA_state_create()
 }
 
 bool
-DFA_state_deconstructor(DFA_state_type *state)
+DFA_state_deconstructor(DFA_state_type *state, va_list arg_list)
 {
 	assert(state);
 
@@ -80,7 +80,7 @@ DFA_state_symbol_pair_create(DFA_state_type *state, char *symbol)
 bool
 DFA_state_symbol_pair_deconstructor(DFA_state_symbol_pair_type *self, va_list arg_list)
 {
-	string_buffer_destroy(self->symbol, NULL);
+	string_buffer_destroy(self->symbol);
 	free(self);
 
 	return TRUE;
@@ -197,7 +197,7 @@ DFA_state_renaming(DFA_type *dfa)
 static DFA_type *
 subset_construction(NFA_type *nfa)
 {
-	char *nfa_db_str = get_NFA_debug_str(nfa, NULL);
+	char *nfa_db_str = get_NFA_debug_str(nfa);
 	LOG(DFA_LOG_ENABLE, "current NFA: %s", nfa_db_str);
 	free(nfa_db_str);
 
@@ -453,7 +453,7 @@ split(DFA_type *dfa, array_list_type *partition, linked_list_type *p) {
 }
 
 typedef struct {
-	linked_list_type *partition;
+	array_list_type *partition;
 	array_list_type *states;
 	hash_table_type *diag;
 	hash_table_type *new_diag;
@@ -467,7 +467,7 @@ _gen_new_transfer_diagram(void *key, void *value, void *context)
 	char *symbol = pair->symbol;
 
 	gen_new_transfer_diagram_ctx *ctx = context;
-	linked_list_type *partition = ctx->partition;
+	array_list_type *partition = ctx->partition;
 	array_list_type *states = ctx->states;
 	hash_table_type *diag = ctx->diag;
 	hash_table_type *new_diag = ctx->new_diag;

@@ -44,7 +44,7 @@ NFA_state_type *NFA_state_create()
 	return self;
 }
 
-bool NFA_state_deconstructor(NFA_state_type *self)
+bool NFA_state_deconstructor(NFA_state_type *self, va_list arg_list)
 {
 	free(self);
 	
@@ -64,7 +64,7 @@ NFA_state_symbol_pair_create(NFA_state_type *state, char *symbol)
 bool
 NFA_state_symbol_deconstructor(NFA_state_symbol_pair_type *self, va_list arg_list)
 {
-	string_buffer_destroy(self->symbol, NULL);
+	string_buffer_destroy(self->symbol);
 	free(self);
 
 	return TRUE;

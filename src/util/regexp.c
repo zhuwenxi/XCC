@@ -93,27 +93,27 @@ _pattern_preprocess(char *pattern)
 			string_buffer after = string_buffer_substr(substr, dash_idx + 2, strlen(substr));
 			LOG(REGEXP_PREPROCESS_LOG_ENABLE, "after: %s", after);
 
-			string_buffer_destroy(substr, NULL);
+			string_buffer_destroy(substr);
 
 			substr = string_buffer_create();
 			string_buffer_append(&substr, before);
 			string_buffer_append(&substr, from_to);
 			string_buffer_append(&substr, after);
 
-			string_buffer_destroy(before, NULL);
-			string_buffer_destroy(from_to, NULL);
-			string_buffer_destroy(after, NULL);
+			string_buffer_destroy(before);
+			string_buffer_destroy(from_to);
+			string_buffer_destroy(after);
 
 			LOG(REGEXP_PREPROCESS_LOG_ENABLE, "substr after this iteration: %s", substr);
 		}
 
-		string_buffer_destroy(processed_pattern, NULL);
+		string_buffer_destroy(processed_pattern);
 		
 		processed_pattern = string_buffer_create();
 		string_buffer_append(&processed_pattern, before_bracket);
 	
 		char tmp[2] = { '(', '\0' };
-		string_buffer_append(&processed_pattern, &tmp);
+		string_buffer_append(&processed_pattern, tmp);
 		//string_buffer_append(&processed_pattern, substr);
 		int substr_idx;
 		for (substr_idx = 0; substr_idx < strlen(substr); ++substr_idx)
@@ -126,7 +126,7 @@ _pattern_preprocess(char *pattern)
 			string_buffer_append(&processed_pattern, tmp);
 		}
 		char tmp2[2] = {')', '\0'};
-		string_buffer_append(&processed_pattern, &tmp2);
+		string_buffer_append(&processed_pattern, tmp2);
 
 		string_buffer_append(&processed_pattern, after_bracket);
 	}
@@ -161,7 +161,7 @@ regexp_return_group_type regexp_search(char *pattern, char *str)
 		int end_pos = strlen(str) - 1;
 
 		int cur_pos = start_pos;
-		char *cur_char = str[cur_pos];
+		char cur_char = str[cur_pos];
 
 		stack_type *state_stack = stack_create();
 

@@ -759,7 +759,7 @@ LR_automata_input_buffer_create()
 }
 
 void
-LR_automata_input_buffer_init(LR_automata_input_buffer_type *buffer, char *input, production_token_type (*get_token_type)(char))
+LR_automata_input_buffer_init(LR_automata_input_buffer_type *buffer, char *input, production_token_type (*get_token_type)(char *))
 {
 	if (input == NULL) return;
 

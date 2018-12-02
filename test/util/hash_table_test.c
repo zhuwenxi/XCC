@@ -106,7 +106,7 @@ visitor(void *key, void *value, void *context)
 
 	//LOG(TRUE, "%s: %d", *k, *v);
 
-	return TRUE;
+	return;
 }
 
 bool

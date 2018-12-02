@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 
 hash_table_type *
 hash_table_create(int (*hash)(void *))
