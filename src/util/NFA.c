@@ -25,7 +25,7 @@ bool NFA_deconstructor(NFA_type *self, va_list arg_list)
 	assert(self && self->transfer_diagram && self->states);
 
 	// TO DO:
-	hash_table_destroy(self->transfer_diagram, NFA_state_symbol_deconstructor, NULL);
+	hash_table_destroy(self->transfer_diagram, NFA_state_symbol_pair_deconstructor, NULL);
 	array_list_destroy(self->states, NFA_state_deconstructor, NULL);
 	array_list_destroy(self->end, NULL);
 
@@ -62,7 +62,7 @@ NFA_state_symbol_pair_create(NFA_state_type *state, char *symbol)
 }
 
 bool
-NFA_state_symbol_deconstructor(NFA_state_symbol_pair_type *self, va_list arg_list)
+NFA_state_symbol_pair_deconstructor(NFA_state_symbol_pair_type *self, va_list arg_list)
 {
 	string_buffer_destroy(self->symbol);
 	free(self);
