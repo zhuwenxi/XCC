@@ -13,7 +13,7 @@ include_directories(include include/util include/scanner)
 add_subdirectory(src)
 
 if(NOT WIN32)
-	set(CMAKE_C_FLAGS  "-Wl,-lm")
+	set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wl,-lm")
 endif()
 
 add_executable(xcc src/main.c ${CORE_SRC})
@@ -35,4 +35,5 @@ endif()
 
 if (DEBUG)
 	add_definitions(-DDEBUG)
+	set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -g")
 endif()
