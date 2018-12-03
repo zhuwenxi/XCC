@@ -41,6 +41,10 @@ bool hash_table_insert(hash_table_type *table, void *key, void *value);
 void *hash_table_searcher(hash_table_type *table, void *key, bool (*comparator)(void *, void *, va_list), va_list arg_list);
 DECLARE_SEARCH(hash_table_type, void, hash_table)
 
+array_list_type *hash_table_all_searcher(hash_table_type *table, void *key, bool(*comparator)(void *, void *, va_list), va_list arg_list);
+DECLARE_ALL_SEARCH(hash_table_type, array_list_type, hash_table)
+#define hash_table_search_all hash_table_all_searcher
+
 bool hash_table_deletor(hash_table_type *table, void *key, bool (*equal)(void *, void *, va_list), va_list arg_list);
 DECLARE_DELETE(hash_table_type, hash_table);
 

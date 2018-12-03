@@ -245,6 +245,39 @@ hash_table_searcher(hash_table_type *table, void *key, bool (*comparator)(void *
 	}
 }
 
+array_list_type *
+hash_table_all_searcher(hash_table_type *table, void *key, bool(*comparator)(void *, void *, va_list), va_list arg_list)
+{
+	array_list_type *ret = array_list_create();
+
+	LOG(HASH_TABLE_LOG_ENABLE && HASH_TABLE_SEARCH_LOG_ENABLE, "hash_table_search");
+
+	assert(table != NULL && key != NULL);
+
+	linked_list_node_type *linked_list_node = _search_element(table, key, comparator, arg_list);
+	LOG(HASH_TABLE_LOG_ENABLE && HASH_TABLE_SEARCH_LOG_ENABLE, "node: 0x%x", linked_list_node);
+
+	/*if (linked_list_node != NULL)
+	{
+		return TYPE_CAST(linked_list_node->data, hash_table_element_type *)->value;
+	}*/
+	while (linked_list_node)
+	{
+		hash_table_element_type *elem = linked_list_node->data;
+		void *k = elem->key;
+		
+		if (comparator(k, key, NULL))
+		{
+			void *v = elem->value;
+			array_list_append(ret, v);
+		}
+
+		linked_list_node = linked_list_node->next;
+	}
+	
+	return ret;
+}
+
 bool
 hash_table_deletor(hash_table_type *table, void *key, bool (*equal)(void *, void *, va_list), va_list arg_list)
 {

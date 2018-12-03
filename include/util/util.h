@@ -59,6 +59,23 @@ instance_type_name##_search( instance_type *instance, void *data, bool (*compara
 	return ret;\
 }
 
+#define DECLARE_ALL_SEARCH(instance_type, node_type, instance_type_name) \
+static node_type *\
+instance_type_name##_all_search( instance_type *instance, void *data, bool (*comparator)(void *, void *, va_list), ...) \
+{ \
+	if (instance == NULL) \
+		{\
+		return NULL;\
+		}\
+\
+	va_list ap;\
+	va_start(ap, comparator);\
+	node_type *ret = instance_type_name##_all_searcher(instance, data, comparator, ap);\
+	va_end(ap);\
+\
+	return ret;\
+}
+
 #define DECLARE_DELETE(instance_type, instance_type_name) \
 static bool \
 instance_type_name##_delete( instance_type *instance, void *data, bool (*comparator)(void *, void *, va_list), ...) \

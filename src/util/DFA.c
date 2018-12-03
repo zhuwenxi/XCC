@@ -159,24 +159,29 @@ epsilon_closure(linked_list_type *nfa_states, hash_table_type *trans_diag)
 
 		NFA_state_type *state = dequeue(work_queue);
 
-		linked_list_type *neighbor_list = linked_list_create();
-		context_for_collect_direct_neighbor context;
+		//linked_list_type *neighbor_list = linked_list_create();
+		/*context_for_collect_direct_neighbor context;
 		context.neighbor_list = neighbor_list;
-		context.origin_state = state;
+		context.origin_state = state;*/
 
-		hash_table_traverse(trans_diag, _visitor_to_collect_direct_neighbor, &context);
+		//hash_table_traverse(trans_diag, _visitor_to_collect_direct_neighbor, &context);
+		NFA_state_symbol_pair_type key;
+		key.state = state;
+		key.symbol = "EPSILON";
 
-		linked_list_node_type *nb_list_node = neighbor_list->head;
-		while (nb_list_node) {
-			NFA_state_type *nb_state = nb_list_node->data;
+		array_list_type *neighbor_list = hash_table_search_all(trans_diag, &key, NFA_state_symbol_pair_compartor, NULL);
+
+		int n_idx;
+		for (n_idx = 0; n_idx < neighbor_list->length; ++n_idx)
+		{
+			NFA_state_type *nb_state = array_list_get(neighbor_list, n_idx);
 			if (linked_list_search(closure, nb_state, pointer_comparator, NULL) == NULL) {
 				linked_list_insert_back(closure, nb_state);
 				enqueue(work_queue, nb_state);
 			}
-			nb_list_node = nb_list_node->next;
 		}
 
-		linked_list_destroy(neighbor_list, NULL);
+		array_list_destroy(neighbor_list, NULL);
 	}
 
 	queue_destroy(work_queue, NULL);
