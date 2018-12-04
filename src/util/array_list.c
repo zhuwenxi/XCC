@@ -192,16 +192,22 @@ array_list_node_type *
 array_list_searcher(array_list_type *list, void *data, bool (*equal)(void *, void *, va_list), va_list arg_list)
 {
 	assert(list != NULL);
+
+	va_list arg_list_copy;
+	va_copy(arg_list_copy, arg_list);
+
 	int i;
 	for (i = 0; i < list->length; i ++)
 	{
 		void *node_data = array_list_get(list, i);
 
-		if (equal(node_data, data, arg_list))
+		if (equal(node_data, data, arg_list_copy))
 		{
 			return list->content[i];
 		}
 	}
+	
+	va_end(arg_list_copy);
 
 	return NULL;
 }
