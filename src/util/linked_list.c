@@ -137,9 +137,12 @@ linked_list_insert_back(linked_list_type *list, void *data)
 	// create a new node, and set it's "data" field.
 	linked_list_node_type *new_node = linked_list_node_create();
 	new_node->data = data;
+
+	linked_list_node_type *prev_tail = list->tail;
+
 	list->tail = new_node;
 
-	if (list->head == NULL)
+	if (prev_tail == NULL)
 	{
 		list->head = new_node;
 		new_node->prev = NULL;
@@ -147,17 +150,8 @@ linked_list_insert_back(linked_list_type *list, void *data)
 	}
 	else
 	{
-		linked_list_node_type *next_node = list->head;
-		linked_list_node_type *last_node = NULL;
-
-		while (next_node != NULL)
-		{
-			last_node = next_node;
-			next_node = last_node ->next;
-		}
-
-		last_node->next = new_node;
-		new_node->prev = last_node;
+		prev_tail->next = new_node;
+		new_node->prev = prev_tail;
 		new_node->next = NULL;
 	}
 
