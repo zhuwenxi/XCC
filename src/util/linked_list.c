@@ -566,6 +566,22 @@ linked_list_merge(linked_list_type *list1, linked_list_type *list2, bool (*compa
 	return ret;
 }
 
+int
+linked_list_length(linked_list_type *list)
+{
+	linked_list_node_type *node = list->head;
+
+	int length = 0;
+	
+	while (node)
+	{
+		++ length;
+		node = node->next;
+	}
+
+	return length;
+}
+
 
 
 

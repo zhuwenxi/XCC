@@ -100,3 +100,6 @@ DECLARE_COMPARE(linked_list)
  */
 bool linked_list_switch_node(linked_list_type *list, linked_list_node_type *node1, linked_list_node_type* node2);
 #endif
+
+// Count linked_list length.
+int linked_list_length(linked_list_type *list);

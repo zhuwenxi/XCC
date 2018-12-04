@@ -565,3 +565,9 @@ NFA_state_debug_str(NFA_state_type *state, va_list arg_list)
 {
 	return int_to_str(&(state->id), NULL);
 }
+
+int
+NFA_state_hash(void *key)
+{
+	return (int)(long)key;
+}

@@ -2,6 +2,7 @@
 #include "util/util.h"
 #include "util/queue.h"
 #include "opts.h"
+#include "NFA.h"
 #include <time.h>
 
 DFA_type *DFA_create()
@@ -139,6 +140,9 @@ static linked_list_type *
 epsilon_closure(linked_list_type *nfa_states, hash_table_type *trans_diag)
 {
 	linked_list_type *closure = linked_list_create();
+	hash_table_type *closure_map = hash_table_create(NFA_state_hash);
+
+	int dummy_value = 123;
 
 	//
 	// Initial E(N) to N:
@@ -150,6 +154,8 @@ epsilon_closure(linked_list_type *nfa_states, hash_table_type *trans_diag)
 		assert(nfa_state);
 
 		linked_list_insert_back(closure, nfa_state);
+		hash_table_insert(closure_map, nfa_state, &dummy_value);
+
 		enqueue(work_queue, nfa_state);
 
 		node = node->next;
@@ -175,10 +181,17 @@ epsilon_closure(linked_list_type *nfa_states, hash_table_type *trans_diag)
 		for (n_idx = 0; n_idx < neighbor_list->length; ++n_idx)
 		{
 			NFA_state_type *nb_state = array_list_get(neighbor_list, n_idx);
-			if (linked_list_search(closure, nb_state, pointer_comparator, NULL) == NULL) {
+			LOG(TRUE, "result: %p", hash_table_search(closure_map, nb_state, pointer_comparator, NULL));
+			if (hash_table_search(closure_map, nb_state, pointer_comparator, NULL) == &dummy_value)
+			{
 				linked_list_insert_back(closure, nb_state);
+				hash_table_insert(closure_map, nb_state, &dummy_value);
 				enqueue(work_queue, nb_state);
 			}
+			// if (linked_list_search(closure, nb_state, pointer_comparator, NULL) == NULL) {
+			// 	linked_list_insert_back(closure, nb_state);
+			// 	enqueue(work_queue, nb_state);
+			// }
 		}
 
 		array_list_destroy(neighbor_list, NULL);
