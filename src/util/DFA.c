@@ -328,10 +328,10 @@ subset_construction(NFA_type *nfa)
 
 	DFA_state_renaming(dfa);
 
-	char *db_str = get_DFA_debug_str(dfa);
-	LOG(DFA_LOG_ENABLE, "DFA: %s", db_str);
+	//char *db_str = ;
+	LOG(DFA_LOG_ENABLE, "DFA: %s", get_DFA_debug_str(dfa));
 	LOG(TRUE, "DFA states num: %d", dfa->states->length);
-	free(db_str);
+	//free(db_str);
 
 	return dfa;
 }
@@ -717,9 +717,7 @@ minify_DFA(DFA_type *dfa)
 	dfa->end = new_end_states;
 	dfa->transfer_diagram = new_transfer_diagram;
 
-	char *minified_DFA_debug_str = get_DFA_debug_str(dfa);
-	LOG(DFA_MINIFY_LOG_ENABLE, "Minified DFA: \n%s", minified_DFA_debug_str);
-	free(minified_DFA_debug_str);
+	LOG(DFA_MINIFY_LOG_ENABLE, "Minified DFA: \n%s", get_DFA_debug_str(dfa));
 
 	return dfa;
 }

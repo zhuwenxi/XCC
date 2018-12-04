@@ -191,9 +191,7 @@ regexp_return_group_type regexp_search(char *pattern, char *str)
 			key.state = state;
 			key.symbol = symbol;
 
-			char *source_state_debug_str = DFA_state_debug_str(key.state, NULL);
-			LOG(REGEXP_LOG_ENABLE, "soruce state: %s", source_state_debug_str);
-			free(source_state_debug_str);
+			LOG(REGEXP_LOG_ENABLE, "soruce state: %s", DFA_state_debug_str(key.state, NULL));
 
 			LOG(REGEXP_LOG_ENABLE, "symbol: %s", symbol);
 
@@ -201,9 +199,7 @@ regexp_return_group_type regexp_search(char *pattern, char *str)
 
 			if (state)
 			{
-				char *target_state_debug_str = DFA_state_debug_str(state, NULL);
-				LOG(REGEXP_LOG_ENABLE, "target state: %s", target_state_debug_str);
-				free(target_state_debug_str);
+				LOG(REGEXP_LOG_ENABLE, "target state: %s", DFA_state_debug_str(state, NULL));
 
 				++cur_pos;
 				cur_char = str[cur_pos];

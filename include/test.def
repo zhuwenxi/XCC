@@ -89,5 +89,5 @@ XTESTCASE(DFA_CREATE_DESTROY_TEST, DFA_create_destroy_test, "Test for DFA_create
 /*
  * Test case for regexp
  */
- XTESTCASE(REGEXP_CREATE_DESTROY_TEST, regexp_create_destroy_test, "Test for regexp_create() and regexp_destroy().")
- TESTCASE(REGEXP_SEARCH_TEST, regexp_search_test, "Test for regexp_search().")
+XTESTCASE(REGEXP_CREATE_DESTROY_TEST, regexp_create_destroy_test, "Test for regexp_create() and regexp_destroy().")
+TESTCASE(REGEXP_SEARCH_TEST, regexp_search_test, "Test for regexp_search().")
