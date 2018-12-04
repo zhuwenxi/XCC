@@ -181,8 +181,7 @@ epsilon_closure(linked_list_type *nfa_states, hash_table_type *trans_diag)
 		for (n_idx = 0; n_idx < neighbor_list->length; ++n_idx)
 		{
 			NFA_state_type *nb_state = array_list_get(neighbor_list, n_idx);
-			LOG(TRUE, "result: %p", hash_table_search(closure_map, nb_state, pointer_comparator, NULL));
-			if (hash_table_search(closure_map, nb_state, pointer_comparator, NULL) == &dummy_value)
+			if (hash_table_search(closure_map, nb_state, pointer_comparator, NULL) != &dummy_value)
 			{
 				linked_list_insert_back(closure, nb_state);
 				hash_table_insert(closure_map, nb_state, &dummy_value);
