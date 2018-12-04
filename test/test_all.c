@@ -22,7 +22,7 @@ testcase testcases[TESTCASE_LIMIT] =
 int main(int argc, char *args[])
 {	
 #ifdef WINDOWS
-	//_CrtSetBreakAlloc(29977);
+	//_CrtSetBreakAlloc(102);
 #endif
 
 	int test_case_num = TESTCASE_LIMIT;

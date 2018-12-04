@@ -28,6 +28,7 @@
 // options for DFA
 #define DFA_LOG_ENABLE FALSE
 #define DFA_MINIFY_LOG_ENABLE FALSE
+#define OFFLINE_EPSILON_CLOSURE
 
 // options for regexp
 #define REGEXP_LOG_ENABLE FALSE

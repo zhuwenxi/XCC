@@ -136,17 +136,119 @@ _visitor_to_collect_direct_neighbor(void *key, void *value, void *context)
 
 }
 
-static linked_list_type *
-epsilon_closure(linked_list_type *nfa_states, hash_table_type *trans_diag)
+#ifdef OFFLINE_EPSILON_CLOSURE
+static hash_table_type *
+offline_compute_epsilon_closure(array_list_type *states, hash_table_type *trans_diag)
 {
-	linked_list_type *closure = linked_list_create();
-	hash_table_type *closure_map = hash_table_create(NFA_state_hash);
+	hash_table_type *closure_table = hash_table_create(NFA_state_hash);
 
-	int dummy_value = 123;
-
+	queue_type *work_queue = queue_create();
+	
 	//
 	// Initial E(N) to N:
 	//
+	int state_idx;
+	for (state_idx = 0; state_idx < states->length; ++state_idx)
+	{
+		NFA_state_type *state = array_list_get(states, state_idx);
+		
+		linked_list_type *en = linked_list_create();
+		linked_list_insert_back(en, state);
+		hash_table_insert(closure_table, state, en);
+
+		enqueue(work_queue, state);
+	}
+
+	while (!queue_empty(work_queue))
+	{
+		NFA_state_type *state = dequeue(work_queue);
+
+		// E(n)
+		linked_list_type *en = hash_table_search(closure_table, state, pointer_comparator, NULL);
+		assert(en);
+		
+		// t <- {n}
+		linked_list_type *t = linked_list_create();
+		linked_list_insert_back(t, state);
+
+		NFA_state_symbol_pair_type key;
+		key.state = state;
+		key.symbol = "EPSILON";
+
+		array_list_type *p_set = hash_table_search_all(trans_diag, &key, NFA_state_symbol_pair_compartor, NULL);
+
+		for (state_idx = 0; state_idx < p_set->length; ++state_idx)
+		{
+			NFA_state_type *p = array_list_get(p_set, state_idx);
+
+			linked_list_type *ep = hash_table_search(closure_table, p, pointer_comparator, NULL);
+			
+			if (ep)
+			{
+				linked_list_merge(t, ep, pointer_comparator, address_assign, NULL);
+			}
+		}
+		array_list_destroy(p_set, NULL);
+
+		if (!linked_list_compare(t, en, pointer_comparator, NULL))
+		{
+			linked_list_merge(en, t, pointer_comparator, address_assign, NULL);
+
+			for (state_idx = 0; state_idx < states->length; ++state_idx)
+			{
+				NFA_state_type *source_state = array_list_get(states, state_idx);
+
+				NFA_state_symbol_pair_type key;
+				key.state = source_state;
+				key.symbol = "EPSILON";
+				
+				NFA_state_type *target_state = hash_table_search(trans_diag, &key, NFA_state_symbol_pair_compartor, NULL);
+
+				if (target_state == state)
+				{
+					enqueue(work_queue, source_state);
+				}
+			}
+		}
+
+		linked_list_destroy(t, NULL);
+	}
+
+	queue_destroy(work_queue, NULL);
+
+	return closure_table;
+}
+#endif
+
+static bool dummy_NFA_state_deconstructor(NFA_state_type *state, va_list arg_list)
+{
+	return TRUE;
+}
+
+static linked_list_type *
+epsilon_closure(linked_list_type *nfa_states,
+#ifdef OFFLINE_EPSILON_CLOSURE
+				hash_table_type *offline_epsilon_closure_table)
+#else
+                hash_table_type *trans_diag)
+#endif
+{
+	linked_list_type *closure = linked_list_create();
+#ifdef OFFLINE_EPSILON_CLOSURE
+	linked_list_node_type *node = nfa_states->head;
+	while (node) {
+		NFA_state_type *nfa_state = node->data;
+		assert(nfa_state);
+
+		linked_list_type *en = hash_table_search(offline_epsilon_closure_table, nfa_state, pointer_comparator, NULL);
+		linked_list_merge(closure, en, pointer_comparator, address_assign, NULL);
+		node = node->next;
+	}
+#else
+	hash_table_type *closure_map = hash_table_create(NFA_state_hash);
+
+	int dummy_value = 123;
+	
 	queue_type *work_queue = queue_create();
 	linked_list_node_type *node = nfa_states->head;
 	while (node) {
@@ -189,6 +291,7 @@ epsilon_closure(linked_list_type *nfa_states, hash_table_type *trans_diag)
 	hash_table_destroy(closure_map, NULL);
 	queue_destroy(work_queue, NULL);
 
+#endif
 	return closure;
 }
 
@@ -217,10 +320,20 @@ subset_construction(NFA_type *nfa)
 	linked_list_type *nfa_start = linked_list_create();
 	linked_list_insert_back(nfa_start, nfa->start);
 
+#ifdef OFFLINE_EPSILON_CLOSURE
+	hash_table_type *offline_epsilon_closure = offline_compute_epsilon_closure(nfa->states, nfa->transfer_diagram);
+	LOG(FALSE, "offline epsilon closure: \n%s", get_hash_table_debug_str(offline_epsilon_closure, NFA_state_debug_str, linked_list_debug_str, NFA_state_debug_str));
+#endif
 	//
 	// DFA's start state.
 	//
-	linked_list_type *dfa_start_set = epsilon_closure(nfa_start, nfa->transfer_diagram);
+	linked_list_type *dfa_start_set = epsilon_closure(nfa_start,
+#ifdef OFFLINE_EPSILON_CLOSURE
+	offline_epsilon_closure);
+#else
+	nfa->transfer_diagram);
+#endif
+
 	DFA_state_type *dfa_start_state = DFA_state_create();
 	dfa_start_state->nfa_states = dfa_start_set;
 	dfa->start = dfa_start_state;
@@ -237,6 +350,7 @@ subset_construction(NFA_type *nfa)
 	// 
 	queue_type *work_queue = queue_create();
 	enqueue(work_queue, dfa_start_state);
+
 
 	while (!queue_empty(work_queue)) {
 		int count = 0;
@@ -274,7 +388,12 @@ subset_construction(NFA_type *nfa)
 			}
 			
 			linked_list_type *origin_target_nfa_states = target_nfa_states;
-			target_nfa_states = epsilon_closure(target_nfa_states, nfa->transfer_diagram);
+			target_nfa_states = epsilon_closure(target_nfa_states,
+#ifdef OFFLINE_EPSILON_CLOSURE
+				offline_epsilon_closure);
+#else
+				nfa->transfer_diagram);
+#endif
 			linked_list_destroy(origin_target_nfa_states, NULL);
 
 			// check if "target_dfa_state" already exists.
@@ -325,10 +444,11 @@ subset_construction(NFA_type *nfa)
 
 	DFA_state_renaming(dfa);
 
-	//char *db_str = ;
+#ifdef OFFLINE_EPSILON_CLOSURE
+	hash_table_destroy(offline_epsilon_closure, dummy_NFA_state_deconstructor, linked_list_deconstructor, NULL);
+#endif
+
 	LOG(DFA_LOG_ENABLE, "DFA: %s", get_DFA_debug_str(dfa));
-	LOG(TRUE, "DFA states num: %d", dfa->states->length);
-	//free(db_str);
 
 	return dfa;
 }

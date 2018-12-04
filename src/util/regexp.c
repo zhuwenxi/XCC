@@ -129,9 +129,13 @@ _pattern_preprocess(char *pattern)
 		string_buffer_append(&processed_pattern, tmp2);
 
 		string_buffer_append(&processed_pattern, after_bracket);
+
+		string_buffer_destroy(before_bracket);
+		string_buffer_destroy(after_bracket);
+		string_buffer_destroy(substr);
 	}
 
-	LOG(TRUE, "pattern after preprocess: %s", processed_pattern);
+	LOG(FALSE, "pattern after preprocess: %s", processed_pattern);
 	
 	// Phase 2:
 	// 1. Replace "\\d" with "(0|1|2|3|4|5|6|7|8|9)";
@@ -242,6 +246,8 @@ regexp_return_group_type regexp_search(char *pattern, char *str)
 			}
 			regexp_destroy(regexp, NULL);
 
+			free(pattern);
+
 			regexp_return_group_type group;
 			group.start = start_pos;
 			group.length = ret_length;
@@ -256,6 +262,8 @@ regexp_return_group_type regexp_search(char *pattern, char *str)
 	// Destroy the regexp and ret.
 	regexp_destroy(regexp, NULL);
 	free(ret);
+
+	free(pattern);
 
 	LOG(REGEXP_LOG_ENABLE, "Fail to search.")
 
