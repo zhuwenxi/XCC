@@ -59,7 +59,7 @@ NFA_type *NFA_from_str(char *str);
  */
 int NFA_state_symbol_pair_hash(void *key);
 
-inline int
+int
 NFA_state_hash(void *key);
 
 /*
