@@ -233,6 +233,8 @@ subset_construction(NFA_type *nfa)
 	LOG(DFA_LOG_ENABLE, "initial_set: %s", init_set_db_str);
 	free(init_set_db_str);
 
+	// hash_table_statistic(nfa->transfer_diagram);
+	
 	//
 	// Initialize work queue.
 	// 

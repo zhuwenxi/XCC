@@ -501,6 +501,40 @@ hash_table_traverse(hash_table_type *table, void (*visitor)(void *key, void *val
 	}
 }
 
+void
+hash_table_statistic(hash_table_type *table)
+{
+	assert(table);
+
+	array_list_type *buckets = table->buckets;
+
+	int max_size = 0;
+
+	int i;
+	for (i = 0; i < buckets->capacity; ++i) {
+		array_list_node_type *bucket = buckets->content[i];
+
+		int bucket_id = i;
+		int elem_count = 0;
+		if (bucket && bucket->data) {
+			linked_list_node_type *ll_node = TYPE_CAST(bucket->data, linked_list_type*)->head;
+
+			while (ll_node) {
+				++ elem_count;
+				ll_node = ll_node->next;
+			}
+		}
+
+		if (elem_count > 0)
+		{
+			max_size = elem_count > max_size ? elem_count : max_size;
+			LOG(TRUE, "bucket %d: %d", bucket_id, elem_count);
+		}
+	}
+
+	LOG(TRUE, "max bucket size: %d", max_size);
+}
+
 
 
 /*

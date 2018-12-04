@@ -456,7 +456,10 @@ NFA_state_symbol_pair_hash(void *key)
 
 	NFA_state_symbol_pair_type *k = (NFA_state_symbol_pair_type *)key;
 
-	return *(k->symbol);
+	long addr = (long)k->state;
+	int low_addr = addr;
+
+	return *(k->symbol) + low_addr;
 }
 
 bool

@@ -58,6 +58,8 @@ char *hash_table_element_str(hash_table_element_type *table_element, va_list arg
 
 void hash_table_traverse(hash_table_type *table, void (*visitor)(void *key, void *value, void *context), void *context);
 
+// Show elements distribution in this table
+void hash_table_statistic(hash_table_type *table);
 /*
  * common hash function
  */
