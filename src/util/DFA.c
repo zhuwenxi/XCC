@@ -165,12 +165,6 @@ epsilon_closure(linked_list_type *nfa_states, hash_table_type *trans_diag)
 
 		NFA_state_type *state = dequeue(work_queue);
 
-		//linked_list_type *neighbor_list = linked_list_create();
-		/*context_for_collect_direct_neighbor context;
-		context.neighbor_list = neighbor_list;
-		context.origin_state = state;*/
-
-		//hash_table_traverse(trans_diag, _visitor_to_collect_direct_neighbor, &context);
 		NFA_state_symbol_pair_type key;
 		key.state = state;
 		key.symbol = "EPSILON";
@@ -187,15 +181,12 @@ epsilon_closure(linked_list_type *nfa_states, hash_table_type *trans_diag)
 				hash_table_insert(closure_map, nb_state, &dummy_value);
 				enqueue(work_queue, nb_state);
 			}
-			// if (linked_list_search(closure, nb_state, pointer_comparator, NULL) == NULL) {
-			// 	linked_list_insert_back(closure, nb_state);
-			// 	enqueue(work_queue, nb_state);
-			// }
 		}
 
 		array_list_destroy(neighbor_list, NULL);
 	}
 
+	hash_table_destroy(closure_map, NULL);
 	queue_destroy(work_queue, NULL);
 
 	return closure;
