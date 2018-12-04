@@ -202,18 +202,14 @@ DFA_state_renaming(DFA_type *dfa)
 static DFA_type *
 subset_construction(NFA_type *nfa)
 {
-	char *nfa_db_str = get_NFA_debug_str(nfa);
-	LOG(DFA_LOG_ENABLE, "current NFA: %s", nfa_db_str);
-	free(nfa_db_str);
+	LOG(DFA_LOG_ENABLE, "current NFA: %s", get_NFA_debug_str(nfa));
 
 	DFA_type *dfa = DFA_create();
 
 	linked_list_type *alphabet = _collect_alphabet(nfa);
 	dfa->alphabet = alphabet;
 
-	char *alphabet_db_str = get_linked_list_debug_str(alphabet, NULL);
-	LOG(DFA_LOG_ENABLE, "alphabet: %s", alphabet_db_str);
-	free(alphabet_db_str);
+	LOG(DFA_LOG_ENABLE, "alphabet: %s", get_linked_list_debug_str(alphabet, NULL));
 
 	linked_list_type *nfa_start = linked_list_create();
 	linked_list_insert_back(nfa_start, nfa->start);
@@ -229,9 +225,7 @@ subset_construction(NFA_type *nfa)
 
 	linked_list_destroy(nfa_start, NULL);
 	
-	char *init_set_db_str = get_linked_list_debug_str(dfa_start_set, NFA_state_debug_str, NULL);
-	LOG(DFA_LOG_ENABLE, "initial_set: %s", init_set_db_str);
-	free(init_set_db_str);
+	LOG(DFA_LOG_ENABLE, "initial_set: %s", get_linked_list_debug_str(dfa_start_set, NFA_state_debug_str, NULL));
 
 	// hash_table_statistic(nfa->transfer_diagram);
 	
@@ -390,18 +384,14 @@ split(DFA_type *dfa, array_list_type *partition, linked_list_type *p) {
 			key.state = state;
 			key.symbol = symbol;
 
-			char *state_debug_str = DFA_state_debug_str(state, NULL);
-			LOG(DFA_MINIFY_LOG_ENABLE, "source state: %s", state_debug_str);
-			free(state_debug_str);
+			LOG(DFA_MINIFY_LOG_ENABLE, "source state: %s", DFA_state_debug_str(state, NULL));
 
 			DFA_state_type *target_state = hash_table_search(dfa->transfer_diagram, &key, DFA_state_symbol_pair_compartor, NULL);
 
 			int partition_idx = -1;
 			if (target_state)
 			{
-				char *target_state_debug_str = DFA_state_debug_str(target_state, NULL);
-				LOG(DFA_MINIFY_LOG_ENABLE, "target state: %s", target_state_debug_str);
-				free(target_state_debug_str);
+				LOG(DFA_MINIFY_LOG_ENABLE, "target state: %s", DFA_state_debug_str(target_state, NULL));
 
 				partition_idx = state_in_which_partition(target_state, partition);
 			}
@@ -435,9 +425,7 @@ split(DFA_type *dfa, array_list_type *partition, linked_list_type *p) {
 
 			array_list_set(state_map, state_map_idx, NULL);
 
-			char *set_debug_str = get_array_list_debug_str(ret, linked_list_debug_str, DFA_state_debug_str, NULL);
-			LOG(DFA_MINIFY_LOG_ENABLE, "set: %s\n", set_debug_str);
-			free(set_debug_str);
+			LOG(DFA_MINIFY_LOG_ENABLE, "set: %s\n", get_array_list_debug_str(ret, linked_list_debug_str, DFA_state_debug_str, NULL));
 		}
 
 		if (idx_array->length > 1)
@@ -538,13 +526,9 @@ minify_DFA(DFA_type *dfa)
 	array_list_append(partition, accept_states);
 	array_list_append(partition, non_accept_states);
 
-	char *accept_states_debug_str = get_linked_list_debug_str(accept_states, DFA_state_debug_str, NULL);
-	LOG(DFA_LOG_ENABLE, "accept_states: %s", accept_states_debug_str);
-	free(accept_states_debug_str);
+	LOG(DFA_LOG_ENABLE, "accept_states: %s", get_linked_list_debug_str(accept_states, DFA_state_debug_str, NULL));
 
-	char *non_accept_states_debug_str = get_linked_list_debug_str(non_accept_states, DFA_state_debug_str, NULL);
-	LOG(DFA_LOG_ENABLE, "non_accept_states: %s", non_accept_states_debug_str);
-	free(non_accept_states_debug_str);
+	LOG(DFA_LOG_ENABLE, "non_accept_states: %s", get_linked_list_debug_str(non_accept_states, DFA_state_debug_str, NULL));
 
 	// Hopcroft's algorithm, find a minimal parition with fix-point algorithm.
 	int last_partition_size = 0;
@@ -562,15 +546,11 @@ minify_DFA(DFA_type *dfa)
 			linked_list_type *p = array_list_get(partition, partition_idx);
 			
 			// Split p.
-			char *before_split_debug_str = get_linked_list_debug_str(p, DFA_state_debug_str, NULL);
-			LOG(DFA_MINIFY_LOG_ENABLE, "before split: %s\n", before_split_debug_str);
-			free(before_split_debug_str);
+			LOG(DFA_MINIFY_LOG_ENABLE, "before split: %s\n", get_linked_list_debug_str(p, DFA_state_debug_str, NULL));
 
 			array_list_type *split_set = split(dfa, partition, p);
 
-			char *after_split_debug_str = get_array_list_debug_str(split_set, linked_list_debug_str, DFA_state_debug_str, NULL);
-			LOG(DFA_MINIFY_LOG_ENABLE, "split set: %s\n", after_split_debug_str);
-			free(after_split_debug_str);
+			LOG(DFA_MINIFY_LOG_ENABLE, "split set: %s\n", get_array_list_debug_str(split_set, linked_list_debug_str, DFA_state_debug_str, NULL));
 
 			// Add new partitions to "new_partition"
 			int split_set_idx;
@@ -590,9 +570,7 @@ minify_DFA(DFA_type *dfa)
 		cur_partition_size = new_partition->length;
 	}
 
-	char *minimal_partition_debug_str = get_array_list_debug_str(partition, linked_list_debug_str, DFA_state_debug_str, NULL);
-	LOG(DFA_LOG_ENABLE, "Minimal partition: %s\n", minimal_partition_debug_str);
-	free(minimal_partition_debug_str);
+	LOG(DFA_LOG_ENABLE, "Minimal partition: %s\n", get_array_list_debug_str(partition, linked_list_debug_str, DFA_state_debug_str, NULL));
 	
 	/*
 	 * Construct a new DFA with the minimal partition we get.
@@ -680,13 +658,9 @@ minify_DFA(DFA_type *dfa)
 	assert(new_start_state);
 	assert(new_end_states->length);
 
-	char *new_start_state_debug_str = DFA_state_debug_str(new_start_state, NULL);
-	LOG(DFA_MINIFY_LOG_ENABLE, "new_start_state: %s", new_start_state_debug_str);
-	free(new_start_state_debug_str);
+	LOG(DFA_MINIFY_LOG_ENABLE, "new_start_state: %s", DFA_state_debug_str(new_start_state, NULL));
 	
-	char *new_end_states_debug_str = get_array_list_debug_str(new_end_states, DFA_state_debug_str, NULL);
-	LOG(DFA_MINIFY_LOG_ENABLE, "new_end_states: %s", new_end_states_debug_str);
-	free(new_end_states_debug_str);
+	LOG(DFA_MINIFY_LOG_ENABLE, "new_end_states: %s", get_array_list_debug_str(new_end_states, DFA_state_debug_str, NULL));
 
 	// New transition table.
 	hash_table_type *new_transfer_diagram = hash_table_create(DFA_state_symbol_pair_hash);
