@@ -234,7 +234,7 @@ subset_construction(NFA_type *nfa)
 
 	array_list_destroy(nfa_start, NULL);
 	
-	LOG(DFA_LOG_ENABLE, "initial_set: %s", get_array_list_debug_str(dfa_start_set, NFA_state_debug_str, NULL));
+	LOG(DFA_SUBSET_CONSTRUCT, "initial_set: %s", get_array_list_debug_str(dfa_start_set, NFA_state_debug_str, NULL));
 
 	// hash_table_statistic(nfa->transfer_diagram);
 	
@@ -259,15 +259,24 @@ subset_construction(NFA_type *nfa)
 			NFA_state_symbol_pair_type key;
 
 			int nfa_state_idx;
-			for (nfa_state_idx = 0; nfa_state_idx < target_nfa_states->length; ++ nfa_state_idx)
+			for (nfa_state_idx = 0; nfa_state_idx < nfa_states->length; ++nfa_state_idx)
 			{
-				key.state = array_list_get(target_nfa_states, nfa_state_idx);
+				key.state = array_list_get(nfa_states, nfa_state_idx);
 				key.symbol = symbol;
+
+				LOG(DFA_SUBSET_CONSTRUCT, "source: %s", NFA_state_debug_str(key.state, NULL));
+				LOG(DFA_SUBSET_CONSTRUCT, "symbol: %s", key.symbol);
 
 				NFA_state_type *target = hash_table_search(nfa->transfer_diagram, &key, NFA_state_symbol_pair_compartor, NULL);
 				
-				if (target) {
+				if (target)
+				{
 					array_list_append(target_nfa_states, target);
+					LOG(DFA_SUBSET_CONSTRUCT, "target: %s", target);
+				}
+				else
+				{
+					LOG(DFA_SUBSET_CONSTRUCT, "no target");
 				}
 			}
 
@@ -278,7 +287,9 @@ subset_construction(NFA_type *nfa)
 			}
 			
 			array_list_type *origin_target_nfa_states = target_nfa_states;
+			LOG(DFA_SUBSET_CONSTRUCT, "before epsilon_closure(): %s", get_array_list_debug_str(target_nfa_states, NFA_state_debug_str, NULL));
 			target_nfa_states = epsilon_closure(target_nfa_states, nfa->transfer_diagram);
+			LOG(DFA_SUBSET_CONSTRUCT, "after epsilon_closure(): %s", get_array_list_debug_str(target_nfa_states, NFA_state_debug_str, NULL));
 			array_list_destroy(origin_target_nfa_states, NULL);
 
 			// check if "target_dfa_state" already exists.

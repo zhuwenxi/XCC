@@ -27,6 +27,7 @@
 
 // options for DFA
 #define DFA_LOG_ENABLE FALSE
+#define DFA_SUBSET_CONSTRUCT FALSE
 #define DFA_MINIFY_LOG_ENABLE FALSE
 
 // options for regexp
