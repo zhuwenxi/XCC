@@ -61,7 +61,7 @@ DFA_state_deconstructor(DFA_state_type *state, va_list arg_list)
 {
 	assert(state);
 
-	linked_list_destroy(state->nfa_states, NULL);
+	array_list_destroy(state->nfa_states, NULL);
 	free(state);
 
 	return TRUE;
@@ -135,25 +135,34 @@ _visitor_to_collect_direct_neighbor(void *key, void *value, void *context)
 
 }
 
-static linked_list_type *
-epsilon_closure(linked_list_type *nfa_states, hash_table_type *trans_diag)
+static array_list_type *
+epsilon_closure(array_list_type *nfa_states, hash_table_type *trans_diag)
 {
-	linked_list_type *closure = linked_list_create();
+	array_list_type *closure = array_list_create();
 
 	//
 	// Initial E(N) to N:
 	//
 	queue_type *work_queue = queue_create();
-	linked_list_node_type *node = nfa_states->head;
-	while (node) {
-		NFA_state_type *nfa_state = node->data;
+	int nfa_idx;
+	for (nfa_idx = 0; nfa_idx < nfa_states->length; ++ nfa_idx)
+	{
+		NFA_state_type *nfa_state = array_list_get(nfa_states, nfa_idx);
 		assert(nfa_state);
 
-		linked_list_insert_back(closure, nfa_state);
+		array_list_append(closure, nfa_state);
 		enqueue(work_queue, nfa_state);
-
-		node = node->next;
 	}
+	// linked_list_node_type *node = nfa_states->head;
+	// while (node) {
+	// 	NFA_state_type *nfa_state = node->data;
+	// 	assert(nfa_state);
+
+	// 	linked_list_insert_back(closure, nfa_state);
+	// 	enqueue(work_queue, nfa_state);
+
+	// 	node = node->next;
+	// }
 
 	while (!queue_empty(work_queue)) {
 
@@ -175,8 +184,8 @@ epsilon_closure(linked_list_type *nfa_states, hash_table_type *trans_diag)
 		for (n_idx = 0; n_idx < neighbor_list->length; ++n_idx)
 		{
 			NFA_state_type *nb_state = array_list_get(neighbor_list, n_idx);
-			if (linked_list_search(closure, nb_state, pointer_comparator, NULL) == NULL) {
-				linked_list_insert_back(closure, nb_state);
+			if (array_list_search(closure, nb_state, pointer_comparator, NULL) == NULL) {
+				array_list_append(closure, nb_state);
 				enqueue(work_queue, nb_state);
 			}
 		}
@@ -211,21 +220,21 @@ subset_construction(NFA_type *nfa)
 
 	LOG(DFA_LOG_ENABLE, "alphabet: %s", get_linked_list_debug_str(alphabet, NULL));
 
-	linked_list_type *nfa_start = linked_list_create();
-	linked_list_insert_back(nfa_start, nfa->start);
+	array_list_type *nfa_start = array_list_create();
+	array_list_append(nfa_start, nfa->start);
 
 	//
 	// DFA's start state.
 	//
-	linked_list_type *dfa_start_set = epsilon_closure(nfa_start, nfa->transfer_diagram);
+	array_list_type *dfa_start_set = epsilon_closure(nfa_start, nfa->transfer_diagram);
 	DFA_state_type *dfa_start_state = DFA_state_create();
 	dfa_start_state->nfa_states = dfa_start_set;
 	dfa->start = dfa_start_state;
 	array_list_append(dfa->states, dfa_start_state);
 
-	linked_list_destroy(nfa_start, NULL);
+	array_list_destroy(nfa_start, NULL);
 	
-	LOG(DFA_LOG_ENABLE, "initial_set: %s", get_linked_list_debug_str(dfa_start_set, NFA_state_debug_str, NULL));
+	LOG(DFA_LOG_ENABLE, "initial_set: %s", get_array_list_debug_str(dfa_start_set, NFA_state_debug_str, NULL));
 
 	// hash_table_statistic(nfa->transfer_diagram);
 	
@@ -239,40 +248,38 @@ subset_construction(NFA_type *nfa)
 		int count = 0;
 
 		DFA_state_type *source_dfa_state = dequeue(work_queue);
-		linked_list_type *nfa_states = source_dfa_state->nfa_states;
+		array_list_type *nfa_states = source_dfa_state->nfa_states;
 
 		// for each symbol in dictionary
 		linked_list_node_type *dict_node = alphabet->head;
 		while (dict_node) {
 			char *symbol = dict_node->data;
 
-			linked_list_type *target_nfa_states = linked_list_create();
-			linked_list_node_type *nfa_state_node = nfa_states->head;
+			array_list_type *target_nfa_states = array_list_create();
 			NFA_state_symbol_pair_type key;
 
-			while (nfa_state_node) {
-				++count;
-				key.state = nfa_state_node->data;
+			int nfa_state_idx;
+			for (nfa_state_idx = 0; nfa_state_idx < target_nfa_states->length; ++ nfa_state_idx)
+			{
+				key.state = array_list_get(target_nfa_states, nfa_state_idx);
 				key.symbol = symbol;
 
 				NFA_state_type *target = hash_table_search(nfa->transfer_diagram, &key, NFA_state_symbol_pair_compartor, NULL);
-
+				
 				if (target) {
-					linked_list_insert_back(target_nfa_states, target);
+					array_list_append(target_nfa_states, target);
 				}
-
-				nfa_state_node = nfa_state_node->next;
 			}
 
-			if (target_nfa_states->head == NULL) {
+			if (target_nfa_states->length <= 0/*target_nfa_states->head == NULL*/) {
 				dict_node = dict_node->next;
-				linked_list_destroy(target_nfa_states, NULL);
+				array_list_destroy(target_nfa_states, NULL);
 				continue;
 			}
 			
-			linked_list_type *origin_target_nfa_states = target_nfa_states;
+			array_list_type *origin_target_nfa_states = target_nfa_states;
 			target_nfa_states = epsilon_closure(target_nfa_states, nfa->transfer_diagram);
-			linked_list_destroy(origin_target_nfa_states, NULL);
+			array_list_destroy(origin_target_nfa_states, NULL);
 
 			// check if "target_dfa_state" already exists.
 			DFA_state_type *candidate_target_dfa_state = DFA_state_create();
@@ -291,7 +298,7 @@ subset_construction(NFA_type *nfa)
 				for (i = 0; i < nfa->end->length; i++) {
 					NFA_state_type *end_state = array_list_get(nfa->end, i);
 
-					if (linked_list_search(target_dfa_state->nfa_states, end_state, NFA_state_compartor, NULL)) {
+					if (array_list_search(target_dfa_state->nfa_states, end_state, NFA_state_compartor, NULL)) {
 						array_list_append(dfa->end, target_dfa_state);
 					}
 				}
@@ -302,7 +309,7 @@ subset_construction(NFA_type *nfa)
 			}
 			else {
 				target_dfa_state = target_dfa_state_node->data;
-				linked_list_destroy(target_nfa_states, NULL);
+				array_list_destroy(target_nfa_states, NULL);
 				free(candidate_target_dfa_state);
 			}
 
@@ -585,7 +592,7 @@ minify_DFA(DFA_type *dfa)
 		// the partition index.
 		DFA_state_type *new_dfa_state = DFA_state_create();
 		new_dfa_state->id = part_idx;
-		new_dfa_state->nfa_states = linked_list_create();
+		new_dfa_state->nfa_states = array_list_create();
 
 		// Also retrieve all nfa states belong to this partition,
 		// and copy to the new_dfa_state.
@@ -595,15 +602,16 @@ minify_DFA(DFA_type *dfa)
 		{
 			DFA_state_type *old_dfa_state = sub_partition_node->data;
 			
-			linked_list_type *nfas = old_dfa_state->nfa_states;
-			linked_list_node_type *nfa_node;
+			array_list_type *nfas = old_dfa_state->nfa_states;
 
-			for (nfa_node = nfas->head; nfa_node != NULL; nfa_node = nfa_node->next)
+			int nfas_idx;
+			for (nfas_idx = 0; nfas_idx < nfas->length; ++ nfas_idx)
 			{
-				assert(nfa_node->data);
-				if (!linked_list_search(new_dfa_state->nfa_states, nfa_node->data, NFA_state_compartor, NULL))
+				NFA_state_type *nfa_state = array_list_get(nfas, nfas_idx);
+				assert(nfa_state);
+				if (!array_list_search(new_dfa_state->nfa_states, nfa_state, NFA_state_compartor, NULL))
 				{
-					linked_list_insert_back(new_dfa_state->nfa_states, nfa_node->data);
+					array_list_append(new_dfa_state->nfa_states, nfa_state);
 				}
 			}
 		}
@@ -757,23 +765,21 @@ DFA_state_compartor(void *one, void *another, va_list arg_list)
 	DFA_state_type *a = one;
 	DFA_state_type *b = another;
 
-	linked_list_type *a_nfa_states = a->nfa_states;
-	linked_list_type *b_nfa_states = b->nfa_states;
-
-	linked_list_node_type *a_node;
-	linked_list_node_type *b_node;
+	array_list_type *a_nfa_states = a->nfa_states;
+	array_list_type *b_nfa_states = b->nfa_states;
 
 	if (a_nfa_states == NULL && b_nfa_states != NULL) return FALSE;
 	if (b_nfa_states == NULL && a_nfa_states != NULL) return FALSE;
 
-	for (a_node = a_nfa_states->head, b_node = b_nfa_states->head; a_node && b_node; a_node = a_node->next, b_node = b_node->next) {
-		int a_id = TYPE_CAST(a_node->data, NFA_state_type *)->id;
-		int b_id = TYPE_CAST(b_node->data, NFA_state_type *)->id;
+	if (a_nfa_states->length != b_nfa_states->length) return FALSE;
+
+	int idx;
+	for (idx = 0; idx < a_nfa_states->length; ++ idx) {
+		int a_id = TYPE_CAST(array_list_get(a_nfa_states, idx), NFA_state_type *)->id;
+		int b_id = TYPE_CAST(array_list_get(b_nfa_states, idx), NFA_state_type *)->id;
 
 		if (a_id != b_id) return FALSE;
 	}
-
-	if (a_node != NULL || b_node != NULL) return FALSE;
 
 	return TRUE;
 }
