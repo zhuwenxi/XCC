@@ -62,7 +62,7 @@ DFA_state_deconstructor(DFA_state_type *state, va_list arg_list)
 {
 	assert(state);
 
-	linked_list_destroy(state->nfa_states, NULL);
+	array_list_destroy(state->nfa_states, NULL);
 	free(state);
 
 	return TRUE;
@@ -152,8 +152,8 @@ offline_compute_epsilon_closure(array_list_type *states, hash_table_type *trans_
 	{
 		NFA_state_type *state = array_list_get(states, state_idx);
 		
-		linked_list_type *en = linked_list_create();
-		linked_list_insert_back(en, state);
+		array_list_type *en = array_list_create();
+		array_list_append(en, state);
 		hash_table_insert(closure_table, state, en);
 
 		enqueue(work_queue, state);
@@ -164,12 +164,12 @@ offline_compute_epsilon_closure(array_list_type *states, hash_table_type *trans_
 		NFA_state_type *state = dequeue(work_queue);
 
 		// E(n)
-		linked_list_type *en = hash_table_search(closure_table, state, pointer_comparator, NULL);
+		array_list_type *en = hash_table_search(closure_table, state, pointer_comparator, NULL);
 		assert(en);
 		
 		// t <- {n}
-		linked_list_type *t = linked_list_create();
-		linked_list_insert_back(t, state);
+		array_list_type *t = array_list_create();
+		array_list_append(t, state);
 
 		NFA_state_symbol_pair_type key;
 		key.state = state;
@@ -181,18 +181,18 @@ offline_compute_epsilon_closure(array_list_type *states, hash_table_type *trans_
 		{
 			NFA_state_type *p = array_list_get(p_set, state_idx);
 
-			linked_list_type *ep = hash_table_search(closure_table, p, pointer_comparator, NULL);
+			array_list_type *ep = hash_table_search(closure_table, p, pointer_comparator, NULL);
 			
 			if (ep)
 			{
-				linked_list_merge(t, ep, pointer_comparator, address_assign, NULL);
+				array_list_merge(t, ep, pointer_comparator, address_assign, NULL);
 			}
 		}
 		array_list_destroy(p_set, NULL);
 
-		if (!linked_list_compare(t, en, pointer_comparator, NULL))
+		if (!array_list_compare(t, en, pointer_comparator, NULL))
 		{
-			linked_list_merge(en, t, pointer_comparator, address_assign, NULL);
+			array_list_merge(en, t, pointer_comparator, address_assign, NULL);
 
 			for (state_idx = 0; state_idx < states->length; ++state_idx)
 			{
@@ -211,7 +211,7 @@ offline_compute_epsilon_closure(array_list_type *states, hash_table_type *trans_
 			}
 		}
 
-		linked_list_destroy(t, NULL);
+		array_list_destroy(t, NULL);
 	}
 
 	queue_destroy(work_queue, NULL);
@@ -225,24 +225,23 @@ static bool dummy_NFA_state_deconstructor(NFA_state_type *state, va_list arg_lis
 	return TRUE;
 }
 
-static linked_list_type *
-epsilon_closure(linked_list_type *nfa_states,
+static array_list_type *
+epsilon_closure(array_list_type *nfa_states,
 #ifdef OFFLINE_EPSILON_CLOSURE
-				hash_table_type *offline_epsilon_closure_table)
+				hash_table_type *offline_epsilon_closure_table
 #else
-                hash_table_type *trans_diag)
+                hash_table_type *trans_diag
 #endif
+                )
 {
-	linked_list_type *closure = linked_list_create();
+	array_list_type *closure = array_list_create();
 #ifdef OFFLINE_EPSILON_CLOSURE
-	linked_list_node_type *node = nfa_states->head;
-	while (node) {
-		NFA_state_type *nfa_state = node->data;
-		assert(nfa_state);
-
-		linked_list_type *en = hash_table_search(offline_epsilon_closure_table, nfa_state, pointer_comparator, NULL);
-		linked_list_merge(closure, en, pointer_comparator, address_assign, NULL);
-		node = node->next;
+	int state_idx;
+	for (state_idx = 0; state_idx < nfa_states->length; ++ state_idx)
+	{
+		NFA_state_type *nfa_state = array_list_get(nfa_states, state_idx);
+		array_list_type *en = hash_table_search(offline_epsilon_closure_table, nfa_state, pointer_comparator, NULL);
+		array_list_merge(closure, en, pointer_comparator, address_assign, NULL);
 	}
 #else
 	hash_table_type *closure_map = hash_table_create(NFA_state_hash);
@@ -250,17 +249,16 @@ epsilon_closure(linked_list_type *nfa_states,
 	int dummy_value = 123;
 	
 	queue_type *work_queue = queue_create();
-	linked_list_node_type *node = nfa_states->head;
-	while (node) {
-		NFA_state_type *nfa_state = node->data;
+	int nfa_idx;
+	for (nfa_idx = 0; nfa_idx < nfa_states->length; ++ nfa_idx)
+	{
+		NFA_state_type *nfa_state = array_list_get(nfa_states, nfa_idx);
 		assert(nfa_state);
 
-		linked_list_insert_back(closure, nfa_state);
+		array_list_append(closure, nfa_state);
 		hash_table_insert(closure_map, nfa_state, &dummy_value);
 
 		enqueue(work_queue, nfa_state);
-
-		node = node->next;
 	}
 
 	while (!queue_empty(work_queue)) {
@@ -277,10 +275,12 @@ epsilon_closure(linked_list_type *nfa_states,
 		for (n_idx = 0; n_idx < neighbor_list->length; ++n_idx)
 		{
 			NFA_state_type *nb_state = array_list_get(neighbor_list, n_idx);
+
 			if (hash_table_search(closure_map, nb_state, pointer_comparator, NULL) != &dummy_value)
 			{
-				linked_list_insert_back(closure, nb_state);
+				array_list_append(closure, nb_state);
 				hash_table_insert(closure_map, nb_state, &dummy_value);
+
 				enqueue(work_queue, nb_state);
 			}
 		}
@@ -317,8 +317,8 @@ subset_construction(NFA_type *nfa)
 
 	LOG(DFA_LOG_ENABLE, "alphabet: %s", get_linked_list_debug_str(alphabet, NULL));
 
-	linked_list_type *nfa_start = linked_list_create();
-	linked_list_insert_back(nfa_start, nfa->start);
+	array_list_type *nfa_start = array_list_create();
+	array_list_append(nfa_start, nfa->start);
 
 #ifdef OFFLINE_EPSILON_CLOSURE
 	hash_table_type *offline_epsilon_closure = offline_compute_epsilon_closure(nfa->states, nfa->transfer_diagram);
@@ -327,21 +327,22 @@ subset_construction(NFA_type *nfa)
 	//
 	// DFA's start state.
 	//
-	linked_list_type *dfa_start_set = epsilon_closure(nfa_start,
+	array_list_type *dfa_start_set = epsilon_closure(nfa_start,
 #ifdef OFFLINE_EPSILON_CLOSURE
-	offline_epsilon_closure);
+	offline_epsilon_closure
 #else
-	nfa->transfer_diagram);
+	nfa->transfer_diagram
 #endif
+	);
 
 	DFA_state_type *dfa_start_state = DFA_state_create();
 	dfa_start_state->nfa_states = dfa_start_set;
 	dfa->start = dfa_start_state;
 	array_list_append(dfa->states, dfa_start_state);
 
-	linked_list_destroy(nfa_start, NULL);
+	array_list_destroy(nfa_start, NULL);
 	
-	LOG(DFA_LOG_ENABLE, "initial_set: %s", get_linked_list_debug_str(dfa_start_set, NFA_state_debug_str, NULL));
+	LOG(DFA_SUBSET_CONSTRUCT, "initial_set: %s", get_array_list_debug_str(dfa_start_set, NFA_state_debug_str, NULL));
 
 	// hash_table_statistic(nfa->transfer_diagram);
 	
@@ -356,45 +357,57 @@ subset_construction(NFA_type *nfa)
 		int count = 0;
 
 		DFA_state_type *source_dfa_state = dequeue(work_queue);
-		linked_list_type *nfa_states = source_dfa_state->nfa_states;
+		array_list_type *nfa_states = source_dfa_state->nfa_states;
 
 		// for each symbol in dictionary
 		linked_list_node_type *dict_node = alphabet->head;
 		while (dict_node) {
 			char *symbol = dict_node->data;
 
-			linked_list_type *target_nfa_states = linked_list_create();
-			linked_list_node_type *nfa_state_node = nfa_states->head;
+			array_list_type *target_nfa_states = array_list_create();
 			NFA_state_symbol_pair_type key;
 
-			while (nfa_state_node) {
-				++count;
-				key.state = nfa_state_node->data;
+			int nfa_state_idx;
+			for (nfa_state_idx = 0; nfa_state_idx < nfa_states->length; ++nfa_state_idx)
+			{
+				key.state = array_list_get(nfa_states, nfa_state_idx);
 				key.symbol = symbol;
 
+				LOG(DFA_SUBSET_CONSTRUCT, "source: %s", NFA_state_debug_str(key.state, NULL));
+				LOG(DFA_SUBSET_CONSTRUCT, "symbol: %s", key.symbol);
+
 				NFA_state_type *target = hash_table_search(nfa->transfer_diagram, &key, NFA_state_symbol_pair_compartor, NULL);
-
-				if (target) {
-					linked_list_insert_back(target_nfa_states, target);
+				
+				if (target)
+				{
+					array_list_append(target_nfa_states, target);
+					LOG(DFA_SUBSET_CONSTRUCT, "target: %s", NFA_state_debug_str(target, NULL));
 				}
-
-				nfa_state_node = nfa_state_node->next;
+				else
+				{
+					LOG(DFA_SUBSET_CONSTRUCT, "no target");
+				}
 			}
 
-			if (target_nfa_states->head == NULL) {
+			if (target_nfa_states->length <= 0/*target_nfa_states->head == NULL*/) {
 				dict_node = dict_node->next;
-				linked_list_destroy(target_nfa_states, NULL);
+				array_list_destroy(target_nfa_states, NULL);
 				continue;
 			}
 			
-			linked_list_type *origin_target_nfa_states = target_nfa_states;
+			array_list_type *origin_target_nfa_states = target_nfa_states;
+
+			LOG(DFA_SUBSET_CONSTRUCT, "before epsilon_closure(): %s", get_array_list_debug_str(target_nfa_states, NFA_state_debug_str, NULL));
 			target_nfa_states = epsilon_closure(target_nfa_states,
 #ifdef OFFLINE_EPSILON_CLOSURE
-				offline_epsilon_closure);
+				offline_epsilon_closure
 #else
-				nfa->transfer_diagram);
+				nfa->transfer_diagram
 #endif
-			linked_list_destroy(origin_target_nfa_states, NULL);
+			);
+			LOG(DFA_SUBSET_CONSTRUCT, "after epsilon_closure(): %s", get_array_list_debug_str(target_nfa_states, NFA_state_debug_str, NULL));
+			
+			array_list_destroy(origin_target_nfa_states, NULL);
 
 			// check if "target_dfa_state" already exists.
 			DFA_state_type *candidate_target_dfa_state = DFA_state_create();
@@ -413,7 +426,7 @@ subset_construction(NFA_type *nfa)
 				for (i = 0; i < nfa->end->length; i++) {
 					NFA_state_type *end_state = array_list_get(nfa->end, i);
 
-					if (linked_list_search(target_dfa_state->nfa_states, end_state, NFA_state_compartor, NULL)) {
+					if (array_list_search(target_dfa_state->nfa_states, end_state, NFA_state_compartor, NULL)) {
 						array_list_append(dfa->end, target_dfa_state);
 					}
 				}
@@ -424,7 +437,7 @@ subset_construction(NFA_type *nfa)
 			}
 			else {
 				target_dfa_state = target_dfa_state_node->data;
-				linked_list_destroy(target_nfa_states, NULL);
+				array_list_destroy(target_nfa_states, NULL);
 				free(candidate_target_dfa_state);
 			}
 
@@ -445,7 +458,7 @@ subset_construction(NFA_type *nfa)
 	DFA_state_renaming(dfa);
 
 #ifdef OFFLINE_EPSILON_CLOSURE
-	hash_table_destroy(offline_epsilon_closure, dummy_NFA_state_deconstructor, linked_list_deconstructor, NULL);
+	hash_table_destroy(offline_epsilon_closure, dummy_NFA_state_deconstructor, array_list_deconstructor, NULL);
 #endif
 
 	LOG(DFA_LOG_ENABLE, "DFA: %s", get_DFA_debug_str(dfa));
@@ -708,7 +721,7 @@ minify_DFA(DFA_type *dfa)
 		// the partition index.
 		DFA_state_type *new_dfa_state = DFA_state_create();
 		new_dfa_state->id = part_idx;
-		new_dfa_state->nfa_states = linked_list_create();
+		new_dfa_state->nfa_states = array_list_create();
 
 		// Also retrieve all nfa states belong to this partition,
 		// and copy to the new_dfa_state.
@@ -718,15 +731,16 @@ minify_DFA(DFA_type *dfa)
 		{
 			DFA_state_type *old_dfa_state = sub_partition_node->data;
 			
-			linked_list_type *nfas = old_dfa_state->nfa_states;
-			linked_list_node_type *nfa_node;
+			array_list_type *nfas = old_dfa_state->nfa_states;
 
-			for (nfa_node = nfas->head; nfa_node != NULL; nfa_node = nfa_node->next)
+			int nfas_idx;
+			for (nfas_idx = 0; nfas_idx < nfas->length; ++ nfas_idx)
 			{
-				assert(nfa_node->data);
-				if (!linked_list_search(new_dfa_state->nfa_states, nfa_node->data, NFA_state_compartor, NULL))
+				NFA_state_type *nfa_state = array_list_get(nfas, nfas_idx);
+				assert(nfa_state);
+				if (!array_list_search(new_dfa_state->nfa_states, nfa_state, NFA_state_compartor, NULL))
 				{
-					linked_list_insert_back(new_dfa_state->nfa_states, nfa_node->data);
+					array_list_append(new_dfa_state->nfa_states, nfa_state);
 				}
 			}
 		}
@@ -880,23 +894,21 @@ DFA_state_compartor(void *one, void *another, va_list arg_list)
 	DFA_state_type *a = one;
 	DFA_state_type *b = another;
 
-	linked_list_type *a_nfa_states = a->nfa_states;
-	linked_list_type *b_nfa_states = b->nfa_states;
-
-	linked_list_node_type *a_node;
-	linked_list_node_type *b_node;
+	array_list_type *a_nfa_states = a->nfa_states;
+	array_list_type *b_nfa_states = b->nfa_states;
 
 	if (a_nfa_states == NULL && b_nfa_states != NULL) return FALSE;
 	if (b_nfa_states == NULL && a_nfa_states != NULL) return FALSE;
 
-	for (a_node = a_nfa_states->head, b_node = b_nfa_states->head; a_node && b_node; a_node = a_node->next, b_node = b_node->next) {
-		int a_id = TYPE_CAST(a_node->data, NFA_state_type *)->id;
-		int b_id = TYPE_CAST(b_node->data, NFA_state_type *)->id;
+	if (a_nfa_states->length != b_nfa_states->length) return FALSE;
+
+	int idx;
+	for (idx = 0; idx < a_nfa_states->length; ++ idx) {
+		int a_id = TYPE_CAST(array_list_get(a_nfa_states, idx), NFA_state_type *)->id;
+		int b_id = TYPE_CAST(array_list_get(b_nfa_states, idx), NFA_state_type *)->id;
 
 		if (a_id != b_id) return FALSE;
 	}
-
-	if (a_node != NULL || b_node != NULL) return FALSE;
 
 	return TRUE;
 }

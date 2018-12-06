@@ -6,7 +6,7 @@
 
 typedef struct {
 	int id;
-	linked_list_type *nfa_states;
+	array_list_type *nfa_states;
 } DFA_state_type;
 
 typedef struct {

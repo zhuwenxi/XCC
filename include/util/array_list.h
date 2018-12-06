@@ -84,6 +84,17 @@ bool array_list_resize(array_list_type *list, int new_size);
 bool array_list_adjust_length(array_list_type *list, int new_length);
 
 /*
+ * Compare 2 array lists
+ */
+bool array_list_comparator(array_list_type *list1, array_list_type *list2, va_list arg_list);
+DECLARE_COMPARE(array_list)
+
+/*
+ * Merge 2 array lists
+ */
+bool array_list_merge(array_list_type *list1, array_list_type *list2, bool (*comparator)(void *, void *, va_list), ...);
+
+/*
  * String for debug.
  */
 char *get_array_list_debug_str(array_list_type *list, ...);

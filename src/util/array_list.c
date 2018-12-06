@@ -157,18 +157,9 @@ _negtive_index_to_positive(array_list_type *list, int index)
 void *
 array_list_get(array_list_type *list, int index)
 {
-	assert(list != NULL);
+	assert(list != NULL && index >= 0 && index < list->length);
 
-	index = _negtive_index_to_positive(list, index);
-
-	if (index < 0 || index > list->length - 1)
-	{
-		return NULL;
-	}
-	else
-	{
-		return list->content[index]->data;
-	}
+	return list->content[index]->data;
 }
 
 void 
@@ -199,7 +190,7 @@ array_list_searcher(array_list_type *list, void *data, bool (*equal)(void *, voi
 	int i;
 	for (i = 0; i < list->length; i ++)
 	{
-		void *node_data = array_list_get(list, i);
+		void *node_data = list->content[i]->data;
 
 		if (equal(node_data, data, arg_list_copy))
 		{
@@ -272,6 +263,80 @@ array_list_adjust_length(array_list_type *list, int new_length)
 
 	return TRUE;
 	
+}
+
+bool
+array_list_comparator(array_list_type *list1, array_list_type *list2, va_list arg_list)
+{
+	if (list1 == list2) return TRUE;
+	if (list1 == NULL || list2 == NULL)
+	{
+		if (list1 != list2)
+		{
+			return FALSE;
+		}
+		else
+		{
+			return TRUE;
+		}
+	}
+
+	assert(list1 && list2);
+
+	if (list1->length != list2->length) return FALSE;
+
+	bool (*sub_comparator)(void *, void *, va_list) = va_arg(arg_list, void *);
+
+	assert(sub_comparator);
+
+	int idx;
+	for (idx = 0; idx < list1->length; ++ idx)
+	{
+		void *data1 = array_list_get(list1, idx);
+		void *data2 = array_list_get(list2, idx);
+
+		if (!sub_comparator(data1, data2, NULL)) return FALSE;
+	}
+
+	return TRUE;
+}
+
+bool
+array_list_merge(array_list_type *list1, array_list_type *list2, bool (*comparator)(void *, void *, va_list), ...)
+{
+	assert(list1);
+
+	if (list2 == NULL) return FALSE;
+
+	bool ret = FALSE;
+	va_list arg_list;
+	va_start(arg_list, comparator);
+
+	int idx;
+	for (idx = 0; idx < list2->length; ++ idx)
+	{
+		va_list arg_list_copy;
+		va_copy(arg_list_copy, arg_list);
+
+		// void *data = array_list_get(list2, idx);
+		void *data = list2->content[idx]->data;
+
+		if (array_list_searcher(list1, data, comparator, arg_list_copy) == NULL)
+		{
+			void *(*copier)(void *, va_list) = va_arg(arg_list_copy, void *);
+			assert(copier != NULL);
+
+			array_list_append(list1, copier(data, arg_list_copy));
+
+			ret = TRUE;
+		}
+
+		va_end(arg_list_copy);
+	}
+
+	va_end(arg_list);
+
+	return ret;
 }
 
 char *
