@@ -1,0 +1,4 @@
+/dist/
+/xcc.egg-info/
+*/__pycache__/*
+*.pyc
