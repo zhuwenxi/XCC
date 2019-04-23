@@ -31,6 +31,11 @@ class Grammar(object):
 
 		# self.nonterminals.reverse()
 
+		# FIRST set
+		self.first = {}
+		# FOLLOW set
+		self.follow = {}
+
 	# Find bodies of all productions expand Aj:
 	def _find_body_expand_Aj(self, Aj):
 		body_expand_Aj = []
@@ -91,10 +96,6 @@ class Grammar(object):
 				else:
 					right_recursion_bodies.append(body)
 
-			# print('============================')
-			# print(left_recursion_bodies)
-			# print(right_recursion_bodies)
-
 			if len(left_recursion_bodies) > 0:
 				Aj_bodies = []
 				Aj_single_quote_bodies = []
@@ -108,7 +109,7 @@ class Grammar(object):
 					for left_recursion_body in left_recursion_bodies:	
 						# Aj' -> alpha Aj'
 						Aj_single_quote_bodies.append(left_recursion_body[1:] + [Aj_single_quote])
-						# print('Aj_single_quote_bodies:', Aj_single_quote_bodies)
+
 				prod.bodies = Aj_bodies
 
 				Aj_single_quote_prod = Production()
@@ -136,8 +137,17 @@ class Grammar(object):
 
 		db_log(LOG_CONTEXT_FREE_GRAMMAR, "Right-recusive grammar:\n{}".format(self), flush=True)
 					
+	def compute_first_set(self, symbol):
+		symbols = []
 
+		for prod in self.productions:
+			if prod.head not in symbols:
+				symbols.append(prod.head)
 
+			for body in prod.bodies:
+				for symbol in body:
+					if symbol not in symbols:
+						symbols.append(symbol)
 
 	def __str__(self):
 		text = ''
@@ -196,6 +206,10 @@ class Symbol(object):
 	
 	NORMAL = 0
 	EPSILON = 1
+	EOF = 2
+
+	EPSILON_SYMBOL = None
+	EOF_SYMBOL = None
 
 	debug = False
 
@@ -218,3 +232,6 @@ class Symbol(object):
 
 	def __hash__(self):
 		return hash(self.text) + hash(self.is_terminal)
+
+Symbol.EPSILON_SYMBOL = Symbol("EPSILON", is_terminal=True, symbol_type=Symbol.EPSILON)
+Symbol.EOF_SYMBOL = Symbol("EOF", is_terminal=True, symbol_type=Symbol.EOF)
