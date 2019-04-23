@@ -137,7 +137,7 @@ class Grammar(object):
 
 		db_log(LOG_CONTEXT_FREE_GRAMMAR, "Right-recusive grammar:\n{}".format(self), flush=True)
 					
-	def compute_first_set(self, symbol):
+	def compute_first_set(self):
 		symbols = []
 
 		for prod in self.productions:
@@ -148,6 +148,42 @@ class Grammar(object):
 				for symbol in body:
 					if symbol not in symbols:
 						symbols.append(symbol)
+
+		
+		for s in symbols:
+			self.first[s] = set()
+			# Terminal, EPSILON and EOF
+			if s.is_terminal or s is Symbol.EPSILON_SYMBOL or s is Symbol.EOF_SYMBOL:
+				self.first[s].add(s)
+
+		print(self.first)
+
+		set_changed = True
+		while set_changed:
+			set_changed = False
+
+			for prod in self.productions:
+				for body in prod.bodies:
+					body_len = len(body)
+
+					rhs = self.first[body[0]].copy().remove(Symbol.EPSILON_SYMBOL)
+					for i, symbol in enumerate(body):
+						if Symbol.EPSILON_SYMBOL in self.first(body[i]):
+							break
+
+						if i < body_len - 1:
+							rhs.update(self.first[body[i + 1]].remove(Symbol.EPSILON_SYMBOL))
+					
+					# if EPSILON in every first[body[i]], add EPSLION to rhs
+					if i == body_len - 1 and Symbol.EPSILON_SYMBOL in self.first[body[body_len - 1]]:
+						rhs.update(Symbol.EPSILON_SYMBOL)
+
+					len_before_update = len(self.first(prod.head))
+					self.first[prod.head].update(rhs)
+					len_after_update = len(self.first(prod.head))
+
+					if len_before_update != len_after_update:
+						set_changed = True
 
 	def __str__(self):
 		text = ''

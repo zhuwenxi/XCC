@@ -8,7 +8,7 @@ from xcc.scanner.recursive_decent_parser import RecusiveDecentParser
 class GrammarTest(unittest.TestCase):
     def setUp(self):
         self.grammar = GrammarFactory.get_grammar('expression')
-    
+
     def test_classic_expression_grammar(self):
         expected = 'Goal -> Expr\n'\
                    'Expr -> Expr + Term | Expr - Term | Term\n'\
@@ -343,6 +343,10 @@ digraph
         actual = str(ast)
 
         self.assertEqual(expected, actual)
+
+    def test_compute_first_set(self):
+        self.grammar.eliminate_left_recursion()
+        self.grammar.compute_first_set()
 
 if __name__ == '__main__':
     unittest.main()
