@@ -10,6 +10,9 @@ class GrammarTest(unittest.TestCase):
         self.grammar = GrammarFactory.get_grammar('expression')
 
     def test_classic_expression_grammar(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+
         expected = 'Goal -> Expr\n'\
                    'Expr -> Expr + Term | Expr - Term | Term\n'\
                    'Term -> Term * Factor | Term / Factor | Factor\n'\
@@ -20,6 +23,9 @@ class GrammarTest(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     def test_eliminate_left_recursion(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+
         expected = "Goal -> Expr\n"\
                    "Expr -> Term Expr'\n"\
                    "Expr' -> + Term Expr' | - Term Expr' | EPSILON\n"\
@@ -48,6 +54,10 @@ class GrammarTest(unittest.TestCase):
         return token_seq
 
     def test_recursive_descent_parsing(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
         token_seq = self._prepare_input_sequence('1')
         parser = RecusiveDecentParser(self.grammar)
         ast = parser.parse(token_seq)
@@ -72,6 +82,10 @@ digraph
         self.assertEqual(expected, actual)
 
     def test_recursive_descent_parsing_1(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
         token_seq = self._prepare_input_sequence('1 + 2')
         parser = RecusiveDecentParser(self.grammar)
         ast = parser.parse(token_seq)
@@ -101,6 +115,10 @@ digraph
         self.assertEqual(expected, actual)
 
     def test_recursive_descent_parsing_2(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
         token_seq = self._prepare_input_sequence('1 + 2 * 3')
         parser = RecusiveDecentParser(self.grammar)
         ast = parser.parse(token_seq)
@@ -134,6 +152,10 @@ digraph
         self.assertEqual(expected, actual)
 
     def test_recursive_descent_parsing_3(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
         token_seq = self._prepare_input_sequence('(1 + 1)')
         parser = RecusiveDecentParser(self.grammar)
         ast = parser.parse(token_seq)
@@ -172,6 +194,10 @@ digraph
         self.assertEqual(expected, actual)
 
     def test_recursive_descent_parsing_4(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
         token_seq = self._prepare_input_sequence('(1)')
         parser = RecusiveDecentParser(self.grammar)
         ast = parser.parse(token_seq)
@@ -203,6 +229,10 @@ digraph
         self.assertEqual(expected, actual)
 
     def test_recursive_descent_parsing_5(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
         token_seq = self._prepare_input_sequence('(1+2)*3')
         parser = RecusiveDecentParser(self.grammar)
         ast = parser.parse(token_seq)
@@ -245,6 +275,10 @@ digraph
         self.assertEqual(expected, actual)
 
     def test_recursive_descent_parsing_6(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
         token_seq = self._prepare_input_sequence('1 * (2 + 3)')
         parser = RecusiveDecentParser(self.grammar)
         ast = parser.parse(token_seq)
@@ -287,6 +321,10 @@ digraph
         self.assertEqual(expected, actual)
 
     def test_recursive_descent_parsing_7(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
         token_seq = self._prepare_input_sequence('(1 + 2) * (3 + 4)')
         parser = RecusiveDecentParser(self.grammar)
         ast = parser.parse(token_seq)
@@ -345,6 +383,9 @@ digraph
         self.assertEqual(expected, actual)
 
     def test_compute_first_set(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+
         self.grammar.eliminate_left_recursion()
         self.grammar.compute_first_set()
 

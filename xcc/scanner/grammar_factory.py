@@ -24,6 +24,10 @@ class GrammarFactory(object):
 			return None
 		else:
 			return cls._grammars[name]
+
+	@classmethod
+	def clear(cls):
+		cls._grammars = None
 		
 	@classmethod
 	def load_grammars(cls, grammar_dir=GRAMMAR_DIR):
