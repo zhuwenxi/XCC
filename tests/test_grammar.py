@@ -417,6 +417,23 @@ digraph
 
         self.assertEqual(expected, actual)
 
+    def test_compute_follow_set(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
+        self.grammar.compute_follow_set()
+
+        actual = str(self.grammar.follow)
+
+        expected = "{Goal: [EOF], "\
+                   "Expr: [), EOF], "\
+                   "Term: [), +, -, EOF], "\
+                   "Expr': [), EOF], "\
+                   "Factor: [), *, +, -, /, EOF], "\
+                   "Term': [), +, -, EOF]}"\
+        
+        self.assertEqual(expected, actual)
 
 if __name__ == '__main__':
     unittest.main()

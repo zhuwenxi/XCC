@@ -33,8 +33,10 @@ class Grammar(object):
 
 		# FIRST set
 		self.first = {}
+		self.first_set_ready = False
 		# FOLLOW set
 		self.follow = {}
+		self.follow_set_ready = False
 
 	# Find bodies of all productions expand Aj:
 	def _find_body_expand_Aj(self, Aj):
@@ -136,8 +138,8 @@ class Grammar(object):
 			self.eliminate_direct_left_recursion(Ai)
 
 		db_log(LOG_CONTEXT_FREE_GRAMMAR, "Right-recusive grammar:\n{}".format(self), flush=True)
-					
-	def compute_first_set(self):
+	
+	def get_all_symbols(self):
 		symbols = []
 
 		for prod in self.productions:
@@ -149,7 +151,11 @@ class Grammar(object):
 					if symbol not in symbols:
 						symbols.append(symbol)
 
-		
+		return symbols
+
+	def compute_first_set(self):
+		symbols = self.get_all_symbols()
+
 		for s in symbols:
 			self.first[s] = set()
 			# Terminal, EPSILON and EOF
@@ -200,6 +206,75 @@ class Grammar(object):
 			# db_log(LOG_FIRST_SET, "{}: {}".format(symbol, l))
 		db_log(LOG_FIRST_SET, self.first)
 
+		self.first_set_ready = True
+
+	def compute_follow_set(self):
+		if not self.first_set_ready:
+			self.compute_first_set()
+
+		symbols = self.get_all_symbols()
+
+		# Initialize all non-terminals' follow set to empty set.
+		for symbol in symbols:
+			if not symbol.is_terminal:
+				self.follow[symbol] = set()
+
+		goal_symbol = self.productions[0].head
+
+		self.follow[goal_symbol] = {Symbol.EOF_SYMBOL}
+
+		follow_set_changed = True
+		while follow_set_changed:
+			follow_set_changed = False
+
+			for prod in self.productions:
+				for body in prod.bodies:
+					trailer = self.follow[prod.head].copy()
+
+					db_log(LOG_FOLLOW_SET, "=========================")
+
+					db_log(LOG_FOLLOW_SET, "trailer init from {}: {}".format(prod.head, self.follow[prod.head]))
+					db_log(LOG_FOLLOW_SET, "{} -> {}".format(prod.head, body))
+
+					for symbol in list(reversed(body)):
+						if not symbol.is_terminal:
+
+							db_log(LOG_FOLLOW_SET, "trailer: {}".format(trailer))
+							len_before_update = len(self.follow[symbol])
+							self.follow[symbol].update(trailer)
+							len_after_update = len(self.follow[symbol])
+							
+							db_log(LOG_FOLLOW_SET, "follow[{}]: {}".format(symbol, self.follow[symbol]))
+
+							if len_before_update != len_after_update:
+								follow_set_changed = True
+
+							if Symbol.EPSILON_SYMBOL in self.first[symbol]:
+								symbol_first_set = set(self.first[symbol].copy())
+								symbol_first_set.remove(Symbol.EPSILON_SYMBOL)
+								db_log(LOG_FOLLOW_SET, "before trailer update 1. {}".format(self.follow))
+								trailer.update(symbol_first_set)
+								db_log(LOG_FOLLOW_SET, "trailer update 1. {}".format(self.follow))
+
+							else:
+								trailer = set(self.first[symbol].copy())
+
+
+						else:
+							trailer = set(self.first[symbol].copy())
+
+
+
+					db_log(LOG_FOLLOW_SET, "follow() after every body:{}\n".format(self.follow))
+
+
+		for symbol in self.follow:
+			l = list(self.follow[symbol])
+			l.sort()
+			self.follow[symbol] = l
+		db_log(LOG_FOLLOW_SET, self.follow)
+
+		self.follow_set_ready = True
 	def __str__(self):
 		text = ''
 		for prod in self.productions:
