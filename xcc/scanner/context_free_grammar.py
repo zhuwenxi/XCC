@@ -156,7 +156,7 @@ class Grammar(object):
 			if s.is_terminal or s is Symbol.EPSILON_SYMBOL or s is Symbol.EOF_SYMBOL:
 				self.first[s].add(s)
 
-		print(self.first)
+		db_log(LOG_FIRST_SET, "====================== After initialization, first set: ======================\n{}\n".format(self.first))
 
 		set_changed = True
 		while set_changed:
@@ -166,24 +166,39 @@ class Grammar(object):
 				for body in prod.bodies:
 					body_len = len(body)
 
-					rhs = self.first[body[0]].copy().remove(Symbol.EPSILON_SYMBOL)
+					first_body_0 = self.first[body[0]].copy()
+					if Symbol.EPSILON_SYMBOL in first_body_0:
+						first_body_0.remove(Symbol.EPSILON_SYMBOL)
+					rhs = first_body_0
+
 					for i, symbol in enumerate(body):
-						if Symbol.EPSILON_SYMBOL in self.first(body[i]):
+						if Symbol.EPSILON_SYMBOL not in self.first[body[i]]:
 							break
 
 						if i < body_len - 1:
-							rhs.update(self.first[body[i + 1]].remove(Symbol.EPSILON_SYMBOL))
+							first_body_i_plus_1 = self.first[body[i + 1]].copy()
+							if Symbol.EPSILON_SYMBOL in first_body_i_plus_1:
+								first_body_i_plus_1.remove(Symbol.EPSILON_SYMBOL)
+							rhs.update(first_body_i_plus_1)
 					
 					# if EPSILON in every first[body[i]], add EPSLION to rhs
 					if i == body_len - 1 and Symbol.EPSILON_SYMBOL in self.first[body[body_len - 1]]:
-						rhs.update(Symbol.EPSILON_SYMBOL)
+						rhs.add(Symbol.EPSILON_SYMBOL)
 
-					len_before_update = len(self.first(prod.head))
+					len_before_update = len(self.first[prod.head])
 					self.first[prod.head].update(rhs)
-					len_after_update = len(self.first(prod.head))
+					len_after_update = len(self.first[prod.head])
 
 					if len_before_update != len_after_update:
 						set_changed = True
+
+		db_log(LOG_FIRST_SET, "====================== Done, first set: ======================")
+		for symbol in self.first:
+			l = list(self.first[symbol])
+			l.sort()
+			self.first[symbol] = l
+			# db_log(LOG_FIRST_SET, "{}: {}".format(symbol, l))
+		db_log(LOG_FIRST_SET, self.first)
 
 	def __str__(self):
 		text = ''

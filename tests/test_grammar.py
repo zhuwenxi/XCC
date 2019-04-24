@@ -348,5 +348,34 @@ digraph
         self.grammar.eliminate_left_recursion()
         self.grammar.compute_first_set()
 
+        actual = str(self.grammar.first)
+
+        expected = "{Goal: [(, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "\
+                   "Expr: [(, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "\
+                   "Term: [(, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "\
+                   "Expr': [+, -, EPSILON], "\
+                   "+: [+], "\
+                   "-: [-], "\
+                   "EPSILON: [EPSILON], "\
+                   "Factor: [(, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "\
+                   "Term': [*, /, EPSILON], "\
+                   "*: [*], "\
+                   "/: [/], "\
+                   "(: [(], "\
+                   "): [)], "\
+                   "0: [0], "\
+                   "1: [1], "\
+                   "2: [2], "\
+                   "3: [3], "\
+                   "4: [4], "\
+                   "5: [5], "\
+                   "6: [6], "\
+                   "7: [7], "\
+                   "8: [8], "\
+                   "9: [9]}"
+
+        self.assertEqual(expected, actual)
+
+
 if __name__ == '__main__':
     unittest.main()
