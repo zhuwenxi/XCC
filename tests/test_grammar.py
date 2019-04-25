@@ -382,6 +382,111 @@ digraph
 
         self.assertEqual(expected, actual)
 
+    def test_recursive_descent_parsing_8(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
+        token_seq = self._prepare_input_sequence('(1')
+        parser = RecusiveDecentParser(self.grammar)
+        ast = parser.parse(token_seq)
+
+        actual = str(ast)
+
+        expected = str(None)
+
+        self.assertEqual(expected, actual)
+
+    def test_recursive_descent_parsing_9(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
+        token_seq = self._prepare_input_sequence('(1 +')
+        parser = RecusiveDecentParser(self.grammar)
+        ast = parser.parse(token_seq)
+
+        actual = str(ast)
+
+        expected = str(None)
+
+        self.assertEqual(expected, actual)
+
+    def test_recursive_descent_parsing_10(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
+        token_seq = self._prepare_input_sequence('1*')
+        parser = RecusiveDecentParser(self.grammar)
+        ast = parser.parse(token_seq)
+
+        actual = str(ast)
+
+        expected = str(None)
+
+        self.assertEqual(expected, actual)
+
+    def test_recursive_descent_parsing_11(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
+        token_seq = self._prepare_input_sequence('1*(')
+        parser = RecusiveDecentParser(self.grammar)
+        ast = parser.parse(token_seq)
+
+        actual = str(ast)
+
+        expected = str(None)
+
+        self.assertEqual(expected, actual)
+
+    def test_recursive_descent_parsing_12(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
+        token_seq = self._prepare_input_sequence('(1')
+        parser = RecusiveDecentParser(self.grammar)
+        ast = parser.parse(token_seq)
+
+        actual = str(ast)
+
+        expected = str(None)
+
+        self.assertEqual(expected, actual)
+
+    def test_recursive_descent_parsing_13(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
+        token_seq = self._prepare_input_sequence('(1 + 2) * (3')
+        parser = RecusiveDecentParser(self.grammar)
+        ast = parser.parse(token_seq)
+
+        actual = str(ast)
+
+        expected = str(None)
+
+        self.assertEqual(expected, actual)
+
+    def test_recursive_descent_parsing_14(self):
+        GrammarFactory.clear()
+        self.grammar = GrammarFactory.get_grammar('expression')
+        self.grammar.eliminate_left_recursion()
+
+        token_seq = self._prepare_input_sequence('(1 + 2) * (3 + 4')
+        parser = RecusiveDecentParser(self.grammar)
+        ast = parser.parse(token_seq)
+
+        actual = str(ast)
+
+        expected = str(None)
+
+        self.assertEqual(expected, actual)
+
     def test_compute_first_set(self):
         GrammarFactory.clear()
         self.grammar = GrammarFactory.get_grammar('expression')
