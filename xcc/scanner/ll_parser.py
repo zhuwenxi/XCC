@@ -87,6 +87,9 @@ class LLParser(object):
 			return None
 
 	def construct_parsing_table(self):
+		if not self.grammar.check_backtrace_free():
+			raise Exception('Not a backtrace-free grammar')
+
 		for prod in self.grammar.productions:
 			for body in prod.bodies:
 				first_plus_key = (prod.head, tuple(body))
@@ -97,7 +100,8 @@ class LLParser(object):
 						continue
 
 					parsing_table_key = (prod.head, symbol)
-					self.parsing_table[parsing_table_key] = body
-		# print(self.grammar)
-		# print(self.parsing_table)
 
+					if parsing_table_key in self.parsing_table:
+						raise Exception('Oops, parsing table key conflict!')
+
+					self.parsing_table[parsing_table_key] = body
