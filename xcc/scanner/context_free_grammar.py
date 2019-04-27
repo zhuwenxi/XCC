@@ -7,7 +7,6 @@ counter = 0
 class Grammar(object):
 	def __init__(self, grammar_dict):
 		self.productions = []
-		self.nonterminals = []
 
 		nonterminals = []
 		for head in grammar_dict:
@@ -17,7 +16,6 @@ class Grammar(object):
 			self.productions.append(prod)
 
 			nonterminals.append(head)
-			self.nonterminals.append(Symbol(head, is_terminal=False))
 
 		# Set "is_terminal" correctly
 		for prod in self.productions:
@@ -40,6 +38,13 @@ class Grammar(object):
 		# FIRST+ set
 		self.first_plus = {}
 		self.first_plus_set_ready = False
+
+	def nonterminals(self):
+		ret = []
+		for prod in self.productions:
+			ret.append(prod.head)
+
+		return ret
 
 	# Find bodies of all productions expand Aj:
 	def _find_body_expand_Aj(self, Aj):
@@ -124,7 +129,7 @@ class Grammar(object):
 				self.productions.insert(self.productions.index(prod) + 1, Aj_single_quote_prod)
 
 	def eliminate_left_recursion(self):
-		nonterminals = self.nonterminals
+		nonterminals = self.nonterminals()
 		db_log(LOG_CONTEXT_FREE_GRAMMAR, 'A0, A1...An: {}\n'.format(nonterminals))
 
 		nonterminals_num = len(nonterminals)
