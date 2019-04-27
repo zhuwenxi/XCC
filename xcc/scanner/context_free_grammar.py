@@ -325,7 +325,7 @@ class Grammar(object):
 		
 		return True
 
-
+	# Deprecated
 	def left_factoring(self):
 		body_first_symbol_dict = {}
 		for prod in self.productions:

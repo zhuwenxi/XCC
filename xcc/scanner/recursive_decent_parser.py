@@ -1,5 +1,9 @@
 from .ast import *
 from .context_free_grammar import *
+from ..config.config import *
+
+
+
 
 class RecusiveDecentParser(object):
 	def __init__(self, grammar=None):
