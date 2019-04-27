@@ -37,6 +37,9 @@ class Grammar(object):
 		# FOLLOW set
 		self.follow = {}
 		self.follow_set_ready = False
+		# FIRST+ set
+		self.first_plus = {}
+		self.first_plus_set_ready = False
 
 	# Find bodies of all productions expand Aj:
 	def _find_body_expand_Aj(self, Aj):
@@ -275,6 +278,63 @@ class Grammar(object):
 		db_log(LOG_FOLLOW_SET, self.follow)
 
 		self.follow_set_ready = True
+
+	def compute_first_plus_set(self):
+		if not self.follow_set_ready:
+			self.compute_follow_set()
+
+		for prod in self.productions:
+			for body in prod.bodies:
+				self.first_plus[(prod.head, tuple(body))] = set(self.first[body[0]].copy())
+
+				epslion_in_first_set = []
+				for symbol in body:
+					epslion_in_first_set.append(Symbol.EPSILON_SYMBOL in self.first[symbol])
+
+				if all(epslion_in_first_set):
+					self.first_plus[(prod.head, tuple(body))].update(set(self.follow[prod.head]))
+
+		for symbol in self.first_plus:
+			l = list(self.first_plus[symbol])
+			l.sort()
+			self.first_plus[symbol] = l
+
+		self.first_plus_set_ready = True
+
+	def check_backtrace_free(self):
+		if not self.first_plus_set_ready:
+			self.compute_first_plus_set()
+
+		for prod in self.productions:
+			first_plus_set_all = set()
+			all_set_len = 0
+			for body in prod.bodies:
+				key = (prod.head, tuple(body))
+				first_plus_set = self.first_plus[key]
+
+				all_set_len += len(first_plus_set)
+				first_plus_set_all.update(first_plus_set)
+
+			if len(first_plus_set_all) != all_set_len:
+				return False
+		
+		return True
+
+
+	def left_factoring(self):
+		body_first_symbol_dict = {}
+		for prod in self.productions:
+			for body in prod.bodies:
+				body_first_symbol = body[0]
+
+				if body_first_symbol not in body_first_symbol_dict:
+					body_first_symbol_dict = set()
+
+				body_first_symbol_dict[body_first_symbol].add(body)
+
+			for symbol, body in body_first_symbol_dict.items():
+				pass
+
 	def __str__(self):
 		text = ''
 		for prod in self.productions:
