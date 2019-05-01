@@ -2,6 +2,8 @@ from ..util import type_check
 from ..util.logging import db_log
 from ..config.config import *
 
+import copy
+
 counter = 0
 
 class Grammar(object):
@@ -364,6 +366,11 @@ class Production(object):
 				symbol_body.append(Symbol(symbol))
 			self.bodies.append(symbol_body)
 				
+	def __deepcopy__(self, mem):
+		cpy = Production()
+		cpy.head = copy.deepcopy(self.head)
+		cpy.bodies = copy.deepcopy(self.bodies)
+		return cpy
 
 	def __str__(self):
 		ret_str = str(self.head) + ' ->'
@@ -398,9 +405,7 @@ class Symbol(object):
 	NORMAL = 0
 	EPSILON = 1
 	EOF = 2
-
-	EPSILON_SYMBOL = None
-	EOF_SYMBOL = None
+	DOT = 3
 
 	debug = False
 
@@ -424,5 +429,9 @@ class Symbol(object):
 	def __hash__(self):
 		return hash(self.text) + hash(self.is_terminal)
 
+	def __deepcopy__(self, mem):
+		return Symbol(self.text, self.is_terminal, self.type)
+
 Symbol.EPSILON_SYMBOL = Symbol("EPSILON", is_terminal=True, symbol_type=Symbol.EPSILON)
 Symbol.EOF_SYMBOL = Symbol("EOF", is_terminal=True, symbol_type=Symbol.EOF)
+Symbol.DOT_SYMBOL = Symbol("DOT", is_terminal=True, symbol_type=Symbol.DOT)
