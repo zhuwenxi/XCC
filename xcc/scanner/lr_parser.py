@@ -17,7 +17,39 @@ class LR0Parser(object):
         self.construct_parsing_tables()
 
     def parse(self, token_seq):
-        print('LR0Parser')
+        # Push s0 into stack 
+        state_stack = Stack()
+        state_stack.push(self.states[0])
+        token_index = 0
+
+        while True:
+            state = state_stack.peek()
+            curr_token = token_seq[token_index]
+            symbol = curr_token.type
+            key = (state, symbol)
+
+            db_log(LOG_LR_0_PARSE, 'state:', state.id)
+            db_log(LOG_LR_0_PARSE, 'token:', curr_token)
+            action = self.action_table[key]
+            db_log(LOG_LR_0_PARSE, 'action:', action)
+
+            if action.action_type == Action.SHIFT:
+                state_stack.push(action.shift_state)
+                token_index += 1
+            elif action.action_type == Action.REDUCE:
+                # "-1" means we don't count DOT in.
+                len_states_to_pop = len(action.reduce_prod.bodies[0]) - 1
+                state_stack.pop_n(len_states_to_pop)
+                state = state_stack.peek()
+                symbol = action.reduce_prod.head
+                key = (state, symbol)
+                target = self.goto_table[key]
+                state_stack.push(target)
+            elif action.action_type == Action.ACCEPT:
+                break
+            else:
+                raise Exception('Meet a error action')
+                break
 
     def construct_parsing_tables(self):
         self.construct_canonical_collection()
@@ -40,10 +72,7 @@ class LR0Parser(object):
                     for body in prod.bodies:
                         cand = state.symbol_after_dot(body)
                         if cand is not None:
-                            db_log(LOG_LR_0_PARSE, "source: {}".format(state))
-                            db_log(LOG_LR_0_PARSE, "symbol: {}".format(cand))
                             dest_state = self.goto(state, cand)
-                            db_log(LOG_LR_0_PARSE, "target: {}".format(dest_state))
                             if dest_state != None and dest_state not in self.states:
                                 has_new_states = True
                                 self.states.append(dest_state)

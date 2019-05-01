@@ -14,6 +14,29 @@ class LRParserTest(unittest.TestCase):
         self.grammar = GrammarFactory.get_grammar('expression')
         self.grammar.compute_first_plus_set()
 
+    def _prepare_input_sequence(self, input_stream):
+        if not isinstance(input_stream, str):
+            raise TypeError('"input_stream" is expected to be a str, but got {} instead.'.format(input_stream))
+    
+        token_seq = []
+    
+        for t in input_stream:
+            if t == ' ':
+                continue
+
+            if t not in ('+', '*'):
+                token_type = Symbol('id', is_terminal=True)
+            else:
+                token_type = Symbol(t, is_terminal=True)
+            
+            token = Token(t, token_type)
+            token_seq.append(token)
+
+        # Add "EOF" to the end of the sequence.
+        token_seq.append(Token("EOF", Symbol.EOF_SYMBOL))
+
+        return token_seq
+
     def test_lr_0_set(self):
         # Goal -> DOT Expr
         prod = copy.deepcopy(self.grammar.productions[0])
@@ -105,4 +128,15 @@ digraph
 (11, +) -> Reduce F -> ( E ) DOT
 (11, EOF) -> Reduce F -> ( E ) DOT
 """
-        self.assertEqual(expected_action_table, actual_action_table)        
+        self.assertEqual(expected_action_table, actual_action_table)
+
+    def test_lr_0_parsing(self):
+        grammar = GrammarFactory.get_grammar('partial-expression')
+        grammar.compute_first_plus_set()
+        lr_0_parser = LR0Parser(grammar)
+
+        token_seq = self._prepare_input_sequence('1 + 2')
+
+        lr_0_parser.parse(token_seq)
+
+

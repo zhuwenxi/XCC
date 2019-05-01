@@ -34,7 +34,7 @@ class LLParser(object):
 		
 
 		while not stack.empty():
-			A = stack.peep()
+			A = stack.peek()
 			assert isinstance(A, Symbol)
 
 			if token_idx >= len(token_seq):

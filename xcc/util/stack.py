@@ -8,8 +8,14 @@ class Stack(object):
 	def pop(self):
 		return self.impl.pop()
 
+	def pop_n(self, n=1):
+		for _ in range(n):
+			ret = self.impl.pop()
+
+		return ret
+
 	def empty(self):
 		return len(self.impl) == 0
 
-	def peep(self):
+	def peek(self):
 		return self.impl[-1]
