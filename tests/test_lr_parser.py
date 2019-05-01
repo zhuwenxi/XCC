@@ -30,9 +30,11 @@ class LRParserTest(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
-    def test_lr_0_parsing_goto_table_construct(self):
+    def test_lr_0_parsing_tables_construct(self):
         grammar = GrammarFactory.get_grammar('partial-expression')
+        grammar.compute_first_plus_set()
         lr_0_parser = LR0Parser(grammar)
+
         actual = lr_0_parser.goto_table_str()
 
         expected = """
@@ -62,4 +64,45 @@ digraph
 9 -> 7 [label="*"];
 }"""
         self.assertEqual(expected, actual)
-        
+
+        actual_action_table = lr_0_parser.action_table_str()
+
+        expected_action_table = """\
+(0, () -> Shift 4
+(0, id) -> Shift 5
+(1, EOF) -> Accept
+(1, +) -> Shift 6
+(2, )) -> Reduce E -> T DOT
+(2, +) -> Reduce E -> T DOT
+(2, EOF) -> Reduce E -> T DOT
+(2, *) -> Shift 7
+(3, )) -> Reduce T -> F DOT
+(3, *) -> Reduce T -> F DOT
+(3, +) -> Reduce T -> F DOT
+(3, EOF) -> Reduce T -> F DOT
+(4, () -> Shift 4
+(4, id) -> Shift 5
+(5, )) -> Reduce F -> id DOT
+(5, *) -> Reduce F -> id DOT
+(5, +) -> Reduce F -> id DOT
+(5, EOF) -> Reduce F -> id DOT
+(6, () -> Shift 4
+(6, id) -> Shift 5
+(7, () -> Shift 4
+(7, id) -> Shift 5
+(8, )) -> Shift 11
+(8, +) -> Shift 6
+(9, )) -> Reduce E -> E + T DOT
+(9, +) -> Reduce E -> E + T DOT
+(9, EOF) -> Reduce E -> E + T DOT
+(9, *) -> Shift 7
+(10, )) -> Reduce T -> T * F DOT
+(10, *) -> Reduce T -> T * F DOT
+(10, +) -> Reduce T -> T * F DOT
+(10, EOF) -> Reduce T -> T * F DOT
+(11, )) -> Reduce F -> ( E ) DOT
+(11, *) -> Reduce F -> ( E ) DOT
+(11, +) -> Reduce F -> ( E ) DOT
+(11, EOF) -> Reduce F -> ( E ) DOT
+"""
+        self.assertEqual(expected_action_table, actual_action_table)        

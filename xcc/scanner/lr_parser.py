@@ -12,11 +12,16 @@ class LR0Parser(object):
         self.grammar = grammar
         self.states = []
         self.goto_table = {}
+        self.action_table = {}
 
-        self.construct_canonical_collection()
+        self.construct_parsing_tables()
 
     def parse(self, token_seq):
         print('LR0Parser')
+
+    def construct_parsing_tables(self):
+        self.construct_canonical_collection()
+        self.construct_action_table()
 
     def construct_canonical_collection(self):
         # Set0: closure([S' -> DOT S])
@@ -44,6 +49,61 @@ class LR0Parser(object):
                                 self.states.append(dest_state)
 
         self._set_states_id()
+
+    def construct_action_table(self):
+        goal_symbol = self.grammar.productions[0].head
+        eof_symbol = Symbol.EOF_SYMBOL
+
+        for state in self.states:
+            for prod in state.productions:
+                for body in prod.bodies:
+                    symbol_after_dot = state.symbol_after_dot(body);
+                    # A -> a DOT
+                    if symbol_after_dot is None:
+                        # # S' -> S DOT
+                        if prod.head == goal_symbol:
+                            action = Action(action_type=Action.ACCEPT)
+                            key = (state, eof_symbol)
+                            if key in self.action_table:
+                                    raise Exception('Oops, action conflit!')
+
+                            self.action_table[key] = action
+
+                        else:
+                            reduce_prod = Production()
+                            reduce_prod.head = prod.head
+                            reduce_prod.bodies = [body]
+                            action = Action(action_type=Action.REDUCE, reduce_prod=reduce_prod)
+    
+                            follow_A = self.grammar.follow[prod.head]
+                            for s in follow_A:
+                                key = (state, s)
+                                if key in self.action_table:
+                                    raise Exception('Oops, action conflit!')
+    
+                                self.action_table[key] = action
+                    
+                    elif symbol_after_dot.is_terminal:
+                        key = (state, symbol_after_dot)
+                        shift_state = self.goto_table[key]
+                        assert shift_state is not None
+
+                        action = Action(action_type=Action.SHIFT, shift_state=shift_state)
+
+                        if key in self.action_table:
+                                raise Exception('Oops, action conflit!')
+
+                        self.action_table[key] = action
+
+                    else:
+                        key = (state, symbol_after_dot)
+                        # if key in self.action_table:
+                            # print('key:', key)
+                            # print('action_table:', self.action_table)
+                            # raise Exception('Oops, action conflit!')
+                        if key not in self.action_table:
+                            self.action_table[key] = Action.ERROR_ACTION
+
 
     def goto(self, state, symbol):
         assert isinstance(state, LR0Set) and isinstance(symbol, Symbol)
@@ -136,6 +196,20 @@ class LR0Parser(object):
 
         return ret_str
 
+    def action_table_str(self):
+        ret_str = ''
+
+        for key in self.action_table:
+            action = self.action_table[key]
+            if action is not None:
+                if action == Action.ERROR_ACTION:
+                    continue
+
+                state, symbol = key
+                ret_str += '({}, {}) -> {}\n'.format(state.id, symbol, action)
+        
+        return ret_str
+
 class LR0Set(object):
     def __init__(self, productions=None, grammar=None):
         self.productions = productions
@@ -197,6 +271,37 @@ class LR0Set(object):
 
     def __hash__(self):
         return hash(tuple(self.productions))
+
+class Action(object):
+    SHIFT = 0
+    REDUCE = 1
+    ACCEPT = 2
+    ERROR = 3
+
+    def __init__(self, action_type=None, shift_state=None, reduce_prod=None):
+        self.action_type = action_type
+        self.shift_state = shift_state
+        self.reduce_prod = reduce_prod
+
+    def __str__(self):
+        ret = ''
+        if self.action_type == self.SHIFT:
+            ret += 'Shift {}'.format(self.shift_state.id)
+        elif self.action_type == self.REDUCE:
+            ret += 'Reduce {}'.format(self.reduce_prod)
+        elif self.action_type == self.ACCEPT:
+            ret += 'Accept'
+        elif self.action_type == self.ERROR:
+            ret += 'Error'
+        else:
+            raise Exception('Unknonw action type: {}'.format(self.action_type))
+
+        return ret
+
+    def __repr__(self):
+        return str(self)
+
+Action.ERROR_ACTION = Action(Action.ERROR)
 
 class LR1Parser(LR0Parser):
     pass
