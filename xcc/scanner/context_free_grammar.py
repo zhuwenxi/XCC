@@ -388,7 +388,7 @@ class Production(object):
 		return self.__str__()
 
 	def __eq__(self, other):
-		return self.head == other.head and self.bodies and other.bodies
+		return self.head == other.head and self.bodies == other.bodies
 
 	def __hash__(self):
 		ret = hash(self.head)
@@ -421,7 +421,10 @@ class Symbol(object):
 		return self.__str__()
 
 	def __eq__(self, other):
-		return self.text == other.text and self.is_terminal == other.is_terminal
+		if other is None or not isinstance(other, Symbol):
+			return False
+		else:
+			return self.text == other.text and self.is_terminal == other.is_terminal
 
 	def __lt__(self, other):
 		return self.text < other.text

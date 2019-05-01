@@ -11,38 +11,136 @@ class LR0Parser(object):
     def __init__(self, grammar):
         self.grammar = grammar
         self.states = []
+        self.goto_table = {}
 
         self.construct_canonical_collection()
 
     def parse(self, token_seq):
         print('LR0Parser')
-        self.closure()
 
     def construct_canonical_collection(self):
         # Set0: closure([S' -> DOT S])
         prod = copy.deepcopy(self.grammar.productions[0])
         prod.bodies[0].insert(0, Symbol.DOT_SYMBOL)
         state0 = LR0Set([prod], self.grammar)
-        self.states = {state0}
+        self.states = [state0]
 
-        for state in self.states:
-            for prod in state.productions:
-                for body in prod.bodies:
-                    cand = state.symbol_after_dot(body)
-                    if cand is not None:
-                        dest_state = self.goto(state, cand)
-                        if dest_state != None:
-                            self.states.add(dest_state)
+        has_new_states = True
+        while has_new_states:
+            has_new_states = False
 
-        self.states = list(self.states)
+            for i, state in enumerate(self.states):
+                state = self.states[i]
+                for prod in state.productions:
+                    for body in prod.bodies:
+                        cand = state.symbol_after_dot(body)
+                        if cand is not None:
+                            db_log(LOG_LR_0_PARSE, "source: {}".format(state))
+                            db_log(LOG_LR_0_PARSE, "symbol: {}".format(cand))
+                            dest_state = self.goto(state, cand)
+                            db_log(LOG_LR_0_PARSE, "target: {}".format(dest_state))
+                            if dest_state != None and dest_state not in self.states:
+                                has_new_states = True
+                                self.states.append(dest_state)
+
+        self._set_states_id()
 
     def goto(self, state, symbol):
-        return None
+        assert isinstance(state, LR0Set) and isinstance(symbol, Symbol)
+
+        key = (state, symbol)
+        if key in self.goto_table:
+            return self.goto_table[key]
+        # print('goto(,{})'.format(symbol))
+        target_prods = []
+        for prod in state.productions:
+            prod_copy = copy.deepcopy(prod)
+            # print('======================== prod_copy:', prod_copy)
+
+            bodies_to_remove = []
+            for body in prod_copy.bodies:
+                symbol_after_dot = state.symbol_after_dot(body)
+                # print('body: {} -> {}'.format(prod.head, body))
+                # print('symbol_after_dot:', symbol_after_dot)
+                if symbol_after_dot != symbol:
+                    bodies_to_remove.append(body)
+            
+            # print('remove list:', bodies_to_remove)
+            for b in bodies_to_remove:
+                # print('remove body:', b)
+                prod_copy.bodies.remove(b)
+
+            if len(prod_copy.bodies) > 0:
+                # print('symbol: {}, prod_copy:{}'.format(symbol, prod_copy))
+                self._dot_move_forward(prod_copy)
+                target_prods.append(prod_copy)
+
+        # print('!!!!!!!!!!!!!!!!!!!!!!!target_prods:', target_prods)
+        if len(target_prods) == 0:
+            self.goto_table[key] = None
+        else:
+            target_state = LR0Set(target_prods, self.grammar)
+            if target_state in self.states:
+                target_state = self.states[self.states.index(target_state)]
+            self.goto_table[key] = target_state
+
+        return self.goto_table[key]
+
+    def _dot_move_forward(self, prod):
+        assert isinstance(prod, Production)
+
+        for body in prod.bodies:
+            index_of_dot = body.index(Symbol.DOT_SYMBOL)
+            index_of_symbol_after_dot = index_of_dot + 1
+
+            if index_of_symbol_after_dot >= len(body):
+                raise Exception("DOT is already at the tail of the body: {}".format(body))
+            # Swap DOT with the symbol follows immediately after it.
+            temp = body[index_of_dot]
+            body[index_of_dot] = body[index_of_symbol_after_dot]
+            body[index_of_symbol_after_dot] = temp
+
+    def _set_states_id(self):
+        for i, state in enumerate(self.states):
+            state.id = i
+
+    def __str__(self):
+        ret_str = ''
+        for i, state in enumerate(self.states):
+            ret_str += '\n============================ state {} ============================\n'.format(i)
+
+            for prod in state.productions:
+                for body in prod.bodies:
+                    ret_str += '{} -> {}'.format(prod.head, body) + '\n'
+
+        ret_str += '============================ GOTO table ============================\n'
+        ret_str += self.goto_table_str()
+
+        return ret_str
+
+    def __repr__(self):
+        return str(self)
+
+    def goto_table_str(self):
+        ret_str = ''
+
+        ret_str += '\ndigraph\n{\n'
+
+        for key in self.goto_table:
+            target = self.goto_table[key]
+            if target is not None:
+                state, symbol = key
+                ret_str += '{} -> {} [label="{}"];\n'.format(state.id, target.id, symbol)
+        
+        ret_str += '}'
+
+        return ret_str
 
 class LR0Set(object):
     def __init__(self, productions=None, grammar=None):
         self.productions = productions
         self.grammar = grammar
+        self.id = -1
 
         self.closure()
 
