@@ -129,7 +129,7 @@ class LR0Parser(object):
                             for s in follow_A:
                                 key = (state, s)
                                 if key in self.action_table:
-                                    raise Exception('Oops, action conflit!')
+                                    raise Exception('Oops, action conflit! ({}, {}) -> {}, {}'.format(state, s, self.action_table[key], action))
     
                                 self.action_table[key] = action
                     
@@ -141,7 +141,7 @@ class LR0Parser(object):
                         action = Action(action_type=Action.SHIFT, shift_state=shift_state)
 
                         if key in self.action_table:
-                                raise Exception('Oops, action conflit!')
+                                raise Exception('Oops, action conflit! ({}, {}) -> {}, {}'.format(state, symbol_after_dot, self.action_table[key], action))
 
                         self.action_table[key] = action
 
