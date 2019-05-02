@@ -61,6 +61,9 @@ class Node(object):
 	def __str__(self):
 		return str(self.data) if not Node.debug else str(self.data) + ' ({})'.format(id(self))
 
+	def __repr__(self):
+		return str(self)
+
 	def add_child(self, child):
 		if not isinstance(child, Node):
 			raise TypeError('"child" must be a type of Node, but got {} instead.'.format(type(child)))

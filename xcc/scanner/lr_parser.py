@@ -49,8 +49,9 @@ class LR0Parser(object):
                 len_states_to_pop = len(action.reduce_prod.bodies[0]) - 1
                 state_stack.pop_n(len_states_to_pop)
 
-                # children = list(reversed(node_stack.pop_n(len_states_to_pop)))
-                # interior_node = Node(Token(symbol.text, symbol), children=children)
+                children = list(reversed(node_stack.pop_n(len_states_to_pop)))
+                interior_node = Node(action.reduce_prod.head, children=children)
+                node_stack.push(interior_node)
 
                 state = state_stack.peek()
                 symbol = action.reduce_prod.head
@@ -63,8 +64,10 @@ class LR0Parser(object):
                 # raise Exception('Meet a error action')
                 break
 
-        # if action.action_type == Action.ACCEPT:
-        #     assert len(node_stack.impl) == 0
+        if action.action_type == Action.ACCEPT:
+            assert len(node_stack.impl) == 1
+
+            return Ast(root=node_stack.pop())
 
         return None
 

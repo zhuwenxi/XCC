@@ -24,7 +24,7 @@ class LRParserTest(unittest.TestCase):
             if t == ' ':
                 continue
 
-            if t not in ('+', '*'):
+            if t not in ('+', '-', '*', '/', '(', ')'):
                 token_type = Symbol('id', is_terminal=True)
             else:
                 token_type = Symbol(t, is_terminal=True)
@@ -136,6 +136,69 @@ digraph
 
         token_seq = self._prepare_input_sequence('1 + 2')
 
-        lr_0_parser.parse(token_seq)
+        ast = lr_0_parser.parse(token_seq)
+
+        expected = """
+digraph
+{
+{0 [label="E"]} -> {1 [label="E"]};
+{0 [label="E"]} -> {2 [label="+"]};
+{0 [label="E"]} -> {3 [label="T"]};
+{1 [label="E"]} -> {4 [label="T"]};
+{3 [label="T"]} -> {5 [label="F"]};
+{4 [label="T"]} -> {6 [label="F"]};
+{5 [label="F"]} -> {7 [label="2"]};
+{6 [label="F"]} -> {8 [label="1"]};
+}
+"""
+        actual = str(ast)
+
+        self.assertEqual(expected, actual)
+
+    def test_lr_0_parsing_1(self):
+        grammar = GrammarFactory.get_grammar('expression')
+        grammar.compute_first_plus_set()
+        lr_0_parser = LR0Parser(grammar)
+
+        token_seq = self._prepare_input_sequence('(1 + 2) * (3 + 4)')
+
+        ast = lr_0_parser.parse(token_seq)
+        
+        expected = """
+digraph
+{
+{0 [label="Expr"]} -> {1 [label="Term"]};
+{1 [label="Term"]} -> {2 [label="Term"]};
+{1 [label="Term"]} -> {3 [label="*"]};
+{1 [label="Term"]} -> {4 [label="Factor"]};
+{2 [label="Term"]} -> {5 [label="Factor"]};
+{4 [label="Factor"]} -> {6 [label="("]};
+{4 [label="Factor"]} -> {7 [label="Expr"]};
+{4 [label="Factor"]} -> {8 [label=")"]};
+{5 [label="Factor"]} -> {9 [label="("]};
+{5 [label="Factor"]} -> {10 [label="Expr"]};
+{5 [label="Factor"]} -> {11 [label=")"]};
+{7 [label="Expr"]} -> {12 [label="Expr"]};
+{7 [label="Expr"]} -> {13 [label="+"]};
+{7 [label="Expr"]} -> {14 [label="Term"]};
+{10 [label="Expr"]} -> {15 [label="Expr"]};
+{10 [label="Expr"]} -> {16 [label="+"]};
+{10 [label="Expr"]} -> {17 [label="Term"]};
+{12 [label="Expr"]} -> {18 [label="Term"]};
+{14 [label="Term"]} -> {19 [label="Factor"]};
+{15 [label="Expr"]} -> {20 [label="Term"]};
+{17 [label="Term"]} -> {21 [label="Factor"]};
+{18 [label="Term"]} -> {22 [label="Factor"]};
+{19 [label="Factor"]} -> {23 [label="4"]};
+{20 [label="Term"]} -> {24 [label="Factor"]};
+{21 [label="Factor"]} -> {25 [label="2"]};
+{22 [label="Factor"]} -> {26 [label="3"]};
+{24 [label="Factor"]} -> {27 [label="1"]};
+}
+"""
+        actual = str(ast)
+
+        self.assertEqual(expected, actual)
+
 
 
