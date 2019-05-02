@@ -50,9 +50,10 @@ class LLParser(object):
 
                     leaf_node = node_stack.pop()
                     try:
-                        leaf_node.data = current_token
+                        leaf_node.add_child(Node(current_token))
                     except:
-                        print('leaf_node:', leaf_node)
+                        # print('leaf_node:', leaf_node)
+                        pass
                     
                     token_idx += 1
                 else:
