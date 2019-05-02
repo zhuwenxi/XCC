@@ -6,6 +6,7 @@ from xcc.scanner.grammar_factory import GrammarFactory
 class GrammarTest(unittest.TestCase):
     def setUp(self):
         self.grammar = GrammarFactory.get_grammar('expression')
+        self.maxDiff = None
 
     def test_classic_expression_grammar(self):
         GrammarFactory.clear()
@@ -14,7 +15,7 @@ class GrammarTest(unittest.TestCase):
         expected = 'Goal -> Expr\n'\
                    'Expr -> Expr + Term | Expr - Term | Term\n'\
                    'Term -> Term * Factor | Term / Factor | Factor\n'\
-                   'Factor -> ( Expr ) | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9\n'
+                   'Factor -> ( Expr ) | id\n'
 
         actual = str(self.grammar)
 
@@ -29,7 +30,7 @@ class GrammarTest(unittest.TestCase):
                    "Expr' -> + Term Expr' | - Term Expr' | EPSILON\n"\
                    "Term -> Factor Term'\n"\
                    "Term' -> * Factor Term' | / Factor Term' | EPSILON\n"\
-                   "Factor -> ( Expr ) | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9\n"
+                   "Factor -> ( Expr ) | id\n"
         
         self.grammar.eliminate_left_recursion()
         actual = str(self.grammar)
@@ -47,29 +48,20 @@ class GrammarTest(unittest.TestCase):
 
         actual = str(self.grammar.first)
 
-        expected = "{Goal: [(, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "\
-                   "Expr: [(, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "\
-                   "Term: [(, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "\
+        expected = "{Goal: [(, id], "\
+                   "Expr: [(, id], "\
+                   "Term: [(, id], "\
                    "Expr': [+, -, EPSILON], "\
                    "+: [+], "\
                    "-: [-], "\
                    "EPSILON: [EPSILON], "\
-                   "Factor: [(, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "\
+                   "Factor: [(, id], "\
                    "Term': [*, /, EPSILON], "\
                    "*: [*], "\
                    "/: [/], "\
                    "(: [(], "\
                    "): [)], "\
-                   "0: [0], "\
-                   "1: [1], "\
-                   "2: [2], "\
-                   "3: [3], "\
-                   "4: [4], "\
-                   "5: [5], "\
-                   "6: [6], "\
-                   "7: [7], "\
-                   "8: [8], "\
-                   "9: [9]}"
+                   "id: [id]}"
 
         self.assertEqual(expected, actual)
 
@@ -100,26 +92,17 @@ class GrammarTest(unittest.TestCase):
 
         actual = str(self.grammar.first_plus)
 
-        expected = "{(Goal, (Expr,)): [(, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "\
-                   "(Expr, (Term, Expr')): [(, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "\
+        expected = "{(Goal, (Expr,)): [(, id], "\
+                   "(Expr, (Term, Expr')): [(, id], "\
                    "(Expr', (+, Term, Expr')): [+], "\
                    "(Expr', (-, Term, Expr')): [-], "\
                    "(Expr', (EPSILON,)): [), EOF, EPSILON], "\
-                   "(Term, (Factor, Term')): [(, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9], "\
+                   "(Term, (Factor, Term')): [(, id], "\
                    "(Term', (*, Factor, Term')): [*], "\
                    "(Term', (/, Factor, Term')): [/], "\
                    "(Term', (EPSILON,)): [), +, -, EOF, EPSILON], "\
                    "(Factor, ((, Expr, ))): [(], "\
-                   "(Factor, (0,)): [0], "\
-                   "(Factor, (1,)): [1], "\
-                   "(Factor, (2,)): [2], "\
-                   "(Factor, (3,)): [3], "\
-                   "(Factor, (4,)): [4], "\
-                   "(Factor, (5,)): [5], "\
-                   "(Factor, (6,)): [6], "\
-                   "(Factor, (7,)): [7], "\
-                   "(Factor, (8,)): [8], "\
-                   "(Factor, (9,)): [9]}"
+                   "(Factor, (id,)): [id]}"
 
         self.assertEqual(expected, actual)
 
