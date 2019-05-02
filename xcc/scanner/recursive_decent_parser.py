@@ -16,7 +16,7 @@ class RecusiveDecentParser(object):
 			if symbol.type == Symbol.EPSILON:
 				new_node = Node(Symbol('EPSILON', is_terminal=True, symbol_type=Symbol.EPSILON))
 				root_node.add_child(new_node)
-				db_log(LOG_RECUISIVE_DECENT_PARSER, "match terminal {}".format(new_node.token))
+				db_log(LOG_RECUISIVE_DECENT_PARSER, "match terminal {}".format(new_node.data))
 				return True
 			elif len(token_seq) == 0:
 				return False
@@ -25,7 +25,7 @@ class RecusiveDecentParser(object):
 				root_node.add_child(new_node)
 				token_seq.pop(0)
 
-				db_log(LOG_RECUISIVE_DECENT_PARSER, "match terminal {}".format(new_node.token))
+				db_log(LOG_RECUISIVE_DECENT_PARSER, "match terminal {}".format(new_node.data))
 
 				return True
 			else:

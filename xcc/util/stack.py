@@ -9,8 +9,9 @@ class Stack(object):
 		return self.impl.pop()
 
 	def pop_n(self, n=1):
+		ret = []
 		for _ in range(n):
-			ret = self.impl.pop()
+			ret.append(self.impl.pop())
 
 		return ret
 

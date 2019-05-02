@@ -17,9 +17,13 @@ class LR0Parser(object):
         self.construct_parsing_tables()
 
     def parse(self, token_seq):
-        # Push s0 into stack 
+        # Push s0 into stack.
         state_stack = Stack()
         state_stack.push(self.states[0])
+
+        # Node-stack contains AST tree nodes.
+        node_stack = Stack()
+
         token_index = 0
 
         while True:
@@ -35,11 +39,19 @@ class LR0Parser(object):
 
             if action.action_type == Action.SHIFT:
                 state_stack.push(action.shift_state)
+
+                leaf_node = Node(curr_token, is_leaf=True)
+                node_stack.push(leaf_node)
+
                 token_index += 1
             elif action.action_type == Action.REDUCE:
                 # "-1" means we don't count DOT in.
                 len_states_to_pop = len(action.reduce_prod.bodies[0]) - 1
                 state_stack.pop_n(len_states_to_pop)
+
+                # children = list(reversed(node_stack.pop_n(len_states_to_pop)))
+                # interior_node = Node(Token(symbol.text, symbol), children=children)
+
                 state = state_stack.peek()
                 symbol = action.reduce_prod.head
                 key = (state, symbol)
@@ -48,8 +60,14 @@ class LR0Parser(object):
             elif action.action_type == Action.ACCEPT:
                 break
             else:
-                raise Exception('Meet a error action')
+                # raise Exception('Meet a error action')
                 break
+
+        # if action.action_type == Action.ACCEPT:
+        #     assert len(node_stack.impl) == 0
+
+        return None
+
 
     def construct_parsing_tables(self):
         self.construct_canonical_collection()

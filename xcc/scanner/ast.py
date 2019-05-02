@@ -47,10 +47,10 @@ class Ast(object):
 class Node(object):
 	debug = False
 
-	def __init__(self, token=None, children=None, is_leaf=False, node_id=-1):
-		if not isinstance(token, Symbol):
-			raise TypeError('"token" must has a type of Symbol, but got {} instead.'.format(type(token)))
-		self.token = token
+	def __init__(self, data=None, children=None, is_leaf=False, node_id=-1):
+		# if not isinstance(data, Symbol):
+		# 	raise TypeError('"data" must has a type of Symbol, but got {} instead.'.format(type(data)))
+		self.data = data
 		if children is None:
 			self.children = []
 		else:
@@ -59,7 +59,7 @@ class Node(object):
 		self.id = node_id
 
 	def __str__(self):
-		return str(self.token) if not Node.debug else str(self.token) + ' ({})'.format(id(self))
+		return str(self.data) if not Node.debug else str(self.data) + ' ({})'.format(id(self))
 
 	def add_child(self, child):
 		if not isinstance(child, Node):
