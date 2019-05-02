@@ -12,7 +12,7 @@ class Token(object):
 		self.type = token_type
 
 	def __str__(self):
-		return '"' + self.text + '"' if not Token.debug else '("' + self.text + '", ' + str(self.type) + ')'
+		return self.text if not Token.debug else '(' + self.text + ', ' + str(self.type) + ')'
 
 	def __repr__(self):
 		return self.__str__()  
