@@ -22,6 +22,7 @@ class RecusiveDecentParser(object):
 				return False
 			elif token_seq[0].type == symbol:
 				new_node = Node(symbol)
+				new_node.add_child(Node(token_seq[0]))
 				root_node.add_child(new_node)
 				token_seq.pop(0)
 

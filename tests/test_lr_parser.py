@@ -46,8 +46,7 @@ class LRParserTest(unittest.TestCase):
         expected = "[Goal -> DOT Expr, "\
                    "Expr -> DOT Expr + Term | DOT Expr - Term | DOT Term, "\
                    "Term -> DOT Term * Factor | DOT Term / Factor | DOT Factor, "\
-                   "Factor -> DOT ( Expr ) | DOT 0 | DOT 1 | DOT 2 | "\
-                   "DOT 3 | DOT 4 | DOT 5 | DOT 6 | DOT 7 | DOT 8 | DOT 9]"
+                   "Factor -> DOT ( Expr ) | DOT id]"
 
         actual = str(lr_0_set)
 
