@@ -200,5 +200,14 @@ digraph
 
         self.assertEqual(expected, actual)
 
+    def test_lr_0_parsing_2(self):
+        grammar = GrammarFactory.get_grammar('lvalue-rvalue-expression')
+        grammar.compute_first_plus_set()
 
+        with self.assertRaises(Exception):
+            lr_0_parser = LR0Parser(grammar)
+
+        # token_seq = self._prepare_input_sequence('(1 + 2) * (3 + 4)')
+
+        # ast = lr_0_parser.parse(token_seq)
 
