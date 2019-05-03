@@ -89,7 +89,7 @@ class LR0Parser(object):
 
             for i, state in enumerate(self.states):
                 state = self.states[i]
-                for prod in state.sets:
+                for prod in state.items:
                     for body in prod.bodies:
                         cand = state.symbol_after_dot(body)
                         if cand is not None:
@@ -105,7 +105,7 @@ class LR0Parser(object):
         eof_symbol = Symbol.EOF_SYMBOL
 
         for state in self.states:
-            for prod in state.sets:
+            for prod in state.items:
                 for body in prod.bodies:
                     symbol_after_dot = state.symbol_after_dot(body);
                     # A -> a DOT
@@ -163,7 +163,7 @@ class LR0Parser(object):
             return self.goto_table[key]
         # print('goto(,{})'.format(symbol))
         target_prods = []
-        for prod in state.sets:
+        for prod in state.items:
             prod_copy = copy.deepcopy(prod)
             # print('======================== prod_copy:', prod_copy)
 
@@ -261,15 +261,15 @@ class LR0Parser(object):
         return ret_str
 
 class LR0Set(object):
-    def __init__(self, sets=None, grammar=None):
-        self.sets = sets
+    def __init__(self, items=None, grammar=None):
+        self.items = items
         self.grammar = grammar
         self.id = -1
 
         self.closure()
 
     def closure(self):
-        work_queue = copy.deepcopy(self.sets)
+        work_queue = copy.deepcopy(self.items)
         while len(work_queue) > 0:
             prod = work_queue.pop()
             for body in prod.bodies:
@@ -279,11 +279,11 @@ class LR0Set(object):
                     self._add_dot_to_body_front(prods)
                     
                     for new_prod in prods:
-                        if new_prod in self.sets:
+                        if new_prod in self.items:
                             continue
-                        # Add these sets to set
-                        self.sets.append(new_prod)
-                        # Add these sets to work queue
+                        # Add these items to set
+                        self.items.append(new_prod)
+                        # Add these items to work queue
                         work_queue.append(new_prod)
                         
     def symbol_after_dot(self, body):
@@ -311,7 +311,7 @@ class LR0Set(object):
                 body.insert(0, Symbol.DOT_SYMBOL)
 
     def __str__(self):
-        return str(self.sets)
+        return str(self.items)
 
     def __repr__(self):
         return str(self)
@@ -320,7 +320,7 @@ class LR0Set(object):
         return str(self) == str(other)
 
     def __hash__(self):
-        return hash(tuple(self.sets))
+        return hash(tuple(self.items))
 
 class Action(object):
     SHIFT = 0
@@ -357,4 +357,5 @@ class LR1Parser(LR0Parser):
     pass
 
 class LR1Set(LR0Set):
-    pass
+    def first(self, symbols):
+        pass
