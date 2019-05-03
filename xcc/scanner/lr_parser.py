@@ -80,7 +80,7 @@ class LR0Parser(object):
         # Set0: closure([S' -> DOT S])
         prod = copy.deepcopy(self.grammar.productions[0])
         prod.bodies[0].insert(0, Symbol.DOT_SYMBOL)
-        state0 = LR0Set([prod], self.grammar)
+        state0 = LR0Set([LR0Item(prod)], self.grammar)
         self.states = [state0]
 
         has_new_states = True
@@ -89,8 +89,8 @@ class LR0Parser(object):
 
             for i, state in enumerate(self.states):
                 state = self.states[i]
-                for prod in state.items:
-                    for body in prod.bodies:
+                for item in state.items:
+                    for body in item.production.bodies:
                         cand = state.symbol_after_dot(body)
                         if cand is not None:
                             dest_state = self.goto(state, cand)
@@ -105,7 +105,8 @@ class LR0Parser(object):
         eof_symbol = Symbol.EOF_SYMBOL
 
         for state in self.states:
-            for prod in state.items:
+            for item in state.items:
+                prod = item.production
                 for body in prod.bodies:
                     symbol_after_dot = state.symbol_after_dot(body);
                     # A -> a DOT
@@ -162,15 +163,14 @@ class LR0Parser(object):
         if key in self.goto_table:
             return self.goto_table[key]
         # print('goto(,{})'.format(symbol))
-        target_prods = []
-        for prod in state.items:
-            prod_copy = copy.deepcopy(prod)
-            # print('======================== prod_copy:', prod_copy)
+        target_items = []
+        for item in state.items:
+            item_copy = copy.deepcopy(item)
 
             bodies_to_remove = []
-            for body in prod_copy.bodies:
+            for body in item_copy.production.bodies:
                 symbol_after_dot = state.symbol_after_dot(body)
-                # print('body: {} -> {}'.format(prod.head, body))
+                # print('body: {} -> {}'.format(item.head, body))
                 # print('symbol_after_dot:', symbol_after_dot)
                 if symbol_after_dot != symbol:
                     bodies_to_remove.append(body)
@@ -178,18 +178,18 @@ class LR0Parser(object):
             # print('remove list:', bodies_to_remove)
             for b in bodies_to_remove:
                 # print('remove body:', b)
-                prod_copy.bodies.remove(b)
+                item_copy.production.bodies.remove(b)
 
-            if len(prod_copy.bodies) > 0:
-                # print('symbol: {}, prod_copy:{}'.format(symbol, prod_copy))
-                self._dot_move_forward(prod_copy)
-                target_prods.append(prod_copy)
+            if len(item_copy.production.bodies) > 0:
+                # print('symbol: {}, item_copy:{}'.format(symbol, item_copy))
+                self._dot_move_forward(item_copy.production)
+                target_items.append(item_copy)
 
-        # print('!!!!!!!!!!!!!!!!!!!!!!!target_prods:', target_prods)
-        if len(target_prods) == 0:
+        # print('!!!!!!!!!!!!!!!!!!!!!!!target_items:', target_items)
+        if len(target_items) == 0:
             self.goto_table[key] = None
         else:
-            target_state = LR0Set(target_prods, self.grammar)
+            target_state = LR0Set(target_items, self.grammar)
             if target_state in self.states:
                 target_state = self.states[self.states.index(target_state)]
             self.goto_table[key] = target_state
@@ -271,21 +271,27 @@ class LR0Set(object):
     def closure(self):
         work_queue = copy.deepcopy(self.items)
         while len(work_queue) > 0:
-            prod = work_queue.pop()
-            for body in prod.bodies:
+            item = work_queue.pop()
+
+            for body in item.production.bodies:
                 symbol_after_dot = self.symbol_after_dot(body)
                 if symbol_after_dot and not symbol_after_dot.is_terminal:
                     prods = self._prod_start_with(symbol_after_dot)
                     self._add_dot_to_body_front(prods)
                     
                     for new_prod in prods:
-                        if new_prod in self.items:
+                        item = self.new_item(new_prod, item)
+                        if item in self.items:
                             continue
                         # Add these items to set
-                        self.items.append(new_prod)
+                        self.items.append(item)
                         # Add these items to work queue
-                        work_queue.append(new_prod)
-                        
+                        work_queue.append(item)
+    
+    # To be overrided:
+    def new_item(self, production, item):
+        return LR0Item(production)
+
     def symbol_after_dot(self, body):
         index_of_dot = body.index(Symbol.DOT_SYMBOL)
         index_of_symbol_after_dot = index_of_dot + 1
@@ -321,6 +327,25 @@ class LR0Set(object):
 
     def __hash__(self):
         return hash(tuple(self.items))
+
+class LR0Item(object):
+    def __init__(self, production=None):
+        self.production = production
+
+    def __str__(self):
+        return str(self.production)
+
+    def __repr__(self):
+        return str(self)
+
+    def __eq__(self, other):
+        return self.production == other.production if other is not None else False
+
+    def __hash__(self):
+        return hash(self.production)
+
+    def __deepcopy__(self, mem):
+        return LR0Item(copy.deepcopy(self.production))
 
 class Action(object):
     SHIFT = 0

@@ -41,7 +41,7 @@ class LRParserTest(unittest.TestCase):
         # Goal -> DOT Expr
         prod = copy.deepcopy(self.grammar.productions[0])
         prod.bodies[0].insert(0, Symbol.DOT_SYMBOL)
-        lr_0_set = LR0Set([prod], self.grammar)
+        lr_0_set = LR0Set([LR0Item(prod)], self.grammar)
 
         expected = "[Goal -> DOT Expr, "\
                    "Expr -> DOT Expr + Term | DOT Expr - Term | DOT Term, "\
