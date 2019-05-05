@@ -207,12 +207,86 @@ digraph
         with self.assertRaises(Exception):
             lr_0_parser = LR0Parser(grammar)
 
-    def test_lr_1_parsing_tables_construct(self):
+    def test_lr_1_parsing(self):
         grammar = GrammarFactory.get_grammar('paratheses')
         grammar.compute_first_plus_set()
 
-        print('FIRST(): ', grammar.first)
-        print('\ngrammar:\n{}'.format(grammar))
+        token_seq = self._prepare_input_sequence('(())()')
+
         lr_1_parser = LR1Parser(grammar)
+
+        ast = lr_1_parser.parse(token_seq)
+
+        actual = str(ast)
+
+        expected = """
+digraph
+{
+{0 [label="List"]} -> {1 [label="List"]};
+{0 [label="List"]} -> {2 [label="Pair"]};
+{1 [label="List"]} -> {3 [label="Pair"]};
+{2 [label="Pair"]} -> {4 [label="("]};
+{2 [label="Pair"]} -> {5 [label=")"]};
+{3 [label="Pair"]} -> {6 [label="("]};
+{3 [label="Pair"]} -> {7 [label="Pair"]};
+{3 [label="Pair"]} -> {8 [label=")"]};
+{7 [label="Pair"]} -> {9 [label="("]};
+{7 [label="Pair"]} -> {10 [label=")"]};
+}
+"""
+        self.assertEqual(expected, actual)
+
+    def test_lr_1_parsing_2(self):
+        grammar = GrammarFactory.get_grammar('lvalue-rvalue-expression')
+        grammar.compute_first_plus_set()
+
+        try:
+            lr_1_parser = LR1Parser(grammar)
+        except:
+            self.fail('Errors in LR(1) parser construction for lvalue-rvalue-expression')
+
+    def test_lr_1_parsing_3(self):
+
+        grammar = GrammarFactory.get_grammar('expression')
+        grammar.compute_first_plus_set()
+        lr_1_parser = LR1Parser(grammar)
+
+        token_seq = self._prepare_input_sequence('(1 + 2) * (3 + 4)')
+
+        ast = lr_1_parser.parse(token_seq)
         
-        # print(lr_1_parser)
+        expected = """
+digraph
+{
+{0 [label="Expr"]} -> {1 [label="Term"]};
+{1 [label="Term"]} -> {2 [label="Term"]};
+{1 [label="Term"]} -> {3 [label="*"]};
+{1 [label="Term"]} -> {4 [label="Factor"]};
+{2 [label="Term"]} -> {5 [label="Factor"]};
+{4 [label="Factor"]} -> {6 [label="("]};
+{4 [label="Factor"]} -> {7 [label="Expr"]};
+{4 [label="Factor"]} -> {8 [label=")"]};
+{5 [label="Factor"]} -> {9 [label="("]};
+{5 [label="Factor"]} -> {10 [label="Expr"]};
+{5 [label="Factor"]} -> {11 [label=")"]};
+{7 [label="Expr"]} -> {12 [label="Expr"]};
+{7 [label="Expr"]} -> {13 [label="+"]};
+{7 [label="Expr"]} -> {14 [label="Term"]};
+{10 [label="Expr"]} -> {15 [label="Expr"]};
+{10 [label="Expr"]} -> {16 [label="+"]};
+{10 [label="Expr"]} -> {17 [label="Term"]};
+{12 [label="Expr"]} -> {18 [label="Term"]};
+{14 [label="Term"]} -> {19 [label="Factor"]};
+{15 [label="Expr"]} -> {20 [label="Term"]};
+{17 [label="Term"]} -> {21 [label="Factor"]};
+{18 [label="Term"]} -> {22 [label="Factor"]};
+{19 [label="Factor"]} -> {23 [label="4"]};
+{20 [label="Term"]} -> {24 [label="Factor"]};
+{21 [label="Factor"]} -> {25 [label="2"]};
+{22 [label="Factor"]} -> {26 [label="3"]};
+{24 [label="Factor"]} -> {27 [label="1"]};
+}
+"""
+        actual = str(ast)
+
+        self.assertEqual(expected, actual)
