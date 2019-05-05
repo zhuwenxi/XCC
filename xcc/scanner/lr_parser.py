@@ -76,11 +76,15 @@ class LR0Parser(object):
         self.construct_canonical_collection()
         self.construct_action_table()
 
-    def construct_canonical_collection(self):
+    def initial_state(self):
         # Set0: closure([S' -> DOT S])
         prod = copy.deepcopy(self.grammar.productions[0])
         prod.bodies[0].insert(0, Symbol.DOT_SYMBOL)
-        state0 = LR0Set([LR0Item(prod)], self.grammar)
+        
+        return LR0Set([LR0Item(prod)], self.grammar)
+
+    def construct_canonical_collection(self):
+        state0 = self.initial_state()
         self.states = [state0]
 
         has_new_states = True
@@ -279,18 +283,22 @@ class LR0Set(object):
                     prods = self._prod_start_with(symbol_after_dot)
                     self._add_dot_to_body_front(prods)
                     
+                    rest_body_index = body.index(symbol_after_dot) + 1
+                    rest_body = body[rest_body_index:]
+
                     for new_prod in prods:
-                        item = self.new_item(new_prod, item)
-                        if item in self.items:
-                            continue
-                        # Add these items to set
-                        self.items.append(item)
-                        # Add these items to work queue
-                        work_queue.append(item)
+                        items = self.new_items(new_prod, item, rest_body)
+                        for item in items:
+                            if item in self.items:
+                                continue
+                            # Add these items to set
+                            self.items.append(item)
+                            # Add these items to work queue
+                            work_queue.append(item)
     
     # To be overrided:
-    def new_item(self, production, item):
-        return LR0Item(production)
+    def new_items(self, production, item, rest_body):
+        return [LR0Item(production)]
 
     def symbol_after_dot(self, body):
         index_of_dot = body.index(Symbol.DOT_SYMBOL)
@@ -379,8 +387,63 @@ class Action(object):
 Action.ERROR_ACTION = Action(Action.ERROR)
 
 class LR1Parser(LR0Parser):
-    pass
+    def initial_state(self):
+        # Set0: closure([S' -> DOT S, EOF])
+        prod = copy.deepcopy(self.grammar.productions[0])
+        prod.bodies[0].insert(0, Symbol.DOT_SYMBOL)
+
+        return LR1Set([LR1Item(prod, Symbol.EOF_SYMBOL)], self.grammar)
 
 class LR1Set(LR0Set):
     def first(self, symbols):
-        pass
+        ret = set()
+        for i, symbol in enumerate(symbols):
+            first_set = self.grammar.first[symbol]
+            ret.update(first_set)
+
+            if Symbol.EPSILON_SYMBOL not in first_set:
+                break
+
+        if i == len(symbols):
+            ret.add(Symbol.EPSILON_SYMBOL)
+
+        return ret
+
+    def new_items(self, production, item, rest_body):
+        print('production:', production)
+        print('rest_body:', rest_body)
+
+        ret_items = set()
+        for body in production.bodies:
+            remaining_symbols = rest_body + [item.symbol]
+    
+            first_set = self.first(remaining_symbols)
+    
+            for symbol in first_set:
+                ret_items.add(LR1Item(production, symbol))
+
+        return ret_items
+
+class LR1Item(LR0Item):
+    def __init__(self, production=None, symbol=None):
+        super(LR1Item, self).__init__(production)
+
+        self.symbol = symbol
+
+    def __str_(self):
+        return '(' + str(self.productions) + ', ' + str(symbol) + ')'
+
+    def __repr__(self):
+        return str(self)
+
+    def __eq__(self, other):
+        if other is None:
+            return False
+
+        return super(LR1Item, self).__eq__(other) and self.symbol == other.symbol
+
+    def __hash__(self):
+        return hash(self.production) + hash(self.symbol)
+
+    def __deepcopy__(self, mem):
+        return LR1Item(copy.deepcopy(self.production), copy.deepcopy(self.symbol))

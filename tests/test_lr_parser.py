@@ -206,3 +206,11 @@ digraph
 
         with self.assertRaises(Exception):
             lr_0_parser = LR0Parser(grammar)
+
+    def test_lr_1_parsing_tables_construct(self):
+        grammar = GrammarFactory.get_grammar('partial-expression')
+        grammar.compute_first_plus_set()
+
+        print('FIRST(): ', grammar.first)
+        print('\ngrammar:\n{}'.format(grammar))
+        lr_1_parser = LR1Parser(grammar)

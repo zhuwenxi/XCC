@@ -165,6 +165,9 @@ class Grammar(object):
 
 	def compute_first_set(self):
 		symbols = self.get_all_symbols()
+		if Symbol.EOF_SYMBOL not in symbols:
+			symbols.append(Symbol.EOF_SYMBOL)
+		# symbols.update({Symbol.EOF_SYMBOL})
 
 		for s in symbols:
 			self.first[s] = set()

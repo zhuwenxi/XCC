@@ -61,7 +61,8 @@ class GrammarTest(unittest.TestCase):
                    "/: [/], "\
                    "(: [(], "\
                    "): [)], "\
-                   "id: [id]}"
+                   "id: [id], "\
+                   "EOF: [EOF]}"
 
         self.assertEqual(expected, actual)
 
