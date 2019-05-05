@@ -74,7 +74,7 @@ class LR0Parser(object):
 
     def construct_parsing_tables(self):
         self.construct_canonical_collection()
-        self.construct_action_table()
+        # self.construct_action_table()
 
     def initial_state(self):
         # Set0: closure([S' -> DOT S])
@@ -152,21 +152,27 @@ class LR0Parser(object):
 
                     else:
                         key = (state, symbol_after_dot)
-                        # if key in self.action_table:
-                            # print('key:', key)
-                            # print('action_table:', self.action_table)
-                            # raise Exception('Oops, action conflit!')
                         if key not in self.action_table:
                             self.action_table[key] = Action.ERROR_ACTION
 
+    def target_goto_state(self, items, grammar):
+        return LR0Set(items, grammar)
 
     def goto(self, state, symbol):
         assert isinstance(state, LR0Set) and isinstance(symbol, Symbol)
 
         key = (state, symbol)
+        db_log(LOG_LR_GOTO, '======================= GOTO[{}] ======================='.format(symbol))
+        db_log(LOG_LR_GOTO, 'source:')
+        for e in state.items:
+            db_log(LOG_LR_GOTO, e)
+
         if key in self.goto_table:
+            db_log(LOG_LR_GOTO, 'cached target:')
+            for e in self.goto_table[key].items:
+                 db_log(LOG_LR_GOTO, e)
             return self.goto_table[key]
-        # print('goto(,{})'.format(symbol))
+
         target_items = []
         for item in state.items:
             item_copy = copy.deepcopy(item)
@@ -174,29 +180,27 @@ class LR0Parser(object):
             bodies_to_remove = []
             for body in item_copy.production.bodies:
                 symbol_after_dot = state.symbol_after_dot(body)
-                # print('body: {} -> {}'.format(item.head, body))
-                # print('symbol_after_dot:', symbol_after_dot)
                 if symbol_after_dot != symbol:
                     bodies_to_remove.append(body)
             
-            # print('remove list:', bodies_to_remove)
             for b in bodies_to_remove:
-                # print('remove body:', b)
                 item_copy.production.bodies.remove(b)
 
             if len(item_copy.production.bodies) > 0:
-                # print('symbol: {}, item_copy:{}'.format(symbol, item_copy))
                 self._dot_move_forward(item_copy.production)
                 target_items.append(item_copy)
 
-        # print('!!!!!!!!!!!!!!!!!!!!!!!target_items:', target_items)
         if len(target_items) == 0:
             self.goto_table[key] = None
         else:
-            target_state = LR0Set(target_items, self.grammar)
+            target_state = self.target_goto_state(target_items, self.grammar)
             if target_state in self.states:
                 target_state = self.states[self.states.index(target_state)]
             self.goto_table[key] = target_state
+
+        db_log(LOG_LR_GOTO, 'target:')
+        for e in self.goto_table[key].items:
+             db_log(LOG_LR_GOTO, e)
 
         return self.goto_table[key]
 
@@ -223,9 +227,11 @@ class LR0Parser(object):
         for i, state in enumerate(self.states):
             ret_str += '\n============================ state {} ============================\n'.format(i)
 
-            for prod in state.productions:
-                for body in prod.bodies:
-                    ret_str += '{} -> {}'.format(prod.head, body) + '\n'
+            for item in state.items:
+                ret_str += str(item) + '\n'
+            # for prod in state.productions:
+            #     for body in prod.bodies:
+            #         ret_str += '{} -> {}'.format(prod.head, body) + '\n'
 
         ret_str += '============================ GOTO table ============================\n'
         ret_str += self.goto_table_str()
@@ -287,18 +293,15 @@ class LR0Set(object):
                     rest_body = body[rest_body_index:]
 
                     for new_prod in prods:
-                        # print('body:', body)
                         items = self.new_items(new_prod, item, rest_body)
-                        for item in items:
-                            if item in self.items:
+                        for it in items:
+                            if it in self.items:
                                 continue
                             # Add these items to set
-                            self.items.append(item)
+                            self.items.append(it)
                             # Add these items to work queue
-                            work_queue.append(item)
+                            work_queue.append(it)
 
-        # print('closure:\n{}'.format(self.items))
-    
     # To be overrided:
     def new_items(self, production, item, rest_body):
         return [LR0Item(production)]
@@ -334,7 +337,18 @@ class LR0Set(object):
         return str(self)
 
     def __eq__(self, other):
-        return str(self) == str(other)
+        if other is None:
+            return False
+
+        if len(self.items) != len(other.items):
+            return False
+
+        for it in self.items:
+            if it not in other.items:
+                return False
+
+        return True
+        # return str(self) == str(other)
 
     def __hash__(self):
         return hash(tuple(self.items))
@@ -394,36 +408,43 @@ class LR1Parser(LR0Parser):
         # Set0: closure([S' -> DOT S, EOF])
         prod = copy.deepcopy(self.grammar.productions[0])
         prod.bodies[0].insert(0, Symbol.DOT_SYMBOL)
-        
+
         return LR1Set([LR1Item(prod, Symbol.EOF_SYMBOL)], self.grammar)
+
+    def target_goto_state(self, items, grammar):
+        return LR1Set(items, grammar)
 
 class LR1Set(LR0Set):
     def first(self, symbols):
-        ret = set()
+
+        ret = []
         for i, symbol in enumerate(symbols):
             first_set = self.grammar.first[symbol]
-            ret.update(first_set)
+            for fs in first_set:
+                if fs not in ret:
+                    ret.append(fs)
 
             if Symbol.EPSILON_SYMBOL not in first_set:
                 break
 
         if i == len(symbols):
-            ret.add(Symbol.EPSILON_SYMBOL)
+            if Symbol.EPSILON_SYMBOL not in ret:
+                ret.add(Symbol.EPSILON_SYMBOL)
 
         return ret
 
     def new_items(self, production, item, rest_body):
-        # print('production:', production)
-        # print('rest_body:', rest_body)
 
-        ret_items = set()
+        ret_items = []
         for body in production.bodies:
             remaining_symbols = rest_body + [item.symbol]
     
             first_set = self.first(remaining_symbols)
     
             for symbol in first_set:
-                ret_items.add(LR1Item(production, symbol))
+                cand_item = LR1Item(production, symbol)
+                if cand_item not in ret_items:
+                    ret_items.append(cand_item)
 
         return ret_items
 
