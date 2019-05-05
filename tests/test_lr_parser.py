@@ -213,4 +213,4 @@ digraph
 
         print('FIRST(): ', grammar.first)
         print('\ngrammar:\n{}'.format(grammar))
-        lr_1_parser = LR1Parser(grammar)
+        # lr_1_parser = LR1Parser(grammar)

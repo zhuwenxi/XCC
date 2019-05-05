@@ -287,6 +287,7 @@ class LR0Set(object):
                     rest_body = body[rest_body_index:]
 
                     for new_prod in prods:
+                        # print('body:', body)
                         items = self.new_items(new_prod, item, rest_body)
                         for item in items:
                             if item in self.items:
@@ -295,6 +296,8 @@ class LR0Set(object):
                             self.items.append(item)
                             # Add these items to work queue
                             work_queue.append(item)
+
+        # print('closure:\n{}'.format(self.items))
     
     # To be overrided:
     def new_items(self, production, item, rest_body):
@@ -391,7 +394,7 @@ class LR1Parser(LR0Parser):
         # Set0: closure([S' -> DOT S, EOF])
         prod = copy.deepcopy(self.grammar.productions[0])
         prod.bodies[0].insert(0, Symbol.DOT_SYMBOL)
-
+        
         return LR1Set([LR1Item(prod, Symbol.EOF_SYMBOL)], self.grammar)
 
 class LR1Set(LR0Set):
@@ -410,8 +413,8 @@ class LR1Set(LR0Set):
         return ret
 
     def new_items(self, production, item, rest_body):
-        print('production:', production)
-        print('rest_body:', rest_body)
+        # print('production:', production)
+        # print('rest_body:', rest_body)
 
         ret_items = set()
         for body in production.bodies:
@@ -430,8 +433,8 @@ class LR1Item(LR0Item):
 
         self.symbol = symbol
 
-    def __str_(self):
-        return '(' + str(self.productions) + ', ' + str(symbol) + ')'
+    def __str__(self):
+        return '(' + str(self.production) + ', ' + str(self.symbol) + ')'
 
     def __repr__(self):
         return str(self)
