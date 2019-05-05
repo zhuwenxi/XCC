@@ -74,7 +74,7 @@ class LR0Parser(object):
 
     def construct_parsing_tables(self):
         self.construct_canonical_collection()
-        # self.construct_action_table()
+        self.construct_action_table()
 
     def initial_state(self):
         # Set0: closure([S' -> DOT S])
@@ -104,6 +104,12 @@ class LR0Parser(object):
 
         self._set_states_id()
 
+    def check_accept(self, prod, item, goal):
+        return prod.head == goal
+
+    def reduce_symbol(self, prod, item):
+        return self.grammar.follow[prod.head]
+
     def construct_action_table(self):
         goal_symbol = self.grammar.productions[0].head
         eof_symbol = Symbol.EOF_SYMBOL
@@ -116,7 +122,7 @@ class LR0Parser(object):
                     # A -> a DOT
                     if symbol_after_dot is None:
                         # # S' -> S DOT
-                        if prod.head == goal_symbol:
+                        if self.check_accept(prod, item, goal_symbol):
                             action = Action(action_type=Action.ACCEPT)
                             key = (state, eof_symbol)
                             if key in self.action_table:
@@ -130,10 +136,10 @@ class LR0Parser(object):
                             reduce_prod.bodies = [body]
                             action = Action(action_type=Action.REDUCE, reduce_prod=reduce_prod)
     
-                            follow_A = self.grammar.follow[prod.head]
-                            for s in follow_A:
+                            symbols = self.reduce_symbol(prod, item)
+                            for s in symbols:
                                 key = (state, s)
-                                if key in self.action_table:
+                                if key in self.action_table and action != self.action_table[key]:
                                     raise Exception('Oops, action conflit! ({}, {}) -> {}, {}'.format(state, s, self.action_table[key], action))
     
                                 self.action_table[key] = action
@@ -145,8 +151,8 @@ class LR0Parser(object):
 
                         action = Action(action_type=Action.SHIFT, shift_state=shift_state)
 
-                        if key in self.action_table:
-                                raise Exception('Oops, action conflit! ({}, {}) -> {}, {}'.format(state, symbol_after_dot, self.action_table[key], action))
+                        if key in self.action_table and action != self.action_table[key]:
+                            raise Exception('Oops, action conflit! ({}, {}) -> {}, {}'.format(state, symbol_after_dot, self.action_table[key], action))
 
                         self.action_table[key] = action
 
@@ -401,6 +407,9 @@ class Action(object):
     def __repr__(self):
         return str(self)
 
+    def __eq__(self, other):
+        return str(self) == str(other)
+
 Action.ERROR_ACTION = Action(Action.ERROR)
 
 class LR1Parser(LR0Parser):
@@ -413,6 +422,12 @@ class LR1Parser(LR0Parser):
 
     def target_goto_state(self, items, grammar):
         return LR1Set(items, grammar)
+
+    def check_accept(self, prod, item, goal):
+        return prod.head == goal and item.symbol == Symbol.EOF_SYMBOL
+
+    def reduce_symbol(self, prod, item):
+        return [item.symbol]
 
 class LR1Set(LR0Set):
     def first(self, symbols):

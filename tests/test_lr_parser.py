@@ -215,6 +215,4 @@ digraph
         print('\ngrammar:\n{}'.format(grammar))
         lr_1_parser = LR1Parser(grammar)
         
-        print(lr_1_parser)
-        # for s in lr_1_parser.states:
-            # print(s)
+        # print(lr_1_parser)
