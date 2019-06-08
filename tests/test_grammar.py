@@ -1,6 +1,6 @@
 import unittest
-from xcc.scanner.context_free_grammar import *
-from xcc.scanner.grammar_factory import GrammarFactory
+from xcc.parser.context_free_grammar import *
+from xcc.parser.grammar_factory import GrammarFactory
 
 
 class GrammarTest(unittest.TestCase):

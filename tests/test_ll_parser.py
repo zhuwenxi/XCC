@@ -1,9 +1,9 @@
 import unittest
 
-from xcc.scanner.context_free_grammar import *
-from xcc.scanner.grammar_factory import GrammarFactory
-from xcc.scanner.token import Token
-from xcc.scanner.ll_parser import LLParser
+from xcc.parser.context_free_grammar import *
+from xcc.parser.grammar_factory import GrammarFactory
+from xcc.parser.token import Token
+from xcc.parser.ll_parser import LLParser
 
 class LLParserTest(unittest.TestCase):
     def setUp(self):
