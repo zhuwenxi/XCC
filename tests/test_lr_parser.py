@@ -290,3 +290,8 @@ digraph
         actual = str(ast)
 
         self.assertEqual(expected, actual)
+
+    def test_lr_1_parsing_4(self):
+        grammar = GrammarFactory.get_grammar('example-4.58')
+        grammar.compute_first_plus_set()
+        lr_1_parser = LR1Parser(grammar)
